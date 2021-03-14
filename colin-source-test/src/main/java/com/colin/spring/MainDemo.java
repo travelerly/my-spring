@@ -1,4 +1,4 @@
-package com.colin.bean.spring;
+package com.colin.spring;
 
 import com.colin.bean.Person;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
