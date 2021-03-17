@@ -12,6 +12,12 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class XmlDemo {
 
 	public static void main(String[] args) {
+		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("bean2.xml");
+		Person pseron = applicationContext.getBean(Person.class);
+		System.out.println(pseron);
+	}
+
+	private static void xmlDemo() {
 		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("bean.xml");
 		Person pseron = applicationContext.getBean(Person.class);
 		System.out.println(pseron);
