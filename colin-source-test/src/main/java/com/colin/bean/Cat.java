@@ -1,19 +1,17 @@
 package com.colin.bean;
 
-import lombok.Data;
-import lombok.ToString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 /**
  * @author colin
- * @create 2021-03-12 14:03
+ * @create 2021-03-17 11:32
  */
 @Component
-public class Person {
+public class Cat {
 
-	public String name;
+	private String name;
 
 	public String getName() {
 		return name;
@@ -21,5 +19,14 @@ public class Person {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+
+	//测试注解版Bean中能否注入ioc容器
+	@Autowired
+	ApplicationContext context;
+
+	public ApplicationContext getContext() {
+		return context;
 	}
 }
