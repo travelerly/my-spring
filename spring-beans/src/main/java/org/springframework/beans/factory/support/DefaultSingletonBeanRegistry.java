@@ -259,6 +259,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					afterSingletonCreation(beanName);
 				}
 				if (newSingleton) {
+					// 对象保存到ioc容器-单例池中
 					addSingleton(beanName, singletonObject);
 				}
 			}

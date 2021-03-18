@@ -11,6 +11,7 @@ public class MyMergedBeanDefinitionPostProcessor implements MergedBeanDefinition
 		System.out.println("MyMergedBeanDefinitionPostProcessor...");
 	}
 
+	// 能改变之前创建的实例对象
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		System.out.println("MyMergedBeanDefinitionPostProcessor...postProcessBeforeInitialization...=>"+bean+"--"+beanName);
@@ -23,6 +24,7 @@ public class MyMergedBeanDefinitionPostProcessor implements MergedBeanDefinition
 		return null;
 	}
 
+	// 允许后置处理器再次修改 BeanDefinition 信息
 	@Override
 	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
 		System.out.println("MyMergedBeanDefinitionPostProcessor...postProcessMergedBeanDefinition..=>"+beanName+"--"+beanType+"---"+beanDefinition);

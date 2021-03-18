@@ -24,6 +24,7 @@ public class MyBeanPostProcessor implements BeanPostProcessor {
 		return bean;
 	}
 
+	// 能改变之前创建的实例对象
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		System.out.println("MyBeanPostProcessor...postProcessBeforeInitialization..."+bean+"==>"+beanName);

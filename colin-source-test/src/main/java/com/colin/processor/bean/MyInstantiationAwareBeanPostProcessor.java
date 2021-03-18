@@ -14,6 +14,7 @@ public class MyInstantiationAwareBeanPostProcessor implements InstantiationAware
 		System.out.println("MyInstantiationAwareBeanPostProcessor...");
 	}
 
+	// 初始化之前进行后置处理，Spring 留给我们给这个组件创建对象的回调，如果我们自己创建了对象，Spring 则不会创建对象，直接使用我们自己创建的对象。
 	@Override
 	public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) throws BeansException {
 		System.out.println("MyInstantiationAwareBeanPostProcessor...postProcessBeforeInstantiation=>"+beanClass+"--"+beanName);
@@ -26,6 +27,7 @@ public class MyInstantiationAwareBeanPostProcessor implements InstantiationAware
 		return true;
 	}
 
+	// 可以解析自定义注解，进行属性注入，pvs封装了所有的属性信息
 	@Override
 	public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName)
 			throws BeansException {

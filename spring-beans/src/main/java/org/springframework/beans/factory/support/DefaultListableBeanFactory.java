@@ -554,6 +554,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		return resolvedBeanNames;
 	}
 
+	// 获取某个组件类型在容器中的名字。遍历所有组件的beanName，拿到beanName对应的定义信息，再根据定义信息判断是否符合指定的类型。
 	private String[] doGetBeanNamesForType(ResolvableType type, boolean includeNonSingletons, boolean allowEagerInit) {
 		List<String> result = new ArrayList<>();
 
@@ -574,7 +575,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 						boolean isNonLazyDecorated = (dbd != null && !mbd.isLazyInit());
 						if (!isFactoryBean) {
 							if (includeNonSingletons || isSingleton(beanName, mbd, dbd)) {
-								matchFound = isTypeMatch(beanName, type, allowFactoryBeanInit);
+								matchFound = isTypeMatch(beanName, type, allowFactoryBeanInit);// 是否类型匹配
 							}
 						}
 						else {
@@ -917,7 +918,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		// While this may not be part of the regular factory bootstrap, it does otherwise work fine.
 		List<String> beanNames = new ArrayList<>(this.beanDefinitionNames);
 
-		// 从档案馆（beanDefinitionNames）中拿到所有bean的名字，再挨个获取（getBean） Trigger initialization of all non-lazy singleton beans...
+		// 从档案馆（beanDefinitionNames）中拿到所有 bean 的名字，再挨个获取「getBean」。 Trigger initialization of all non-lazy singleton beans...
 		for (String beanName : beanNames) {
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
@@ -941,7 +942,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 					}
 				}
 				else {
-					//（非FactoryBean）普通单实例、非懒加载Bean的创建
+					//（非 FactoryBean ）普通单实例、非懒加载Bean的创建
 					getBean(beanName);
 				}
 			}

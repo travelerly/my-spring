@@ -395,7 +395,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				beanCreation.end();
 			}
 		}
-
+		// 适配类型
 		return adaptBeanInstance(name, beanInstance, requiredType);
 	}
 
