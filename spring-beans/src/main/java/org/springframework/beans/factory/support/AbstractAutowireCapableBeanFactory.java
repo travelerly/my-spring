@@ -419,6 +419,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		Object result = existingBean;
 		for (BeanPostProcessor processor : getBeanPostProcessors()) {
+			// 后置处理，在初始化之前进行增强
 			Object current = processor.postProcessBeforeInitialization(result, beanName);
 			if (current == null) {
 				return result;
@@ -564,9 +565,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
 		}
 		if (instanceWrapper == null) {
-			// 创建 Bean 的实例，默认使用无参构造器创建对象
+			// 创建 Bean 的实例，默认使用无参构造器创建对象。「真正的创建对象」
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
 		}
+		// 将创建完成的实例封装成 BeanWrapper.「装饰 Decorator 模式」
 		Object bean = instanceWrapper.getWrappedInstance();
 		Class<?> beanType = instanceWrapper.getWrappedClass();
 		if (beanType != NullBean.class) {
@@ -587,7 +589,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 		}
 
-		// Eagerly cache singletons to be able to resolve circular references
+		// 提前暴露单实例Bean，专门解决循环依赖。 Eagerly cache singletons to be able to resolve circular references
 		// even when triggered by lifecycle interfaces like BeanFactoryAware.
 		boolean earlySingletonExposure = (mbd.isSingleton() && this.allowCircularReferences &&
 				isSingletonCurrentlyInCreation(beanName));
@@ -602,9 +604,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Initialize the bean instance.
 		Object exposedObject = bean;
 		try {
-			//给创建好的对象的每个属性进行赋值。@Autowired 发生在这里
+			// 给创建好的对象的每个属性进行赋值。@Autowired 发生在这里
 			populateBean(beanName, mbd, instanceWrapper);
-			//初始化Bean
+			// 初始化Bean
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		}
 		catch (Throwable ex) {
@@ -617,7 +619,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 		}
 
+		// 早期单实例的暴露
 		if (earlySingletonExposure) {
+			// 检查早期缓存中是否存在当前组件
 			Object earlySingletonReference = getSingleton(beanName, false);
 			if (earlySingletonReference != null) {
 				if (exposedObject == bean) {
@@ -1217,7 +1221,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			return autowireConstructor(beanName, mbd, ctors, null);
 		}
 
-		// 使用BeanDefinition中的构造器（默认无参构造器）为当前组件创建对象 No special handling: simply use no-arg constructor.
+		// 使用 BeanDefinition 中的构造器（默认无参构造器）为当前组件创建对象 No special handling: simply use no-arg constructor.
 		return instantiateBean(beanName, mbd);
 	}
 
@@ -1392,7 +1396,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 		}
 
-		//从 BeanDefinition 中拿到所有属性的信息。指的是属性的键值对，属性名:属性值
+		//「准备所有的属性键值对」从 BeanDefinition 中拿到所有属性的信息。指的是属性的键值对，属性名:属性值。「装饰 Decorator 模式，装饰了属性名和值，增强了利用反射赋值的过程」
 		PropertyValues pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null);
 
 		int resolvedAutowireMode = mbd.getResolvedAutowireMode();
@@ -1420,6 +1424,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 			// 使用后置处理器处理属性
 			for (InstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().instantiationAware) {
+				// 处理属性的后置处理器开始工作。「例如自动装配功能再此执行」
 				PropertyValues pvsToUse = bp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
 				if (pvsToUse == null) {
 					if (filteredPds == null) {
@@ -1791,6 +1796,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		try {
+			// 执行初始化方法
 			invokeInitMethods(beanName, wrappedBean, mbd);
 		}
 		catch (Throwable ex) {
@@ -1799,6 +1805,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					beanName, "Invocation of init method failed", ex);
 		}
 		if (mbd == null || !mbd.isSynthetic()) {
+			// 后置处理器，属性设置完成后增强
 			wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);
 		}
 
@@ -1836,7 +1843,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 */
 	protected void invokeInitMethods(String beanName, Object bean, @Nullable RootBeanDefinition mbd)
 			throws Throwable {
-		// 如果组件实现了 InitializingBean 接口，就调用组件自己的 afterPropertiesSet 方法
+		// 如果组件实现了 InitializingBean 接口，就调用组件自己的 afterPropertiesSet 方法，Bean属性设置完之后执行
 		boolean isInitializingBean = (bean instanceof InitializingBean);
 		if (isInitializingBean && (mbd == null || !mbd.isExternallyManagedInitMethod("afterPropertiesSet"))) {
 			if (logger.isTraceEnabled()) {

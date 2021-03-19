@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
  * @author colin
  * @create 2021-03-17 14:34
  */
-@Component
+//@Component
 public class Cat implements InitializingBean {
 
 	private String name;
