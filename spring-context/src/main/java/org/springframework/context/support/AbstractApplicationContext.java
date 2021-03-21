@@ -548,43 +548,43 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		synchronized (this.startupShutdownMonitor) {
 			StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
 
-			// Prepare this context for refreshing.
+			// 准备上下文环境 Prepare this context for refreshing.
 			prepareRefresh();
 
 			// 工厂的创建： BeanFactory第一次创建，有xml解析逻辑 Tell the subclass to refresh the internal bean factory.
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
-			// Prepare the bean factory for use in this context.
+			// 预准备工厂，给容器中注册了环境信息作为单实例Bean，方便后续自动装配；还注册了一些后置处理器（处理监听功能、XXXAware功能）还注册了一些后置处理器（处理监听功能、XXXAware功能）。Prepare the bean factory for use in this context.
 			prepareBeanFactory(beanFactory);
 
 			try {
-				// Allows post-processing of the bean factory in context subclasses.
+				// 留给子类的模板方法，允许子类继续对工厂执行一些处理。Allows post-processing of the bean factory in context subclasses.
 				postProcessBeanFactory(beanFactory);
 
 				StartupStep beanPostProcess = this.applicationStartup.start("spring.context.beans.post-process");
-				// 工厂的增强： 执行所有的BeanFactory后置增强器，可以利用BeanFactory后置增强器对工厂进行修改或增强  配置类会在这里解析 Invoke factory processors registered as beans in the context.
+				// 工厂的增强： 执行所有的 BeanFactory 后置处理器，可以利用BeanFactory后置增强器对工厂进行修改或增强  配置类会在这里解析 Invoke factory processors registered as beans in the context.
 				invokeBeanFactoryPostProcessors(beanFactory);
 
-				// 注册所有的bean的后置处理器 Register bean processors that intercept bean creation.
+				// 注册所有的 bean 的后置处理器。「BeanPostProcessor」 Register bean processors that intercept bean creation.
 				registerBeanPostProcessors(beanFactory);
 				beanPostProcess.end();
 
-				// Initialize message source for this context.
+				// 初始化，国际化组件。「观察容器中是否含有MessageResource的定义信息，如果没有就注册一个」Initialize message source for this context.
 				initMessageSource();
 
-				// Initialize event multicaster for this context.
+				// 初始化事件多播功能「事件派发」。「观察容器中是否有id为applicationEventMulticaster的定义信息，如果没有就注册一个事件多播组件SimpleApplicationEventMulticaster放到单例池中」Initialize event multicaster for this context.
 				initApplicationEventMulticaster();
 
-				// Initialize other special beans in specific context subclasses.
+				// 留给子类继续增强处理逻辑「模板模式」。Initialize other special beans in specific context subclasses.
 				onRefresh();
 
-				// 注册监听器，关联Spring的事件监听机制 Check for listener beans and register them.
+				// 注册监听器，关联Spring的事件监听机制。「将容器中所有的监听器 ApplicationListener 保存进多播器集合中」 Check for listener beans and register them.
 				registerListeners();
 
-				// bean的创建： 完成BeanFactory的初始化 Instantiate all remaining (non-lazy-init) singletons.
+				// bean的创建： 完成BeanFactory的初始化。「详细参照Bean的初始化流程，再执行所有后初始化操作」「SmartInitializingSingleton.afterSingletonsInstantiated」。 Instantiate all remaining (non-lazy-init) singletons.
 				finishBeanFactoryInitialization(beanFactory);
 
-				// Last step: publish corresponding event.
+				// 最后的一些清理、事件发送等处理。 Last step: publish corresponding event.
 				finishRefresh();
 			}
 
@@ -632,14 +632,14 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			}
 		}
 
-		// Initialize any placeholder property sources in the context environment.
+		// 其他子容器自行实现，例如：「web-ioc容器在启动时，一般在此加载当前应用的上下文信息，ApplicationContext」WebApplicationContextUtils#initServletPropertySources。Initialize any placeholder property sources in the context environment.
 		initPropertySources();
 
 		// Validate that all properties marked as required are resolvable:
-		// see ConfigurablePropertyResolver#setRequiredProperties
+		// 准备环境变量信息。see ConfigurablePropertyResolver#setRequiredProperties
 		getEnvironment().validateRequiredProperties();
 
-		// Store pre-refresh ApplicationListeners...
+		// 存储子容器早期运行的一些监听器。Store pre-refresh ApplicationListeners...
 		if (this.earlyApplicationListeners == null) {
 			this.earlyApplicationListeners = new LinkedHashSet<>(this.applicationListeners);
 		}
@@ -650,7 +650,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		// Allow for the collection of early ApplicationEvents,
-		// to be published once the multicaster is available...
+		// 早期的一些事件可以存储在这里。to be published once the multicaster is available...
 		this.earlyApplicationEvents = new LinkedHashSet<>();
 	}
 
@@ -688,7 +688,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
 
-		// Configure the bean factory with context callbacks.
+		// 注册处理Aware接口的后置处理器。Configure the bean factory with context callbacks.
 		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
 		beanFactory.ignoreDependencyInterface(EnvironmentAware.class);
 		beanFactory.ignoreDependencyInterface(EmbeddedValueResolverAware.class);
@@ -699,7 +699,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.ignoreDependencyInterface(ApplicationStartupAware.class);
 
 		// BeanFactory interface not registered as resolvable type in a plain factory.
-		// MessageSource registered (and found for autowiring) as a bean.
+		// 注册可以解析到的依赖。MessageSource registered (and found for autowiring) as a bean.
 		beanFactory.registerResolvableDependency(BeanFactory.class, beanFactory);
 		beanFactory.registerResolvableDependency(ResourceLoader.class, this);
 		beanFactory.registerResolvableDependency(ApplicationEventPublisher.class, this);
@@ -715,7 +715,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			beanFactory.setTempClassLoader(new ContextTypeMatchClassLoader(beanFactory.getBeanClassLoader()));
 		}
 
-		// Register default environment beans.
+		// 注册默认组件「放入单例池中」。Register default environment beans.
 		if (!beanFactory.containsLocalBean(ENVIRONMENT_BEAN_NAME)) {
 			beanFactory.registerSingleton(ENVIRONMENT_BEAN_NAME, getEnvironment());
 		}
@@ -746,7 +746,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * <p>Must be called before singleton instantiation.
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
-		//执行了所有的工厂增强器
+		//执行了所有的工厂增强器。后置处理器的注册代理（门面模式-装饰模式）
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 
 		// Detect a LoadTimeWeaver and prepare for weaving, if found in the meantime
@@ -816,6 +816,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 		else {
 			this.applicationEventMulticaster = new SimpleApplicationEventMulticaster(beanFactory);
+			// 注册一个事件派发器
 			beanFactory.registerSingleton(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, this.applicationEventMulticaster);
 			if (logger.isTraceEnabled()) {
 				logger.trace("No '" + APPLICATION_EVENT_MULTICASTER_BEAN_NAME + "' bean, using " +
@@ -863,7 +864,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 	/**
 	 * Add beans that implement ApplicationListener as listeners.
-	 * Doesn't affect other listeners, which can be added without being beans.
+	 * 多播器和监听器是观察者模式。「多播器中包含了所有的监听器」Doesn't affect other listeners, which can be added without being beans.
 	 */
 	protected void registerListeners() {
 		// Register statically specified listeners first.
@@ -874,11 +875,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// Do not initialize FactoryBeans here: We need to leave all regular beans
 		// 获取容器中所有 ApplicationListener 类型的组件的名字 uninitialized to let post-processors apply to them!
 		String[] listenerBeanNames = getBeanNamesForType(ApplicationListener.class, true, false);
+		// 将所有的监听器保存在多播器的集合中
 		for (String listenerBeanName : listenerBeanNames) {
 			getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);
 		}
 
-		// Publish early application events now that we finally have a multicaster...
+		// 派发之前积攒的一些早期事件。Publish early application events now that we finally have a multicaster...
 		Set<ApplicationEvent> earlyEventsToProcess = this.earlyApplicationEvents;
 		this.earlyApplicationEvents = null;
 		if (!CollectionUtils.isEmpty(earlyEventsToProcess)) {

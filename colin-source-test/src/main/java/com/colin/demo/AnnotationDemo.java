@@ -16,7 +16,7 @@ public class AnnotationDemo {
 	public static void main(String[] args) {
 
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
-		Person person = applicationContext.getBean(Person.class);
+
 		System.out.println("==============");
 	}
 

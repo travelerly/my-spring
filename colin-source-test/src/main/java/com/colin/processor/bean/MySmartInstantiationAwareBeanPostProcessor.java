@@ -27,7 +27,7 @@ public class MySmartInstantiationAwareBeanPostProcessor implements SmartInstanti
 		return null;
 	}
 
-	// 返回早期的bean引用
+	// 返回早期的bean引用，定义单例工厂池「三级缓存」中的 bean 信息
 	@Override
 	public Object getEarlyBeanReference(Object bean, String beanName) throws BeansException {
 		System.out.println("MySmartInstantiationAwareBeanPostProcessor...getEarlyBeanReference=>"+bean+"--"+beanName);

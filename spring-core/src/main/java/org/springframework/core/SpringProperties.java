@@ -63,6 +63,7 @@ public final class SpringProperties {
 					ClassLoader.getSystemResource(PROPERTIES_RESOURCE_LOCATION));
 			if (url != null) {
 				try (InputStream is = url.openStream()) {
+					// 读取 Spring 默认配置，spring.properties
 					localProperties.load(is);
 				}
 			}
