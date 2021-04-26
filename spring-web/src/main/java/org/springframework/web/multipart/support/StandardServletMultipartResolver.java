@@ -79,7 +79,7 @@ public class StandardServletMultipartResolver implements MultipartResolver {
 
 	@Override
 	public boolean isMultipart(HttpServletRequest request) {
-		return StringUtils.startsWithIgnoreCase(request.getContentType(), "multipart/");
+		return StringUtils.startsWithIgnoreCase(request.getContentType(), "multipart/");// 文件上传请求的请求头content-type标识
 	}
 
 	@Override

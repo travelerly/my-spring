@@ -175,7 +175,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	}
 
 	/**
-	 * Register the given mapping.
+	 *  Register the given mapping.
 	 * <p>This method may be invoked at runtime after initialization has completed.
 	 * @param mapping the mapping for the handler method
 	 * @param handler the handler

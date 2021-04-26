@@ -28,14 +28,15 @@ import javax.servlet.ServletRegistration;
 public class AppStarter implements WebApplicationInitializer {
 	@Override
 	public void onStartup(javax.servlet.ServletContext servletContext) throws ServletException {
-		// 创建了IOC容器
+		// 1.创建了IOC容器
 		AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
 		context.register(AppConfig.class);
 
-		// 配置了DispatcherServlet
+		// 2.配置了DispatcherServlet
 		DispatcherServlet servlet = new DispatcherServlet(context);
 		ServletRegistration.Dynamic registration = servletContext.addServlet("app", servlet);
 		registration.setLoadOnStartup(1);
 		registration.addMapping("/");
+		// 3.上面的 DispatcherServlet 添加到 servletContext里面后，Tomcat就会对 DispatcherServlet 进行初始化
 	}
 }
