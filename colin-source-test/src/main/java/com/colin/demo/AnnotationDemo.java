@@ -1,5 +1,6 @@
 package com.colin.demo;
 
+import com.colin.aop.HelloService;
 import com.colin.bean.ContextBean;
 import com.colin.bean.Hello;
 import com.colin.bean.Person;
@@ -16,7 +17,9 @@ public class AnnotationDemo {
 	public static void main(String[] args) {
 
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
-
+		/*HelloService helloService = applicationContext.getBean(HelloService.class);
+		helloService.sayHello("colin");*/
+		Person person = applicationContext.getBean(Person.class);
 		System.out.println("==============");
 	}
 

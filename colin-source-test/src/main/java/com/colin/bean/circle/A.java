@@ -1,12 +1,13 @@
 package com.colin.bean.circle;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * @author colin
  * @create 2021-03-20 15:50
  */
-@Component
+//@Component
 public class A {
 
 	private B b;
@@ -15,6 +16,7 @@ public class A {
 		System.out.println("===A...构造...===");
 	}
 
+	@Autowired
 	public void setB(B b) {
 		this.b = b;
 	}

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  * @author colin
  * @create 2021-03-17 14:13
  */
-@Component
+//@Component
 public class MyBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 
 	public MyBeanFactoryPostProcessor() {

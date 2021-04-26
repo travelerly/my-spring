@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  * @author colin
  * @create 2021-03-17 14:14
  */
-@Component
+//@Component
 public class MyBeanDefinitionRegistryPostProcessor implements BeanDefinitionRegistryPostProcessor {
 
 	public MyBeanDefinitionRegistryPostProcessor() {

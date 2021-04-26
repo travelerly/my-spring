@@ -7,12 +7,13 @@ import org.springframework.context.annotation.Configuration;
  * @author colin
  * @create 2021-03-17 11:31
  */
-@ComponentScan("com.colin.bean")
+@ComponentScan("com.colin")
+//@ComponentScan("com.colin.bean")
 @Configuration
 public class MyConfig {
 
 	public MyConfig() {
-		System.out.println("MyConfig...创建了...");
+		System.out.println("...MyConfig创建了...");
 	}
 
 	/*@Bean

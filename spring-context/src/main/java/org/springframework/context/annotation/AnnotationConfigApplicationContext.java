@@ -88,7 +88,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * {@link Configuration @Configuration} classes
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
-		this();
+		this(); // 注册了一些底层的后置处理器
 		register(componentClasses);
 		refresh();	// 容器完整刷新（创建出所有组件，组织好所有功能）
 	}

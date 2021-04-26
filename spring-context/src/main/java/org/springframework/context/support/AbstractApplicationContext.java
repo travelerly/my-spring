@@ -554,7 +554,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			// 工厂的创建： BeanFactory第一次创建，有xml解析逻辑 Tell the subclass to refresh the internal bean factory.
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
-			// 预准备工厂，给容器中注册了环境信息作为单实例Bean，方便后续自动装配；还注册了一些后置处理器（处理监听功能、XXXAware功能）还注册了一些后置处理器（处理监听功能、XXXAware功能）。Prepare the bean factory for use in this context.
+			// 预准备工厂，给容器中注册了环境信息作为单实例 Bean，方便后续自动装配；还注册了一些后置处理器（处理监听功能、XXXAware功能）还注册了一些后置处理器（处理监听功能、XXXAware功能）。Prepare the bean factory for use in this context.
 			prepareBeanFactory(beanFactory);
 
 			try {

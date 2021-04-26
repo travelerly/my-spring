@@ -63,4 +63,5 @@ settings.gradle.projectsLoaded {
 	}
 }
 include 'colin-source-test'
+include 'colin-mvc-test'
 

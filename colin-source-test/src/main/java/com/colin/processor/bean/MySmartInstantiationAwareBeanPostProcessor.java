@@ -5,7 +5,7 @@ import org.springframework.beans.factory.config.SmartInstantiationAwareBeanPostP
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Constructor;
-@Component	// bean进行代理增强期间使用
+//@Component	// bean进行代理增强期间使用
 public class MySmartInstantiationAwareBeanPostProcessor implements SmartInstantiationAwareBeanPostProcessor {
 
 	public MySmartInstantiationAwareBeanPostProcessor(){

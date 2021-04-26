@@ -103,7 +103,7 @@ final class PostProcessorRegistrationDelegate {
 					beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 			for (String ppName : postProcessorNames) {
 				if (beanFactory.isTypeMatch(ppName, PriorityOrdered.class)) {
-					// 从容器中获得这个组件「getBean整个创建过程」，并放入这个集合中
+					// 从容器中获得这个后置处理器「getBean整个创建过程」，并放入这个集合中
 					currentRegistryProcessors.add(beanFactory.getBean(ppName, BeanDefinitionRegistryPostProcessor.class));
 					processedBeans.add(ppName);
 				}
@@ -235,9 +235,12 @@ final class PostProcessorRegistrationDelegate {
 
 		// Separate between BeanPostProcessors that implement PriorityOrdered,
 		// Ordered, and the rest.
+		// 实现了优先级接口的后置处理器集合
 		List<BeanPostProcessor> priorityOrderedPostProcessors = new ArrayList<>();
 		List<BeanPostProcessor> internalPostProcessors = new ArrayList<>();
+		// 实现了排序接口的后置处理器名称集合
 		List<String> orderedPostProcessorNames = new ArrayList<>();
+		// 没有实现优先级或者排序接口的后置处理器的名称集合
 		List<String> nonOrderedPostProcessorNames = new ArrayList<>();
 		for (String ppName : postProcessorNames) {
 			// 根据后置处理器名字，分类型进行拆分集合
@@ -256,8 +259,9 @@ final class PostProcessorRegistrationDelegate {
 			}
 		}
 
-		// First, register the BeanPostProcessors that implement PriorityOrdered.
+		// 首先对实现了优先级接口的后置处理器集合进行排序。First, register the BeanPostProcessors that implement PriorityOrdered.
 		sortPostProcessors(priorityOrderedPostProcessors, beanFactory);
+		// 将后置处理器集合注册进工厂
 		registerBeanPostProcessors(beanFactory, priorityOrderedPostProcessors);
 
 		// Next, register the BeanPostProcessors that implement Ordered.
@@ -283,8 +287,9 @@ final class PostProcessorRegistrationDelegate {
 		}
 		registerBeanPostProcessors(beanFactory, nonOrderedPostProcessors);
 
-		// 最后重新注册所有internal的BeanPostProcessors Finally, re-register all internal BeanPostProcessors.
+		// Finally, re-register all internal BeanPostProcessors.
 		sortPostProcessors(internalPostProcessors, beanFactory);
+		// 最后重新注册所有 internal 的 BeanPostProcessors
 		registerBeanPostProcessors(beanFactory, internalPostProcessors);
 
 		// 重新注册一下这个后置处理器「ApplicationListenerDetector」。Re-register post-processor for detecting inner beans as ApplicationListeners,

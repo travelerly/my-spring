@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.beans.PropertyDescriptor;
 
-@Component
+//@Component
 public class MyInstantiationAwareBeanPostProcessor implements InstantiationAwareBeanPostProcessor {
 
 	public MyInstantiationAwareBeanPostProcessor(){

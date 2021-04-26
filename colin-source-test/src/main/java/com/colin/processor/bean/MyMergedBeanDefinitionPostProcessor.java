@@ -5,7 +5,7 @@ import org.springframework.beans.factory.support.MergedBeanDefinitionPostProcess
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 public class MyMergedBeanDefinitionPostProcessor implements MergedBeanDefinitionPostProcessor {
 	public MyMergedBeanDefinitionPostProcessor(){
 		System.out.println("MyMergedBeanDefinitionPostProcessor...");
