@@ -853,19 +853,21 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 
 		ServletWebRequest webRequest = new ServletWebRequest(request, response);
 		try {
+			// 数据绑定器
 			WebDataBinderFactory binderFactory = getDataBinderFactory(handlerMethod);
+			// 获取到模型工厂 Model 「要交给页面的数据」，View「视图」
 			ModelFactory modelFactory = getModelFactory(handlerMethod, binderFactory);
-
+			// 封装 handlerMethod 变为 ServletInvocableHandlerMethod 「提供了handlerMethod中信息的快速获取」
 			ServletInvocableHandlerMethod invocableMethod = createInvocableHandlerMethod(handlerMethod);
-			if (this.argumentResolvers != null) {
+			if (this.argumentResolvers != null) { // argumentResolvers参数解析器，用来反射解析目标方法中的每一个参数的值
 				invocableMethod.setHandlerMethodArgumentResolvers(this.argumentResolvers);
 			}
-			if (this.returnValueHandlers != null) {
+			if (this.returnValueHandlers != null) { // returnValueHandlers返回值处理器，用来处理目标方法执行后的返回值。「无论何种返回值，都要将其转为ModelAndView」
 				invocableMethod.setHandlerMethodReturnValueHandlers(this.returnValueHandlers);
 			}
 			invocableMethod.setDataBinderFactory(binderFactory);
 			invocableMethod.setParameterNameDiscoverer(this.parameterNameDiscoverer);
-
+			// 共享ModelAndView数据的临时存储容器
 			ModelAndViewContainer mavContainer = new ModelAndViewContainer();
 			mavContainer.addAllAttributes(RequestContextUtils.getInputFlashMap(request));
 			modelFactory.initModel(webRequest, mavContainer, invocableMethod);
@@ -890,7 +892,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 				});
 				invocableMethod = invocableMethod.wrapConcurrentResult(result);
 			}
-
+			// 执行目标方法并处理方法的返回值
 			invocableMethod.invokeAndHandle(webRequest, mavContainer);
 			if (asyncManager.isConcurrentHandlingStarted()) {
 				return null;

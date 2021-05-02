@@ -35,7 +35,7 @@ import javax.servlet.ServletContextListener;
  * @see org.springframework.web.WebApplicationInitializer
  */
 public class ContextLoaderListener extends ContextLoader implements ServletContextListener {
-
+	// 在当前 Web 应用启动后（Tomcat 把 Web 应用加载完以后），调用 contextInitialized() 方法
 	/**
 	 * Create a new {@code ContextLoaderListener} that will create a web application
 	 * context based on the "contextClass" and "contextConfigLocation" servlet
@@ -96,10 +96,11 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 
 
 	/**
-	 * Initialize the root web application context.
+	 * 根容器初始化 Initialize the root web application context.
 	 */
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
+		// 初始化 web-ioc 容器。
 		initWebApplicationContext(event.getServletContext());
 	}
 

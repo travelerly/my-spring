@@ -49,12 +49,15 @@ public abstract class AbstractAnnotationConfigDispatcherServletInitializer
 	 * <p>This implementation creates an {@link AnnotationConfigWebApplicationContext},
 	 * providing it the annotated classes returned by {@link #getRootConfigClasses()}.
 	 * Returns {@code null} if {@link #getRootConfigClasses()} returns {@code null}.
+	 * 重写了爷爷类（AbstractContextLoaderInitializer）的创建根容器的方法 createRootApplicationContext()
 	 */
 	@Override
 	@Nullable
 	protected WebApplicationContext createRootApplicationContext() {
+		// 获取根容器的配置
 		Class<?>[] configClasses = getRootConfigClasses();
 		if (!ObjectUtils.isEmpty(configClasses)) {
+			// 创建了一个 IOC 容器，并把配置类注册进来。
 			AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
 			context.register(configClasses);
 			return context;
@@ -72,6 +75,7 @@ public abstract class AbstractAnnotationConfigDispatcherServletInitializer
 	@Override
 	protected WebApplicationContext createServletApplicationContext() {
 		AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
+		// 获取 Web 应用的配置
 		Class<?>[] configClasses = getServletConfigClasses();
 		if (!ObjectUtils.isEmpty(configClasses)) {
 			context.register(configClasses);
@@ -84,6 +88,7 @@ public abstract class AbstractAnnotationConfigDispatcherServletInitializer
 	 * {@linkplain #createRootApplicationContext() root application context}.
 	 * @return the configuration for the root application context, or {@code null}
 	 * if creation and registration of a root context is not desired
+	 * 留给子类的模板方法
 	 */
 	@Nullable
 	protected abstract Class<?>[] getRootConfigClasses();

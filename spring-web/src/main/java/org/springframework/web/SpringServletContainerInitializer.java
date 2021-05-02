@@ -109,6 +109,8 @@ import org.springframework.util.ReflectionUtils;
  * @since 3.1
  * @see #onStartup(Set, ServletContext)
  * @see WebApplicationInitializer
+ * Servlet规范，ServletContainerInitializer 接口的实现类处理@HandlesTypes注解
+ * ServletContainerInitializer 接口的所有实现类是 Tomcat 使用SPI机制加载的。
  */
 @HandlesTypes(WebApplicationInitializer.class)
 public class SpringServletContainerInitializer implements ServletContainerInitializer {
@@ -169,7 +171,7 @@ public class SpringServletContainerInitializer implements ServletContainerInitia
 			servletContext.log("No Spring WebApplicationInitializer types detected on classpath");
 			return;
 		}
-		// 下面会遍历所有的满足要求的WebApplicationInitializer的实现类，并调用他们的onStartup
+		// 下面会遍历所有的满足要求（非接口、非抽象）的WebApplicationInitializer的实现类，并调用他们的onStartup方法
 		servletContext.log(initializers.size() + " Spring WebApplicationInitializers detected on classpath");
 		AnnotationAwareOrderComparator.sort(initializers);
 		for (WebApplicationInitializer initializer : initializers) {

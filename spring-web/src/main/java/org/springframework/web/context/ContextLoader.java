@@ -398,7 +398,7 @@ public class ContextLoader {
 		}
 
 		customizeContext(sc, wac);
-		wac.refresh();
+		wac.refresh();// 容器刷新十二大步骤
 	}
 
 	/**
