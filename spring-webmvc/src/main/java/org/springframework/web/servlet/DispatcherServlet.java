@@ -484,7 +484,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 
 	/**
-	 * This implementation calls {@link #initStrategies}.
+	 * 初始化 Dispatcher 的九大组件 This implementation calls {@link #initStrategies}.
 	 */
 	@Override
 	protected void onRefresh(ApplicationContext context) {
@@ -492,19 +492,19 @@ public class DispatcherServlet extends FrameworkServlet {
 	}
 
 	/**
-	 * 初始化所有的策略，八大组件在这里进行了初始化。Initialize the strategy objects that this servlet uses.
-	 * 从容器中获取改组件，如果容器中有，则取出，如果容器中没有，则使用默认值，「文件上传为null」。<p>May be overridden in subclasses in order to initialize further strategy objects.
+	 * 初始化所有策略，八大组件在这里进行了初始化。Initialize the strategy objects that this servlet uses.
+	 * 从容器中获取该组件，如果容器中有，则取出，如果容器中没有，则使用默认值，「文件上传为null」。<p>May be overridden in subclasses in order to initialize further strategy objects.
 	 */
 	protected void initStrategies(ApplicationContext context) {
-		initMultipartResolver(context);
-		initLocaleResolver(context);
-		initThemeResolver(context);
-		initHandlerMappings(context);
-		initHandlerAdapters(context);
-		initHandlerExceptionResolvers(context);
-		initRequestToViewNameTranslator(context);
-		initViewResolvers(context);
-		initFlashMapManager(context);
+		initMultipartResolver(context);// 从容器中获取，没有则使用默认值null
+		initLocaleResolver(context);// 从容器中获取，没有则使用默认值
+		initThemeResolver(context);// 从容器中获取，没有则使用默认值
+		initHandlerMappings(context);// 从容器中获取，没有则使用默认值
+		initHandlerAdapters(context);// 从容器中获取，没有则使用默认值
+		initHandlerExceptionResolvers(context);// 从容器中获取，没有则使用默认值
+		initRequestToViewNameTranslator(context);// 从容器中获取，没有则使用默认值
+		initViewResolvers(context);// 从容器中获取，没有则使用默认值
+		initFlashMapManager(context);// 从容器中获取，没有则使用默认值
 	}
 
 	/**
@@ -547,7 +547,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			}
 		}
 		catch (NoSuchBeanDefinitionException ex) {
-			// We need to use the default.
+			// 如果容器中没有，则使用默认值。We need to use the default.
 			this.localeResolver = getDefaultStrategy(context, LocaleResolver.class);
 			if (logger.isTraceEnabled()) {
 				logger.trace("No LocaleResolver '" + LOCALE_RESOLVER_BEAN_NAME +
@@ -865,7 +865,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			try {
 				// Load default strategy implementations from properties file.
 				// This is currently strictly internal and not meant to be customized
-				// by application developers.
+				// 在 DispatcherServlet.class 同路径下，找DispatcherServlet.properties 资源。by application developers.
 				ClassPathResource resource = new ClassPathResource(DEFAULT_STRATEGIES_PATH, DispatcherServlet.class);
 				defaultStrategies = PropertiesLoaderUtils.loadProperties(resource);
 			}
@@ -926,7 +926,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	protected void doService(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		logRequest(request);
 
-		// Keep a snapshot of the request attributes in case of an include,
+		// 保存请求「request」域中的所有属性 Keep a snapshot of the request attributes in case of an include,
 		// to be able to restore the original attributes after the include.
 		Map<String, Object> attributesSnapshot = null;
 		if (WebUtils.isIncludeRequest(request)) {
@@ -935,17 +935,21 @@ public class DispatcherServlet extends FrameworkServlet {
 			while (attrNames.hasMoreElements()) {
 				String attrName = (String) attrNames.nextElement();
 				if (this.cleanupAfterInclude || attrName.startsWith(DEFAULT_STRATEGIES_PREFIX)) {
+					// 保存请求「request」域中的所有属性
 					attributesSnapshot.put(attrName, request.getAttribute(attrName));
 				}
 			}
 		}
 
 		// Make framework objects available to handlers and view objects.
+		// 当前请求域中保存IOC容器
 		request.setAttribute(WEB_APPLICATION_CONTEXT_ATTRIBUTE, getWebApplicationContext());
+		// 当前请求域中保存国际化解析器
 		request.setAttribute(LOCALE_RESOLVER_ATTRIBUTE, this.localeResolver);
+		// 当前请求域中保存主题解析器
 		request.setAttribute(THEME_RESOLVER_ATTRIBUTE, this.themeResolver);
 		request.setAttribute(THEME_SOURCE_ATTRIBUTE, getThemeSource());
-
+		// flashMapManager---闪存管理器「重定向携带数据」
 		if (this.flashMapManager != null) {
 			FlashMap inputFlashMap = this.flashMapManager.retrieveAndUpdate(request, response);
 			if (inputFlashMap != null) {
@@ -962,6 +966,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		try {
+			// 请求的处理流程「处理派发功能」
 			doDispatch(request, response);
 		}
 		finally {
@@ -1023,10 +1028,11 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		HttpServletRequest processedRequest = request;
-		HandlerExecutionChain mappedHandler = null;// handler的执行链
+		// handler 的执行链
+		HandlerExecutionChain mappedHandler = null;
 		// 文件上传请求标志位
 		boolean multipartRequestParsed = false;
-
+		// 对异步请求的支持（Servlet 3.0以后才支持的，Webflux的基础）
 		WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
 
 		try {
@@ -1038,7 +1044,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				processedRequest = checkMultipart(request);
 				multipartRequestParsed = (processedRequest != request);
 
-				//构造处理「目标方法+拦截器整个链路」 确定处理当前请求的 handler，返回 handler 的执行链。 Determine handler for the current request.
+				// 确定处理当前请求的 handler，返回 handler 的执行链。构造处理「目标方法+拦截器整个链路」 Determine handler for the current request.
 				mappedHandler = getHandler(processedRequest);
 				if (mappedHandler == null) {
 					// 如果没找到拦截器链，则返回404
