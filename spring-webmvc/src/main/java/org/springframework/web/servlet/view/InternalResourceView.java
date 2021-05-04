@@ -133,12 +133,13 @@ public class InternalResourceView extends AbstractUrlBasedView {
 	/**
 	 * Render the internal resource given the specified model.
 	 * This includes setting the model as request attributes.
+	 * 真正的渲染逻辑
 	 */
 	@Override
 	protected void renderMergedOutputModel(
 			Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) throws Exception {
 
-		// Expose the model object as request attributes.
+		// 暴露 model 中的数据作为请求域中的数据。 Expose the model object as request attributes.
 		exposeModelAsRequestAttributes(model, request);
 
 		// Expose helpers as request attributes, if any.
@@ -147,7 +148,7 @@ public class InternalResourceView extends AbstractUrlBasedView {
 		// Determine the path for the request dispatcher.
 		String dispatcherPath = prepareForRendering(request, response);
 
-		// Obtain a RequestDispatcher for the target resource (typically a JSP).
+		// 获取请求转发器。 Obtain a RequestDispatcher for the target resource (typically a JSP).
 		RequestDispatcher rd = getRequestDispatcher(request, dispatcherPath);
 		if (rd == null) {
 			throw new ServletException("Could not get RequestDispatcher for [" + getUrl() +
@@ -168,6 +169,7 @@ public class InternalResourceView extends AbstractUrlBasedView {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Forwarding to [" + getUrl() + "]");
 			}
+			// 使用转发器进行转发
 			rd.forward(request, response);
 		}
 	}

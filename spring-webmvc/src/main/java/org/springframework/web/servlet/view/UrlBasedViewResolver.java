@@ -466,7 +466,7 @@ public class UrlBasedViewResolver extends AbstractCachingViewResolver implements
 			return null;
 		}
 
-		// Check for special "redirect:" prefix.
+		// 如果视图名是以"redirect:"开头的，会创建重定向视图「RedirectView」对象。 Check for special "redirect:" prefix.
 		if (viewName.startsWith(REDIRECT_URL_PREFIX)) {
 			String redirectUrl = viewName.substring(REDIRECT_URL_PREFIX.length());
 			RedirectView view = new RedirectView(redirectUrl,
@@ -478,14 +478,14 @@ public class UrlBasedViewResolver extends AbstractCachingViewResolver implements
 			return applyLifecycleMethods(REDIRECT_URL_PREFIX, view);
 		}
 
-		// Check for special "forward:" prefix.
+		// 如果视图名是以"forward:"开头的，会创建转发视图「InternalResourceView」对象 Check for special "forward:" prefix.
 		if (viewName.startsWith(FORWARD_URL_PREFIX)) {
 			String forwardUrl = viewName.substring(FORWARD_URL_PREFIX.length());
 			InternalResourceView view = new InternalResourceView(forwardUrl);
 			return applyLifecycleMethods(FORWARD_URL_PREFIX, view);
 		}
 
-		// Else fall back to superclass implementation: calling loadView.
+		// 其他情况，则会调用父类创建视图对象，但仍为「InternalResourceView」。 Else fall back to superclass implementation: calling loadView.
 		return super.createView(viewName, locale);
 	}
 

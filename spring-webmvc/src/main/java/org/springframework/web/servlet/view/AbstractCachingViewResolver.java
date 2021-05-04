@@ -180,13 +180,13 @@ public abstract class AbstractCachingViewResolver extends WebApplicationObjectSu
 				synchronized (this.viewCreationCache) {
 					view = this.viewCreationCache.get(cacheKey);
 					if (view == null) {
-						// Ask the subclass to create the View object.
+						// 创建 View 对象。 Ask the subclass to create the View object.
 						view = createView(viewName, locale);
 						if (view == null && this.cacheUnresolved) {
 							view = UNRESOLVED_VIEW;
 						}
 						if (view != null && this.cacheFilter.filter(view, viewName, locale)) {
-							this.viewAccessCache.put(cacheKey, view);
+							this.viewAccessCache.put(cacheKey, view);// 视图对象放入缓存中
 							this.viewCreationCache.put(cacheKey, view);
 						}
 					}

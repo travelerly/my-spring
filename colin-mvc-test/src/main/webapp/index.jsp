@@ -12,5 +12,6 @@
   </head>
   <body>
   $END$
+  结果：<h1 style="color: red">${sessionScope.msg}</h1>
   </body>
 </html>

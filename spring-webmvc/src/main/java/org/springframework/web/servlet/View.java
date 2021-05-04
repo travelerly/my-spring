@@ -43,6 +43,7 @@ import org.springframework.lang.Nullable;
  * @author Rossen Stoyanchev
  * @see org.springframework.web.servlet.view.AbstractView
  * @see org.springframework.web.servlet.view.InternalResourceView
+ * 所有的视觉效果都有视图决定
  */
 public interface View {
 

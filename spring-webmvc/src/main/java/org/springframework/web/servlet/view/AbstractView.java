@@ -310,9 +310,10 @@ public abstract class AbstractView extends WebApplicationObjectSupport implement
 					", model " + (model != null ? model : Collections.emptyMap()) +
 					(this.staticAttributes.isEmpty() ? "" : ", static attributes " + this.staticAttributes));
 		}
-
+		// 准备 Model 数据
 		Map<String, Object> mergedModel = createMergedOutputModel(model, request, response);
 		prepareResponse(request, response);
+		// 渲染模型
 		renderMergedOutputModel(mergedModel, getRequestToExpose(request), response);
 	}
 
@@ -438,7 +439,7 @@ public abstract class AbstractView extends WebApplicationObjectSupport implement
 	 */
 	protected void exposeModelAsRequestAttributes(Map<String, Object> model,
 			HttpServletRequest request) throws Exception {
-
+		// 遍历 model 中的数据放入 request 域中。如果 model 中数据的值为 null，则会移除请求域中对应的数据
 		model.forEach((name, value) -> {
 			if (value != null) {
 				request.setAttribute(name, value);

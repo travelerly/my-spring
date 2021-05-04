@@ -75,7 +75,7 @@ public class ResponseStatusExceptionResolver extends AbstractHandlerExceptionRes
 			if (ex instanceof ResponseStatusException) {
 				return resolveResponseStatusException((ResponseStatusException) ex, request, response, handler);
 			}
-
+			// 拿到 ResponseStatus 注解
 			ResponseStatus status = AnnotatedElementUtils.findMergedAnnotation(ex.getClass(), ResponseStatus.class);
 			if (status != null) {
 				return resolveResponseStatus(status, request, response, handler, ex);
@@ -107,7 +107,7 @@ public class ResponseStatusExceptionResolver extends AbstractHandlerExceptionRes
 	 */
 	protected ModelAndView resolveResponseStatus(ResponseStatus responseStatus, HttpServletRequest request,
 			HttpServletResponse response, @Nullable Object handler, Exception ex) throws Exception {
-
+		// 获取 @ResponseStatus 注解指定的响应状态码和错误原因
 		int statusCode = responseStatus.code().value();
 		String reason = responseStatus.reason();
 		return applyStatusAndReason(statusCode, reason, response);
@@ -157,7 +157,7 @@ public class ResponseStatusExceptionResolver extends AbstractHandlerExceptionRes
 			String resolvedReason = (this.messageSource != null ?
 					this.messageSource.getMessage(reason, null, reason, LocaleContextHolder.getLocale()) :
 					reason);
-			response.sendError(statusCode, resolvedReason);
+			response.sendError(statusCode, resolvedReason);// 返回默认的错误页
 		}
 		return new ModelAndView();
 	}

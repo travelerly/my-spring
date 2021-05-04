@@ -39,7 +39,7 @@ import org.springframework.web.servlet.ModelAndView;
  * @see SimpleControllerHandlerAdapter
  */
 public class HttpRequestHandlerAdapter implements HandlerAdapter {
-
+	// 写一个组件@Controller，名字以"/"开头，并且实现 HttpRequestHandler 接口
 	@Override
 	public boolean supports(Object handler) {
 		return (handler instanceof HttpRequestHandler);
