@@ -69,7 +69,7 @@ public class ExceptionHandlerMethodResolver {
 
 
 	/**
-	 * A constructor that finds {@link ExceptionHandler} methods in the given type.
+	 * 扫描当前传入的类中所有标注了@ExceptionHandler注解的方法，存储到缓存「mappedMethods」中。A constructor that finds {@link ExceptionHandler} methods in the given type.
 	 * @param handlerType the type to introspect
 	 */
 	public ExceptionHandlerMethodResolver(Class<?> handlerType) {
@@ -107,7 +107,7 @@ public class ExceptionHandlerMethodResolver {
 		Assert.state(ann != null, "No ExceptionHandler annotation");
 		result.addAll(Arrays.asList(ann.value()));
 	}
-
+	// 缓存每一个方法「method」能处理的异常类型「exceptionType」
 	private void addExceptionMapping(Class<? extends Throwable> exceptionType, Method method) {
 		Method oldMethod = this.mappedMethods.put(exceptionType, method);
 		if (oldMethod != null && !oldMethod.equals(method)) {

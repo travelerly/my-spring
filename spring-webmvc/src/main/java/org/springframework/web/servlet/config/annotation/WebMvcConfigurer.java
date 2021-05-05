@@ -45,6 +45,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * @author Keith Donald
  * @author David Syer
  * @since 3.1
+ * 预留了 MVC 的扩展接口
  */
 public interface WebMvcConfigurer {
 

@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author colin
  * @create 2021-05-04 22:09
+ * 自定义异常
  */
 @ResponseStatus(value = HttpStatus.CONFLICT,reason = "非法用户")
 public class InvalidUserException extends RuntimeException{

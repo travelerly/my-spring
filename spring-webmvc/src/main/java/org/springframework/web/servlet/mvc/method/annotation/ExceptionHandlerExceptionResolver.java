@@ -261,7 +261,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 		return this.applicationContext;
 	}
 
-
+	// 实现了 InitilazingBean 接口，在容器创建完对象后，会初始化，调用 afterPropertiesSet()
 	@Override
 	public void afterPropertiesSet() {
 		// Do this first, it may add ResponseBodyAdvice beans
@@ -281,7 +281,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 		if (getApplicationContext() == null) {
 			return;
 		}
-
+		// 从容器中获取所有标注了 @ControllerAdvice 注解的组件
 		List<ControllerAdviceBean> adviceBeans = ControllerAdviceBean.findAnnotatedBeans(getApplicationContext());
 		for (ControllerAdviceBean adviceBean : adviceBeans) {
 			Class<?> beanType = adviceBean.getBeanType();
@@ -399,7 +399,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 		if (exceptionHandlerMethod == null) {
 			return null;
 		}
-
+		// 异常解析器中，还是利用了参数解析器「argumentResolvers」和返回值处理器「returnValueHandlers」来扩展了异常解析功能
 		if (this.argumentResolvers != null) {
 			exceptionHandlerMethod.setHandlerMethodArgumentResolvers(this.argumentResolvers);
 		}
@@ -491,7 +491,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 				handlerType = AopUtils.getTargetClass(handlerMethod.getBean());
 			}
 		}
-
+		// 遍历所有的@ControllerAdvice，并使用能够处理异常的方法解析异常
 		for (Map.Entry<ControllerAdviceBean, ExceptionHandlerMethodResolver> entry : this.exceptionHandlerAdviceCache.entrySet()) {
 			ControllerAdviceBean advice = entry.getKey();
 			if (advice.isApplicableToBeanType(handlerType)) {

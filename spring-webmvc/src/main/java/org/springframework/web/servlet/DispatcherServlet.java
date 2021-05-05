@@ -496,15 +496,15 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * 从容器中获取该组件，如果容器中有，则取出，如果容器中没有，则使用默认值，「文件上传为null」。<p>May be overridden in subclasses in order to initialize further strategy objects.
 	 */
 	protected void initStrategies(ApplicationContext context) {
-		initMultipartResolver(context);// 从容器中获取，没有则使用默认值null
-		initLocaleResolver(context);// 从容器中获取，没有则使用默认值
-		initThemeResolver(context);// 从容器中获取，没有则使用默认值
-		initHandlerMappings(context);// 从容器中获取，没有则使用默认值
-		initHandlerAdapters(context);// 从容器中获取，没有则使用默认值
-		initHandlerExceptionResolvers(context);// 从容器中获取，没有则使用默认值
-		initRequestToViewNameTranslator(context);// 从容器中获取，没有则使用默认值
-		initViewResolvers(context);// 从容器中获取，没有则使用默认值
-		initFlashMapManager(context);// 从容器中获取，没有则使用默认值
+		initMultipartResolver(context);// 文件上传解析器初始化
+		initLocaleResolver(context);// 国际化解析器初始化
+		initThemeResolver(context);// 模板解析器初始化
+		initHandlerMappings(context);// 处理器映射器初始化
+		initHandlerAdapters(context);// 处理器适配器初始化
+		initHandlerExceptionResolvers(context);// 处理器异常解析器初始化
+		initRequestToViewNameTranslator(context);// 视图名翻译器初始化
+		initViewResolvers(context);// 视图解析器初始化
+		initFlashMapManager(context);// 闪存管理器初始化
 	}
 
 	/**

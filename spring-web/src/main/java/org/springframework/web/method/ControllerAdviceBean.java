@@ -296,6 +296,7 @@ public class ControllerAdviceBean implements Ordered {
 			beanFactory = ((ConfigurableApplicationContext) context).getBeanFactory();
 		}
 		List<ControllerAdviceBean> adviceBeans = new ArrayList<>();
+		// 拿到容器中所有的组件（类），筛选出标注了@ControllerAdvice注解的组件，存入缓存「adviceBeans」中
 		for (String name : BeanFactoryUtils.beanNamesForTypeIncludingAncestors(beanFactory, Object.class)) {
 			if (!ScopedProxyUtils.isScopedTarget(name)) {
 				ControllerAdvice controllerAdvice = beanFactory.findAnnotationOnBean(name, ControllerAdvice.class);

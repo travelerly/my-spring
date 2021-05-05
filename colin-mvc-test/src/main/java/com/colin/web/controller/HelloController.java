@@ -14,7 +14,6 @@ import javax.servlet.http.HttpSession;
  * @author colin
  * @create 2021-04-26 15:52
  */
-//@RestController
 @Controller
 public class HelloController {
 
@@ -31,9 +30,10 @@ public class HelloController {
 						HttpSession session ,// 原生的 session 对象
 						Integer num
 						){
-		// 模拟异常
+		// 模拟运行时异常
 		int a = 10 / num;
 
+		// 模拟自定义异常
 		if ("abc".equals(user)){
 			// 非法的用户，抛出自定义异常
 			throw new InvalidUserException();

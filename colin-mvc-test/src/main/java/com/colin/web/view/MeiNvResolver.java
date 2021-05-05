@@ -11,7 +11,7 @@ import java.util.Locale;
  * @create 2021-05-04 21:24
  * 自定义视图解析器
  */
-@Component
+//@Component
 public class MeiNvResolver implements ViewResolver {
 	@Override
 	public View resolveViewName(String viewName, Locale locale) throws Exception {
