@@ -1122,7 +1122,7 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 		ViewResolverRegistry registry =
 				new ViewResolverRegistry(contentNegotiationManager, this.applicationContext);
 		configureViewResolvers(registry);
-
+		// 判断子类是否进行了视图解析的配置，如果没有进行配置，则使用默认视图解析器「InternalResourceViewResolver」，否则使用子类配置的视图解析器
 		if (registry.getViewResolvers().isEmpty() && this.applicationContext != null) {
 			String[] names = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 					this.applicationContext, ViewResolver.class, true, false);

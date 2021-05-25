@@ -40,28 +40,28 @@ public class LogAspect {
 	@Before("execution(* com.colin.aop.HelloService.sayHello(..))")
 	public void logStart(JoinPoint joinPoint){
 		String name = joinPoint.getSignature().getName();
-		System.out.println("logStart==>"+name+"===【args:"+ Arrays.asList(joinPoint.getArgs())+"】");
+		System.out.println("前置通知logStart==>"+name+"===【args:"+ Arrays.asList(joinPoint.getArgs())+"】");
 	}
 
 	// 返回通知
 	@AfterReturning(value = "execution(* com.colin.aop.HelloService.sayHello(..))",returning = "result")
 	public void logReturn(JoinPoint joinPoint,Object result){
 		String name = joinPoint.getSignature().getName();
-		System.out.println("logReturn==>"+name+"===【args:"+ Arrays.asList(joinPoint.getArgs())+"】【result："+result);
+		System.out.println("返回通知logReturn==>"+name+"===【args:"+ Arrays.asList(joinPoint.getArgs())+"】【result："+result);
 	}
 
 	// 后置通知
 	@After("execution(* com.colin.aop.HelloService.sayHello(..))")
 	public void logEnd(JoinPoint joinPoint){
 		String name = joinPoint.getSignature().getName();
-		System.out.println("logEnd==>"+name+"===【args:"+ Arrays.asList(joinPoint.getArgs())+"】");
+		System.out.println("后置通知logEnd==>"+name+"===【args:"+ Arrays.asList(joinPoint.getArgs())+"】");
 	}
 
 	// 异常通知
 	@AfterThrowing(value = "execution(* com.colin.aop.HelloService.sayHello(..))",throwing = "e")
 	public void logError(JoinPoint joinPoint,Exception e){
 		String name = joinPoint.getSignature().getName();
-		System.out.println("logError==>"+name+"===【args:"+ Arrays.asList(joinPoint.getArgs())+"】【exception: \"+e+\"】\"");
+		System.out.println("异常通知logError==>"+name+"===【args:"+ Arrays.asList(joinPoint.getArgs())+"】【exception: \"+e+\"】\"");
 	}
 
 

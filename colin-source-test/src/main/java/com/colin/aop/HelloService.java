@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
  * @author colin
  * @create 2021-03-23 16:51
  */
-//@Component  // 切面存在的化就会返回代理对象
+@Component  // 切面存在的化就会返回代理对象
 public class HelloService {
 
 	public HelloService(){

@@ -17,9 +17,10 @@ public class AnnotationDemo {
 	public static void main(String[] args) {
 
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
-		/*HelloService helloService = applicationContext.getBean(HelloService.class);
-		helloService.sayHello("colin");*/
-		Person person = applicationContext.getBean(Person.class);
+		HelloService helloService = applicationContext.getBean(HelloService.class);
+		// 代理对象执行目标方法
+		helloService.sayHello("colin");
+		/*Person person = applicationContext.getBean(Person.class);*/
 		System.out.println("==============");
 	}
 

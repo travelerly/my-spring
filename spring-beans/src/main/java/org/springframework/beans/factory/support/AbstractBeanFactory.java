@@ -297,7 +297,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 
 			if (!typeCheckOnly) {
-				// Set<String> alreadyCreated 标记当前 beanName 的Bean 已经被创建
+				// 标记当前 beanName 的Bean 已经被创建。 Set<String> alreadyCreated
 				markBeanAsCreated(beanName);
 			}
 

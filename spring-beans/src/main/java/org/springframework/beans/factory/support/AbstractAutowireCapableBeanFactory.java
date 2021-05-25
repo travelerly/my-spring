@@ -435,6 +435,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		Object result = existingBean;
 		for (BeanPostProcessor processor : getBeanPostProcessors()) {
+			// 代理对象的创建
 			Object current = processor.postProcessAfterInitialization(result, beanName);
 			if (current == null) {
 				return result;
@@ -511,7 +512,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		try {
-			// 创建对象之前给我们一个机会，返回组件的创建的对象。 Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
+			// 创建对象之前给我们一个机会，返回组件的代理对象。「AOP的后置处理器没有利用这次机会」 Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
 			if (bean != null) {
 				// 如果返回了对象（InstantiationAwareBeanPostProcessor.postProcessBeforeInstantiation()返回的对象），则直接退出对象创建过程
@@ -1843,7 +1844,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 */
 	protected void invokeInitMethods(String beanName, Object bean, @Nullable RootBeanDefinition mbd)
 			throws Throwable {
-		// 如果组件实现了 InitializingBean 接口，就调用组件自己的 afterPropertiesSet 方法，Bean属性设置完之后执行
+		// 如果组件实现了生命周期「InitializingBean」 接口，就调用组件自己的 afterPropertiesSet 方法，Bean属性设置完之后执行
 		boolean isInitializingBean = (bean instanceof InitializingBean);
 		if (isInitializingBean && (mbd == null || !mbd.isExternallyManagedInitMethod("afterPropertiesSet"))) {
 			if (logger.isTraceEnabled()) {
