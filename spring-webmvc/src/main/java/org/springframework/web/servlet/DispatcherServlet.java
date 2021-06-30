@@ -935,13 +935,13 @@ public class DispatcherServlet extends FrameworkServlet {
 			while (attrNames.hasMoreElements()) {
 				String attrName = (String) attrNames.nextElement();
 				if (this.cleanupAfterInclude || attrName.startsWith(DEFAULT_STRATEGIES_PREFIX)) {
-					// 保存请求「request」域中的所有属性
+					// 保存请求「request」域中的所有属性。「快照所有属性」
 					attributesSnapshot.put(attrName, request.getAttribute(attrName));
 				}
 			}
 		}
 
-		// Make framework objects available to handlers and view objects.
+		// 基本的东西都保存在request域中，方便处理。Make framework objects available to handlers and view objects.
 		// 当前请求域中保存IOC容器
 		request.setAttribute(WEB_APPLICATION_CONTEXT_ATTRIBUTE, getWebApplicationContext());
 		// 当前请求域中保存国际化解析器
