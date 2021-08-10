@@ -29,7 +29,7 @@ import org.springframework.lang.Nullable;
  * are available for specific purposes.
  *
  * <p>This interface is implemented by objects that hold a number of bean definitions,
- * 保存多个BeanDefinition信息，每个BeanDefinition信息都有一个唯一的名字
+ * 保存多个 BeanDefinition 信息，每个 BeanDefinition 信息都有一个唯一的名字
  * each uniquely identified by a String name. Depending on the bean definition,
  * the factory will return either an independent instance of a contained object
  * (the Prototype design pattern 原型设计模式), or a single shared instance (a superior

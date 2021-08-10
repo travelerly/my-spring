@@ -15,19 +15,19 @@ import javax.servlet.ServletRegistration;
  * @create 2021-04-26 15:37
  *
  * 只要写了这个类，就相当于配置了 springmvc 的 DispatcherServlet
- * 1. Tomcat已启动，就会加载这个类
- * 		1.创建了容器，指定了配置类，制定了包扫描（所有的ioc，aop等spring的功能就已经就绪）
+ * 1. Tomcat一启动，就会加载这个类
+ * 		1.创建了容器，指定了配置类，指定了包扫描（所有的 ioc，aop 等 spring 的功能就已经就绪）
  * 		2.注册一个 servlet-->DispatcherServlet
  * 		3.以后的所有请求都交给了 DispatcherServlet
  * 效果：访问 Tomcat 部署的这个 web 应用下的所有请求，都会被 DispatcherServlet 处理
  * DispatcherServlet 就会进入强大的基于注解的 mvc 处理流程（@GetMapping）
  *
- * 必须是 Servlet 3.0 以上才可以，Tomcat 6.0 以上才支持 Servlet 3.0规范
- * Servlet 3.0 是 javaEE 的 Web 的规范标准，Tomcat 是 Servlet 3.0规范的一个实现
+ * 必须是 Servlet 3.0 以上才可以，Tomcat 6.0 以上才支持 Servlet 3.0 规范
+ * Servlet 3.0 是 javaEE 的 Web 的规范标准，Tomcat 是 Servlet 3.0 规范的一个实现
  *
- * servlet规范
- * ServletContainerInitializer这个接口处理@HandleTypes注解
- * 这个接口的所有实现类是Tomcat使用SPI机制加载的
+ * servlet 规范
+ * ServletContainerInitializer 这个接口处理 @HandleTypes 注解
+ * 这个接口的所有实现类是 Tomcat 使用 SPI 机制加载的
  *
  */
 public class AppStarter /*implements WebApplicationInitializer*/ {
