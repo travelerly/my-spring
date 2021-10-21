@@ -16,17 +16,21 @@ public class AnnotationDemo {
 
 	public static void main(String[] args) {
 
+		aspectTest();
+		/*testFactoryBean();*/
+		/*testAutowiredContext();*/
+	}
+
+	private static void aspectTest() {
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
 		HelloService helloService = applicationContext.getBean(HelloService.class);
 		// 代理对象执行目标方法
-		helloService.sayHello("colin");
-		/*Person person = applicationContext.getBean(Person.class);*/
+		helloService.sayHello("小罗");
 		System.out.println("==============");
 	}
 
 	private static void testFactoryBean() {
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
-		Person person = applicationContext.getBean(Person.class);
 		Hello hello = applicationContext.getBean(Hello.class);
 		Hello hello2 = applicationContext.getBean(Hello.class);
 		System.out.println(hello==hello2);

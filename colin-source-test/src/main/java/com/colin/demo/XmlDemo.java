@@ -1,5 +1,6 @@
 package com.colin.demo;
 
+import com.colin.bean.Cat;
 import com.colin.bean.Person;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -13,13 +14,14 @@ public class XmlDemo {
 
 	public static void main(String[] args) {
 		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("bean2.xml");
-		Person pseron = applicationContext.getBean(Person.class);
-		System.out.println(pseron);
+		Cat cat = applicationContext.getBean(Cat.class);
+		System.out.println(cat);
+		/*xmlDemo();*/
 	}
 
 	private static void xmlDemo() {
 		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("bean.xml");
 		Person pseron = applicationContext.getBean(Person.class);
-		System.out.println(pseron);
+		System.out.println(pseron.name);
 	}
 }
