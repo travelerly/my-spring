@@ -23,37 +23,53 @@ import java.util.Arrays;
  *     后置通知
  * }
  *
+ * 「@Aspect」：表明为切面类
+ * 切面类也要注册进容器中「@Component」
  */
-@Component // 切面也注册进容器中
-@Aspect // 表明为切面类
+@Component
+@Aspect
 public class LogAspect {
 
 	public LogAspect() {
 		System.out.println("...LogAspect创建了...");
 	}
 
-	// 前置通知，增强方法/增强器
+	/**
+	 * 前置通知，增强方法/增强器
+	 * @param joinPoint 封装了 AOP 中切面方法的信息
+	 */
 	@Before("execution(* com.colin.aop.HelloService.sayHello(..))")
 	public void logStart(JoinPoint joinPoint){
 		String name = joinPoint.getSignature().getName();
 		System.out.println("前置通知logStart==>"+name+"===【args:"+ Arrays.asList(joinPoint.getArgs())+"】");
 	}
 
-	// 返回通知
+	/**
+	 * 返回通知
+	 * @param joinPoint 封装了 AOP 中切面方法的信息
+	 * @param result 目标方法的返回值
+	 */
 	@AfterReturning(value = "execution(* com.colin.aop.HelloService.sayHello(..))",returning = "result")
 	public void logReturn(JoinPoint joinPoint,Object result){
 		String name = joinPoint.getSignature().getName();
 		System.out.println("返回通知logReturn==>"+name+"===【args:"+ Arrays.asList(joinPoint.getArgs())+"】【result："+result);
 	}
 
-	// 后置通知
+	/**
+	 * 后置通知
+	 * @param joinPoint 封装了 AOP 中切面方法的信息
+	 */
 	@After("execution(* com.colin.aop.HelloService.sayHello(..))")
 	public void logEnd(JoinPoint joinPoint){
 		String name = joinPoint.getSignature().getName();
 		System.out.println("后置通知logEnd==>"+name+"===【args:"+ Arrays.asList(joinPoint.getArgs())+"】");
 	}
 
-	// 异常通知
+	/**
+	 * 异常通知
+	 * @param joinPoint 封装了 AOP 中切面方法的信息
+	 * @param e 异常
+	 */
 	@AfterThrowing(value = "execution(* com.colin.aop.HelloService.sayHello(..))",throwing = "e")
 	public void logError(JoinPoint joinPoint,Exception e){
 		String name = joinPoint.getSignature().getName();

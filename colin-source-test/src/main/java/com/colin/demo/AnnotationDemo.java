@@ -3,7 +3,6 @@ package com.colin.demo;
 import com.colin.aop.HelloService;
 import com.colin.bean.ContextBean;
 import com.colin.bean.Hello;
-import com.colin.bean.Person;
 import com.colin.config.MyConfig;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -17,8 +16,7 @@ public class AnnotationDemo {
 	public static void main(String[] args) {
 
 		aspectTest();
-		/*testFactoryBean();*/
-		/*testAutowiredContext();*/
+
 	}
 
 	private static void aspectTest() {
