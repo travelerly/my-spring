@@ -258,6 +258,7 @@ public class AnnotatedBeanDefinitionReader {
 		abd.setInstanceSupplier(supplier);
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
 		abd.setScope(scopeMetadata.getScopeName());
+		// 生成置类名称
 		String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
 		// 处理常规的注解定义信息 @Lazy、@Primary、@Description、@Role、@DependsOn
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
