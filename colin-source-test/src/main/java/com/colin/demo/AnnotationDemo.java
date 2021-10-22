@@ -15,7 +15,8 @@ public class AnnotationDemo {
 
 	public static void main(String[] args) {
 
-		aspectTest();
+		/*aspectTest();*/
+		testFactoryBean();
 
 	}
 

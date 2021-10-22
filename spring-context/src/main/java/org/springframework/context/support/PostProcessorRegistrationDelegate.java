@@ -185,11 +185,11 @@ final class PostProcessorRegistrationDelegate {
 			}
 		}
 
-		// 首先，从工厂中获取所有的实现了PriorityOrdered接口的BeanFactoryPostProcessors First, invoke the BeanFactoryPostProcessors that implement PriorityOrdered.
+		// 首先，从工厂中获取所有的实现了PriorityOrdered接口的BeanFactoryPostProcessors。 First, invoke the BeanFactoryPostProcessors that implement PriorityOrdered.
 		sortPostProcessors(priorityOrderedPostProcessors, beanFactory);
 		invokeBeanFactoryPostProcessors(priorityOrderedPostProcessors, beanFactory);
 
-		// 接下来，从工厂中获取所有的实现了Ordered接口的BeanFactoryPostProcessors Next, invoke the BeanFactoryPostProcessors that implement Ordered.
+		// 接下来，从工厂中获取所有的实现了Ordered接口的BeanFactoryPostProcessors。 Next, invoke the BeanFactoryPostProcessors that implement Ordered.
 		List<BeanFactoryPostProcessor> orderedPostProcessors = new ArrayList<>(orderedPostProcessorNames.size());
 		for (String postProcessorName : orderedPostProcessorNames) {
 			orderedPostProcessors.add(beanFactory.getBean(postProcessorName, BeanFactoryPostProcessor.class));

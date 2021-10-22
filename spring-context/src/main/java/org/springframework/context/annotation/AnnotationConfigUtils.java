@@ -160,14 +160,14 @@ public abstract class AnnotationConfigUtils {
 
 		Set<BeanDefinitionHolder> beanDefs = new LinkedHashSet<>(8);
 
-		// 注册底层的配置文件的后置处理器：ConfigurationClassPostProcessor
+		// 注册底层的处理配置类的后置处理器：ConfigurationClassPostProcessor
 		if (!registry.containsBeanDefinition(CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(ConfigurationClassPostProcessor.class);
 			def.setSource(source);
 			beanDefs.add(registerPostProcessor(registry, def, CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
-		// 注册底层的自动装配的后置处理器：AutowiredAnnotationBeanPostProcessor
+		// 注册底层的自动装配功能的后置处理器：AutowiredAnnotationBeanPostProcessor
 		if (!registry.containsBeanDefinition(AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(AutowiredAnnotationBeanPostProcessor.class);
 			def.setSource(source);
@@ -239,7 +239,7 @@ public abstract class AnnotationConfigUtils {
 	public static void processCommonDefinitionAnnotations(AnnotatedBeanDefinition abd) {
 		processCommonDefinitionAnnotations(abd, abd.getMetadata());
 	}
-	// 解读所有 Bean 定义信息需要感知的注解,并将解析注解标注的内容，保存到当前 Bean 的定义信息（BeanDefinition）中。「@Lazy,@Primary,@DependsOn,@Role,@Description」
+	// 解读主配置类定义信息中所有需要感知的注解,并解析注解标注的内容，保存到当前配置类的定义信息（BeanDefinition）中。「@Lazy,@Primary,@DependsOn,@Role,@Description」
 	static void processCommonDefinitionAnnotations(AnnotatedBeanDefinition abd, AnnotatedTypeMetadata metadata) {
 		AnnotationAttributes lazy = attributesFor(metadata, Lazy.class);
 		if (lazy != null) {

@@ -329,7 +329,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		Set<ConfigurationClass> alreadyParsed = new HashSet<>(configCandidates.size());
 		do {
 			StartupStep processConfig = this.applicationStartup.start("spring.context.config-classes.parse");
-			// 解析配置类，所有需要扫描进来的组件的 BeanDefinition 都已经准备好了。
+			// 解析配置类，所有需要扫描进来的组件的 BeanDefinition 都已经准备好了。「例如标注了@Component注解的类信息会被注册进来」
 			parser.parse(candidates);
 			parser.validate();
 

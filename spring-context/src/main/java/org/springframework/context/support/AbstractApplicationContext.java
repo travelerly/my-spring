@@ -551,10 +551,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			// 准备上下文环境 Prepare this context for refreshing.
 			prepareRefresh();
 
-			// 工厂的创建： BeanFactory 第一次创建，有 xml 解析逻辑 Tell the subclass to refresh the internal bean factory.
+			// 工厂的创建：BeanFactory 第一次创建，获取当前准备好的空容器。「有 xml 解析逻辑」. Tell the subclass to refresh the internal bean factory.
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
-			// 预准备工厂，给容器中注册了环境信息作为单实例 Bean，方便后续自动装配；还注册了一些后置处理器（处理监听功能、XXXAware功能）还注册了一些后置处理器（处理监听功能、XXXAware功能）。Prepare the bean factory for use in this context.
+			// 预准备工厂，给容器中注册了环境信息作为单实例 Bean，方便后续自动装配；还注册了一些后置处理器（处理监听功能、XXXAware功能）。Prepare the bean factory for use in this context.
 			prepareBeanFactory(beanFactory);
 
 			try {
@@ -562,7 +562,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				postProcessBeanFactory(beanFactory);
 
 				StartupStep beanPostProcess = this.applicationStartup.start("spring.context.beans.post-process");
-				// 工厂的增强： 执行所有的 BeanFactory 后置处理器，可以利用 BeanFactory 后置增强器对工厂进行修改或增强  配置类会在这里解析。 Invoke factory processors registered as beans in the context.
+				// 工厂的增强： 执行所有的 BeanFactory 后置处理器对工厂进行修改或增强(配置类会在这里解析)。 Invoke factory processors registered as beans in the context.
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// 注册所有的 bean 的后置处理器。「BeanPostProcessor」 Register bean processors that intercept bean creation.
@@ -581,7 +581,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// 注册监听器，关联Spring的事件监听机制。「将容器中所有的监听器 ApplicationListener 保存进多播器集合中」 Check for listener beans and register them.
 				registerListeners();
 
-				// bean的创建： 完成 BeanFactory 的初始化。「详细参照 Bean 的初始化流程，再执行所有后初始化操作」「SmartInitializingSingleton.afterSingletonsInstantiated」。 Instantiate all remaining (non-lazy-init) singletons.
+				// bean 的创建：完成 BeanFactory 的初始化。「详细参照 Bean 的初始化流程，再执行所有后初始化操作」「SmartInitializingSingleton.afterSingletonsInstantiated」。 Instantiate all remaining (non-lazy-init) singletons.
 				finishBeanFactoryInitialization(beanFactory);
 
 				// 最后的一些清理、事件发送等处理。 Last step: publish corresponding event.
@@ -670,7 +670,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see #getBeanFactory()
 	 */
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
-		//刷新工厂（将配置文件中的信息注册进工厂中 「信息保存在 beanDefinitionMap 中」）
+		// 刷新工厂（将配置文件中的信息注册进工厂中「信息保存在 beanDefinitionMap 中」）
 		refreshBeanFactory();
 		return getBeanFactory();
 	}
@@ -746,7 +746,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * <p>Must be called before singleton instantiation.
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
-		//执行了所有的工厂增强器。后置处理器的注册代理（门面模式-装饰模式）
+		// 执行了所有的工厂增强器。后置处理器的注册代理（门面模式-装饰模式）
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 
 		// Detect a LoadTimeWeaver and prepare for weaving, if found in the meantime
