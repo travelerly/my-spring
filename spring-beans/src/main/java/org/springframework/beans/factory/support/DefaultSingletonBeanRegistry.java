@@ -186,7 +186,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 			singletonObject = this.earlySingletonObjects.get(beanName);
 			if (singletonObject == null && allowEarlyReference) {
 				synchronized (this.singletonObjects) {
-					// 再次检查单例缓存池，获取当前对象Consistent creation of early reference within full singleton lock
+					// 再次检查单例缓存池，获取当前对象。Consistent creation of early reference within full singleton lock
 					singletonObject = this.singletonObjects.get(beanName);
 					if (singletonObject == null) {
 						//再从（二级）缓存中查询
@@ -267,7 +267,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					afterSingletonCreation(beanName);
 				}
 				if (newSingleton) {
-					// 对象保存到ioc容器-单例池中，并在二、三级缓存中信息移除。「Map<String, Object> singletonObjects」
+					// 将对象保存到ioc容器-单例池中，并在二、三级缓存中信息移除。「Map<String, Object> singletonObjects」
 					addSingleton(beanName, singletonObject);
 				}
 			}

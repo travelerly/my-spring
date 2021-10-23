@@ -252,7 +252,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		String beanName = transformedBeanName(name);
 		Object beanInstance;
 
-		// 先从缓存中获取对象 Eagerly check singleton cache for manually registered singletons.
+		// 先从缓存中获取对象。 Eagerly check singleton cache for manually registered singletons.
 		Object sharedInstance = getSingleton(beanName);
 		if (sharedInstance != null && args == null) {
 			if (logger.isTraceEnabled()) {
@@ -297,7 +297,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 
 			if (!typeCheckOnly) {
-				// 标记当前 beanName 的Bean 已经被创建。 Set<String> alreadyCreated
+				// 标记当前 beanName 的 Bean 已经被创建。 Set<String> alreadyCreated
 				markBeanAsCreated(beanName);
 			}
 

@@ -1447,7 +1447,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		if (pvs != null) {
-			// 把处理好的PropertyValues（属性名和属性值）给Bean里面赋值，主要是上面步骤没有给bean设置的属性。（xml版的所有配置会在此给属性赋值）
+			// 把处理好的 PropertyValues（属性名和属性值）给Bean里面赋值，主要是上面步骤没有给bean设置的属性。（xml版的所有配置会在此给属性赋值）
 			applyPropertyValues(beanName, mbd, bw, pvs);
 		}
 	}
