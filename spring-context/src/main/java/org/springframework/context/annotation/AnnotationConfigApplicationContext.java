@@ -92,7 +92,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
 		// 注册了一些底层的后置处理器
 		this();
-		// 解析并注册所有主配置类的定义信息
+		// 解析并注册所有主配置类的定义信息，构造参数传入的所有主配置类「MyConfig.class，主配置类可以是多个」
 		register(componentClasses);
 		// 容器完整刷新（创建出所有组件，组织好所有功能）
 		refresh();
