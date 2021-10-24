@@ -7,9 +7,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
 import org.springframework.stereotype.Component;
 
 /**
- *
- *
- *
  * @author colin
  * @create 2021-03-17 14:14
  */

@@ -3,6 +3,8 @@ package com.colin.demo;
 import com.colin.aop.HelloService;
 import com.colin.bean.ContextBean;
 import com.colin.bean.Hello;
+import com.colin.bean.cycle.A;
+import com.colin.bean.cycle.B;
 import com.colin.config.MyConfig;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -16,7 +18,8 @@ public class AnnotationDemo {
 	public static void main(String[] args) {
 
 		/*aspectTest();*/
-		testFactoryBean();
+		/*testFactoryBean();*/
+		testCycle();
 
 	}
 
@@ -40,5 +43,11 @@ public class AnnotationDemo {
 		ContextBean contextBean = applicationContext.getBean(ContextBean.class);
 		ApplicationContext context = contextBean.getContext();
 		System.out.println("注解版Bean中是否可以注入ioc容器==>"+(applicationContext==context));
+	}
+
+	private static void testCycle(){
+		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
+		A a = applicationContext.getBean(A.class);
+		B b = applicationContext.getBean(B.class);
 	}
 }

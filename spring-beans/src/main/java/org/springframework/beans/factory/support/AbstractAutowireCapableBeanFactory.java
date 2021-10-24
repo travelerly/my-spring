@@ -523,7 +523,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			throw new BeanCreationException(mbdToUse.getResourceDescription(), beanName,
 					"BeanPostProcessor before instantiation of bean failed", ex);
 		}
-
+		// 没有产生代理对象，Spring 开始创建对象
 		try {
 			// Spring 真正自己创建对象（InstantiationAwareBeanPostProcessor.postProcessBeforeInstantiation()没有返回对象）
 			Object beanInstance = doCreateBean(beanName, mbdToUse, args);
@@ -598,7 +598,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			if (logger.isTraceEnabled()) {
 				logger.trace("Eagerly caching bean '" + beanName +
 						"' to allow for resolving potential circular references");
-			}// 将对象存入「单例工厂池」中
+			}// 将对象存入「单例工厂池」中，（三级缓存，还没有被属性赋值和初始化）
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
 
@@ -1222,7 +1222,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			return autowireConstructor(beanName, mbd, ctors, null);
 		}
 
-		// 使用 BeanDefinition 中的构造器（默认无参构造器）为当前组件创建对象 No special handling: simply use no-arg constructor.
+		// 没有返回构造器，使用 BeanDefinition 中的构造器（默认无参构造器）为当前组件创建对象。 No special handling: simply use no-arg constructor.
 		return instantiateBean(beanName, mbd);
 	}
 
@@ -1425,7 +1425,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 			// 使用后置处理器处理属性
 			for (InstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().instantiationAware) {
-				// 处理属性的后置处理器开始工作。「例如自动装配功能再此执行」
+				// 处理属性的后置处理器开始工作。「例如自动装配功能再此执行，处理@Autowired、@Value、@Inject注解标注的原信息」
 				PropertyValues pvsToUse = bp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
 				if (pvsToUse == null) {
 					if (filteredPds == null) {

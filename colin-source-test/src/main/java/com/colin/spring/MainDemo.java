@@ -28,7 +28,6 @@ public class MainDemo {
 
 	private static void xmlTest() {
 		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("bean.xml");
-
 		Person pseron = applicationContext.getBean(Person.class);
 		System.out.println("Person = " + pseron);
 	}

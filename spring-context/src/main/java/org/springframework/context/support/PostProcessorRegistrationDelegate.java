@@ -79,7 +79,7 @@ final class PostProcessorRegistrationDelegate {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
 			List<BeanFactoryPostProcessor> regularPostProcessors = new ArrayList<>();
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
-			// 先拿到底层默认的所有的 beanFactoryPostProcessor
+			// 先拿到底层默认的所有的 bean 工厂的后置处理器（beanFactoryPostProcessor）
 			for (BeanFactoryPostProcessor postProcessor : beanFactoryPostProcessors) {
 				if (postProcessor instanceof BeanDefinitionRegistryPostProcessor) {
 					BeanDefinitionRegistryPostProcessor registryProcessor =
@@ -126,7 +126,7 @@ final class PostProcessorRegistrationDelegate {
 			// 排序 (实现Ordered接口)
 			sortPostProcessors(currentRegistryProcessors, beanFactory);
 			registryProcessors.addAll(currentRegistryProcessors);
-			// 执行
+			// 执行后置处理器
 			invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry, beanFactory.getApplicationStartup());
 			currentRegistryProcessors.clear();
 
@@ -157,7 +157,7 @@ final class PostProcessorRegistrationDelegate {
 		// 以上执行的是 BeanDefinitionRegistryPostProcessor 类型的后置处理器
 		else {
 			// 从此处开始执行 BeanFactoryPostProcessor 类型的后置处理器
-			// 执行 postProcessBeanFactory 的回调执行 Invoke factory processors registered with the context instance.
+			// 执行 postProcessBeanFactory 的回调执行。 Invoke factory processors registered with the context instance.
 			invokeBeanFactoryPostProcessors(beanFactoryPostProcessors, beanFactory);
 		}
 		// Do not initialize FactoryBeans here: We need to leave all regular beans

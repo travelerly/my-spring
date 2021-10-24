@@ -1,4 +1,4 @@
-package com.colin.bean.circle;
+package com.colin.bean.cycle;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -8,16 +8,16 @@ import org.springframework.stereotype.Component;
  * @create 2021-03-20 15:50
  */
 //@Component
-public class B {
+public class A {
 
-	private A a;
+	private B b;
 
-	public B() {
-		System.out.println("===B...构造...===");
+	public A() {
+		System.out.println("===A...构造...===");
 	}
 
 	@Autowired
-	public void setA(A a) {
-		this.a = a;
+	public void setB(B b) {
+		this.b = b;
 	}
 }

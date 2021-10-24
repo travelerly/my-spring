@@ -723,7 +723,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 			}
 			if (arguments != null) {
 				try {
-					ReflectionUtils.makeAccessible(method);
+					ReflectionUtils.makeAccessible(method); // 组件属性赋值（通常使用调用 setter 方法）
 					method.invoke(bean, arguments);
 				}
 				catch (InvocationTargetException ex) {
