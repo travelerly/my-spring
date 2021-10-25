@@ -57,6 +57,45 @@ Spring 容器启动时，先加载一些底层的后置处理器（例如Configu
 
 ---
 #### AOP执行链执行流程
+```
+目标方法的执行
+容器中保存了组件的代理对象「cglib增强后的对象」，这个对象里面保存了详细信息（比如增强器、目标对象等）
+
+1. CglibAopProxy.intercept(),拦截目标方法的执行
+2. 根据ProxyFactory对象获取将要执行的目标方法的拦截器链
+   List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
+   1. List<Object> interceptorList：保存所有的拦截器，一个默认的ExposeInvocationInterceptor和四个增强器「通知方法」
+   2. 遍历所有的增强器，将其转换成 Interceptor：MethodInterceptor[] interceptors = registry.getInterceptors(advisor)
+   3. 将增强器转为 List<MethodInterceptor>
+      1. 如果是 MethodInterceptor ，直接加入到集合中
+      2. 如果不是 MethodInterceptor，则使用 AdvisorAdapter 将增强器转为 MethodInterceptor，转换完成后，返回 MethodInterceptor 数组。
+3. 如果没有拦截器链，则直接执行目标方法
+   拦截器链：每一个通知方法又被包装成方法拦截器，利用 MethodInterceptor 拦截器机制执行
+4. 如果有拦截器链，把需要执行的目标对象、目标方法、拦截器链等信息传入创建的CglibMethodInvokation对象，并调用Object retVal = mi.procceed()
+5. 拦截器链的触发过程
+   1. 如果没有拦截器或者拦截器索引和拦截器数组-1的大小相同（指定到了最后一个拦截器），则执行目标方法
+   2. 链式获取每一个拦截器，拦截器执行 invoke() 方法，每一个拦截器等待下一个拦截器执行完成返回以后再执行
+      拦截器链的机制，保证通知方法和目标方法的执行顺序
+      
+AOP 总结：
+1. @EnableAspectJAutoProxy 开启基于注解的 AOP 功能
+2. @EnableAspectJAutoProxy 会给容器中注册一个组件 AnnotationAwareAspectJAutoProxyCreator，是一个后置处理器
+3. 容器的创建流程
+   1. registerBeanPostProcessors(beanFactory) 注册后置处理器，创建 AnnotationAwareAspectJAutoProxyCreator 对象
+   2. finishBeanFactoryInitialization(beanFactory) 初始化剩下的单实例 Bean
+      1. 创建业务逻辑组件和切面组件
+      2. AnnotationAwareAspectJAutoProxyCreator 拦截组件的创建过程
+      3. 组件创建完成后，判断组件是否需要增强
+         需要增强：将切面的通知方法，包装成增强器（Advisor），给业务逻辑组件创建一个代理对象（反射cglib）
+4. 执行目标方法
+   1. 代理对象执行目标方法
+   2. CglibAopProxy.intercept()
+      1. 得到目标方法的拦截器链（增强器包装成拦截器 MethodInterceptor ）
+      2. 利用拦截器的链式机制，依次进入每一个拦截器进行执行；
+      3. 效果（Spring 5.0）
+         正常执行：前置通知→目标方法→返回通知→后置通知
+         异常执行：前置通知→目标方法→异常通知→后置通知
+```
 ![](src/docs/spring/AOP执行链执行流程.jpg)
 
 
