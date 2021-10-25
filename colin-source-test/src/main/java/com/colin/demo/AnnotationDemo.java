@@ -9,7 +9,6 @@ import com.colin.config.MyConfig;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-import java.util.ArrayList;
 
 /**
  * @author colin

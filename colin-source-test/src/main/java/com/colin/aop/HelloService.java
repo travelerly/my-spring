@@ -21,7 +21,7 @@ public class HelloService {
 	 * 切面目标方法
  	 */
 	public String sayHello(String name){
-		String result = "你好："+name;
+		String result = "目标方法执行：你好，"+name;
 		System.out.println(result);
 
 		/*// 模拟异常

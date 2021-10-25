@@ -78,7 +78,7 @@ public class AnnotationAwareAspectJAutoProxyCreator extends AspectJAwareAdvisorA
 	@Override // 当前后置处理器初始化创建对象的时候调用。
 	protected void initBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 		super.initBeanFactory(beanFactory);
-		if (this.aspectJAdvisorFactory == null) {
+		if (this.aspectJAdvisorFactory == null) { // 准备 AnnotationAwareAspectJAutoProxyCreator 的属性 AspectJAdvisorFactory 值
 			this.aspectJAdvisorFactory = new ReflectiveAspectJAdvisorFactory(beanFactory);
 		}
 		this.aspectJAdvisorsBuilder =

@@ -44,16 +44,8 @@ Spring 容器启动时，先加载一些底层的后置处理器（例如Configu
 ![](src/docs/spring/循环引用.jpg)
 
 ---
-#### AOP定义阶段
-![](src/docs/spring/AOP定义阶段.jpg)
-
----
 #### AOP增强流程
 ![](src/docs/spring/AOP增强流程.jpg)
-
----
-#### AOP介入流程
-![](src/docs/spring/AOP介入流程.jpg)
 
 ---
 #### AOP执行链执行流程
@@ -97,8 +89,6 @@ AOP 总结：
          异常执行：前置通知→目标方法→异常通知→后置通知
 ```
 ![](src/docs/spring/AOP执行链执行流程.jpg)
-
-
 
 ---
 
