@@ -9,6 +9,8 @@ import com.colin.config.MyConfig;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import java.util.ArrayList;
+
 /**
  * @author colin
  * @create 2021-03-17 11:34
@@ -16,18 +18,16 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 public class AnnotationDemo {
 
 	public static void main(String[] args) {
-
-		/*aspectTest();*/
+		aopTest();
 		/*testFactoryBean();*/
-		testCycle();
-
+		/*testCycle();*/
 	}
 
-	private static void aspectTest() {
+	private static void aopTest() {
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
 		HelloService helloService = applicationContext.getBean(HelloService.class);
 		// 代理对象执行目标方法
-		helloService.sayHello("小罗");
+		helloService.sayHello("colin");
 		System.out.println("==============");
 	}
 

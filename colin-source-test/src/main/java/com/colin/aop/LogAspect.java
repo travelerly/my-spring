@@ -10,6 +10,7 @@ import java.util.Arrays;
  * @author colin
  * @create 2021-03-23 16:48
  *
+ * spring 5.0
  * 正常执行顺序：前置通知-->目标方法-->返回通知-->后置通知
  * 异常执行顺序：前置通知-->目标方法-->异常通知-->后置通知
  *
@@ -26,8 +27,8 @@ import java.util.Arrays;
  * 「@Aspect」：表明为切面类
  * 切面类也要注册进容器中「@Component」
  */
-//@Component
-//@Aspect
+@Component
+@Aspect
 public class LogAspect {
 
 	public LogAspect() {

@@ -9,7 +9,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
  *
  * EnableAspectJAutoProxy ：开启基于注解的aop
  */
-/*@EnableAspectJAutoProxy
-@Configuration*/
+@EnableAspectJAutoProxy
+@Configuration
 public class AopOpenConfig {
 }
