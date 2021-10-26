@@ -313,14 +313,16 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				// Guarantee initialization of beans that the current bean depends on.
 				String[] dependsOn = mbd.getDependsOn();
 				if (dependsOn != null) {
-					for (String dep : dependsOn) { //判断当前Bean是否依赖了其他的Bean
+					for (String dep : dependsOn) {
+						//判断当前Bean是否依赖了其他的Bean
 						if (isDependent(beanName, dep)) {
 							throw new BeanCreationException(mbd.getResourceDescription(), beanName,
 									"Circular depends-on relationship between '" + beanName + "' and '" + dep + "'");
 						}
 						registerDependentBean(dep, beanName);
 						try {
-							getBean(dep);//依赖了其他bean，要先获取其他bean
+							//依赖了其他bean，要先获取其他bean
+							getBean(dep);
 						}
 						catch (NoSuchBeanDefinitionException ex) {
 							throw new BeanCreationException(mbd.getResourceDescription(), beanName,
@@ -329,7 +331,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					}
 				}
 
-				// 创建Bean实例（单实例） Create bean instance.
+				// 创建Bean实例（创建之前有后置处理器介入） Create bean instance.
 				if (mbd.isSingleton()) {
 					sharedInstance = getSingleton(beanName, () -> {
 						try {

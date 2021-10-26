@@ -75,7 +75,8 @@ public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializ
 					else {
 						match = mm.matches(method, actualClass);
 					}
-					if (match) {// （如果是通知方法）把增强器转拦截器
+					if (match) {
+						// （如果是通知方法）把增强器转拦截器
 						MethodInterceptor[] interceptors = registry.getInterceptors(advisor);
 						if (mm.isRuntime()) {
 							// Creating a new object instance in the getInterceptors() method
@@ -102,7 +103,7 @@ public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializ
 				interceptorList.addAll(Arrays.asList(interceptors));
 			}
 		}
-		// 所有增强器转为拦截器
+		// 返回所有增强器转为拦截器的集合
 		return interceptorList;
 	}
 

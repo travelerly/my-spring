@@ -158,7 +158,7 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 	@Override
 	@Nullable
 	public Object proceed() throws Throwable {
-		// currentInterceptorIndex 当前拦截器的索引，判断当前拦截器的索引有没有超过拦截器总数量 - 1。 We start with an index of -1 and increment early.
+		// currentInterceptorIndex:当前拦截器的索引{初始值为-1}，判断当前拦截器的索引有没有超过拦截器总数量 - 1。 We start with an index of -1 and increment early.
 		if (this.currentInterceptorIndex == this.interceptorsAndDynamicMethodMatchers.size() - 1) {
 			return invokeJoinpoint();
 		}

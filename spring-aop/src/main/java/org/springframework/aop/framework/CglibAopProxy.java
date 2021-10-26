@@ -665,16 +665,19 @@ class CglibAopProxy implements AopProxy, Serializable {
 			Object oldProxy = null;
 			boolean setProxyContext = false;
 			Object target = null;
-			TargetSource targetSource = this.advised.getTargetSource();// 拿到目标方法
-			try {// exposeProxy 暴露代理对象，使用了代理对象，就有了增强功能
+			// 拿到目标对象
+			TargetSource targetSource = this.advised.getTargetSource();
+			try {
+				// exposeProxy 暴露代理对象，使用了代理对象，就有了增强功能
 				if (this.advised.exposeProxy) {
 					// 可以使用 ThreadLoacl 线程共享这个代理对象。Make invocation available if necessary.
 					oldProxy = AopContext.setCurrentProxy(proxy);
 					setProxyContext = true;
 				}
-				// chain 是AOP后置处理器在第一次的时候就生成好的5个增强器，然后封装成的 MethodInterceptor。就是拦截器链。 Get as late as possible to minimize the time we "own" the target, in case it comes from a pool...
+				// Get as late as possible to minimize the time we "own" the target, in case it comes from a pool...
 				target = targetSource.getTarget();
 				Class<?> targetClass = (target != null ? target.getClass() : null);
+				// chain 是AOP后置处理器在容器启动的时候就生成好的5个增强器，然后封装成的 MethodInterceptor。就是拦截器链。
 				List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
 				Object retVal;
 				// Check whether we only have one InvokerInterceptor: that is,
@@ -688,7 +691,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 					retVal = methodProxy.invoke(target, argsToUse);
 				}
 				else {
-					// 拦截器链再此执行。We need to create a method invocation...
+					// 拦截器链在此执行{new CglibMethodInvocation(……).proceed()}。We need to create a method invocation...
 					retVal = new CglibMethodInvocation(proxy, target, method, args, targetClass, chain, methodProxy).proceed();
 				}
 				retVal = processReturnType(proxy, target, method, retVal);
@@ -747,7 +750,8 @@ class CglibAopProxy implements AopProxy, Serializable {
 		@Nullable
 		public Object proceed() throws Throwable {
 			try {
-				return super.proceed();//调用父类模板方法
+				//调用父类模板方法
+				return super.proceed();
 			}
 			catch (RuntimeException ex) {
 				throw ex;
