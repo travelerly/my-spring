@@ -6,6 +6,9 @@ import com.colin.bean.Hello;
 import com.colin.bean.cycle.A;
 import com.colin.bean.cycle.B;
 import com.colin.config.MyConfig;
+import com.colin.listener.AppEventPublisher;
+import com.colin.listener.ChangeEvent;
+import com.colin.listener.MessageEvent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -17,9 +20,21 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 public class AnnotationDemo {
 
 	public static void main(String[] args) {
-		aopTest();
+		/*aopTest();*/
 		/*testFactoryBean();*/
 		/*testCycle();*/
+
+		listenerTest();
+
+	}
+
+	private static void listenerTest() {
+		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
+		AppEventPublisher appEventPublisher = applicationContext.getBean(AppEventPublisher.class);
+		// 测试派发事件
+		appEventPublisher.publish(new A());
+		appEventPublisher.publish(new MessageEvent("你好 MessageEvent"));
+		appEventPublisher.publish(new ChangeEvent(appEventPublisher,"ending……"));
 	}
 
 	private static void aopTest() {

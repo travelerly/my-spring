@@ -393,6 +393,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	}
 
 	/**
+	 * 将给定事件派发给所有监听器
 	 * Publish the given event to all listeners.
 	 * @param event the event to publish (may be an {@link ApplicationEvent}
 	 * or a payload object to be turned into a {@link PayloadApplicationEvent})
@@ -405,9 +406,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// Decorate event as an ApplicationEvent if necessary
 		ApplicationEvent applicationEvent;
 		if (event instanceof ApplicationEvent) {
+			// ApplicationEvent 接口下的事件
 			applicationEvent = (ApplicationEvent) event;
 		}
 		else {
+			// 任意对象作为事件最终被封装到了 PayloadApplicationEvent 中
 			applicationEvent = new PayloadApplicationEvent<>(this, event);
 			if (eventType == null) {
 				eventType = ((PayloadApplicationEvent<?>) applicationEvent).getResolvableType();
@@ -419,6 +422,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			this.earlyApplicationEvents.add(applicationEvent);
 		}
 		else {
+			// 拿到事件多播器发送事件
 			getApplicationEventMulticaster().multicastEvent(applicationEvent, eventType);
 		}
 

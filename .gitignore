@@ -44,3 +44,10 @@ atlassian-ide-plugin.xml
 
 # VS Code
 .vscode/
+/colin-source-test/build/resources/main/bean.xml
+/colin-source-test/build/resources/main/bean2.xml
+/colin-mvc-test/build/libs/colin-mvc-test-5.3.5-SNAPSHOT.jar
+/colin-source-test/build/libs/colin-source-test-5.3.5-SNAPSHOT.jar
+/colin-mvc-test/build/tmp/jar/MANIFEST.MF
+/colin-source-test/build/tmp/jar/MANIFEST.MF
+/colin-mvc-test/build/tmp/compileJava/source-classes-mapping.txt
