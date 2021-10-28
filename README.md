@@ -91,7 +91,10 @@ AOP 总结：
 ![](src/docs/spring/AOP执行链执行流程.jpg)
 
 ---
+#### Spring 监听器原理
+![](src/docs/spring/Spring监听器原理.jpg)
 
+---
 MVC 整体架构
 ---
 
