@@ -865,7 +865,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			try {
 				// Load default strategy implementations from properties file.
 				// This is currently strictly internal and not meant to be customized
-				// 在 DispatcherServlet.class 同路径下，找DispatcherServlet.properties 资源。by application developers.
+				// 在 DispatcherServlet.class 同路径下，找 DispatcherServlet.properties 资源。by application developers.
 				ClassPathResource resource = new ClassPathResource(DEFAULT_STRATEGIES_PATH, DispatcherServlet.class);
 				defaultStrategies = PropertiesLoaderUtils.loadProperties(resource);
 			}
@@ -1024,7 +1024,8 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @param request current HTTP request
 	 * @param response current HTTP response
 	 * @throws Exception in case of any kind of processing failure
-	 * SpringMVC 处理请求的核心流程
+	 *
+	 *  SpringMVC 处理请求的核心流程
 	 */
 	protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		HttpServletRequest processedRequest = request;
@@ -1052,7 +1053,7 @@ public class DispatcherServlet extends FrameworkServlet {
 					return;
 				}
 
-				// 确定处理适配器。Determine handler adapter for the current request.
+				// 确定处理适配器（遍历所有的适配器，找到能够支持当前处理器的适配器）。Determine handler adapter for the current request.
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// 获取请求方式（GET、POST...）。Process last-modified header, if supported by the handler.
@@ -1069,7 +1070,7 @@ public class DispatcherServlet extends FrameworkServlet {
 					return;
 				}
 
-				// 真正的执行目标方法。「确定参数值，反射执行目标方法，处理返回值-->封装成ModelAndView」Actually invoke the handler.
+				// 真正执行目标方法。「确定参数值，反射执行目标方法，处理返回值-->封装成 ModelAndView」Actually invoke the handler.
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
@@ -1136,7 +1137,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			@Nullable Exception exception) throws Exception {
 
 		boolean errorView = false;
-		// 如果有任何异常，以下if内逻辑全是异常处理环节
+		// 如果有任何异常，以下 if 内逻辑全是异常处理环节
 		if (exception != null) {
 			if (exception instanceof ModelAndViewDefiningException) {
 				logger.debug("ModelAndViewDefiningException encountered", exception);
@@ -1380,13 +1381,13 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @throws Exception if there's a problem rendering the view
 	 */
 	protected void render(ModelAndView mv, HttpServletRequest request, HttpServletResponse response) throws Exception {
-		// 处理国际化区域信息。默认 AcceptHeaderLocaleResolver 会根据请求头中的Accept-Language字段决定浏览器能接收哪种「中文/英文」国际化页面。 Determine locale for request and apply it to the response.
+		// 处理国际化区域信息。默认AcceptHeaderLocaleResolver会根据请求头中的Accept-Language字段决定浏览器能接收哪种「中文/英文」国际化页面。 Determine locale for request and apply it to the response.
 		Locale locale =
 				(this.localeResolver != null ? this.localeResolver.resolveLocale(request) : request.getLocale());
 		response.setLocale(locale);
 		// 视图
 		View view;
-		// 获取逻辑视图「视图名」。适配器执行完目标方法后返回的ModelAndView对象里面的"index.jsp"，即视图名
+		// 获取逻辑视图「视图名」。适配器执行完目标方法后返回的 ModelAndView 对象里面的"index.jsp"，即视图名
 		String viewName = mv.getViewName();
 		if (viewName != null) {
 			// 所有视图解析器根据视图名循环解析，转化成对应的视图对象。 We need to resolve the view name.

@@ -12,6 +12,6 @@ import org.springframework.stereotype.Controller;
 @ComponentScan(value = "com.colin.web",excludeFilters = {
 		@ComponentScan.Filter(type = FilterType.ANNOTATION,value = Controller.class)
 })
-public class SpringConfig {
+public class MySpringConfig {
 	// 这个 Spring 的父容器
 }

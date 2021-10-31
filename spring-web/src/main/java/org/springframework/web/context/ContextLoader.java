@@ -286,9 +286,11 @@ public class ContextLoader {
 					if (cwac.getParent() == null) {
 						// The context instance was injected without an explicit parent ->
 						// determine parent for root web application context, if any.
+						// 获取根容器，并设置为父容器
 						ApplicationContext parent = loadParentContext(servletContext);
 						cwac.setParent(parent);
 					}
+					// 开始刷新容器
 					configureAndRefreshWebApplicationContext(cwac, servletContext);
 				}
 			}
@@ -398,7 +400,8 @@ public class ContextLoader {
 		}
 
 		customizeContext(sc, wac);
-		wac.refresh();// 容器刷新十二大步骤
+		// MVC 容器刷新十二大步骤
+		wac.refresh();
 	}
 
 	/**

@@ -14,6 +14,6 @@ import org.springframework.stereotype.Controller;
 @ComponentScan(value = "com.colin.web",includeFilters = {
 		@ComponentScan.Filter(type = FilterType.ANNOTATION,value = Controller.class)
 },useDefaultFilters = false)
-public class SpringMVCConfig {
+public class MySpringMVCConfig {
 	// 这是 SpringMVC 的子容器，能扫描到父容器（Spring）中的组件
 }

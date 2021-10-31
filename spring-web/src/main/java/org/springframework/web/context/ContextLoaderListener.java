@@ -33,9 +33,11 @@ import javax.servlet.ServletContextListener;
  * @since 17.02.2003
  * @see #setContextInitializers
  * @see org.springframework.web.WebApplicationInitializer
+ *
+ * 在当前 Web 应用启动后（Tomcat 把 Web 应用加载完以后），调用 contextInitialized() 方法
+ *
  */
 public class ContextLoaderListener extends ContextLoader implements ServletContextListener {
-	// 在当前 Web 应用启动后（Tomcat 把 Web 应用加载完以后），调用 contextInitialized() 方法
 	/**
 	 * Create a new {@code ContextLoaderListener} that will create a web application
 	 * context based on the "contextClass" and "contextConfigLocation" servlet

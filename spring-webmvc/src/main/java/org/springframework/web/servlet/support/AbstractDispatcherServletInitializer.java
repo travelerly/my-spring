@@ -60,7 +60,9 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 
 	@Override
 	public void onStartup(ServletContext servletContext) throws ServletException {
+		// 创建 ContextLoaderListener（监听器），将其注册进根容器「WebApplicationContext rootAppContext」中
 		super.onStartup(servletContext);
+		// 注册 DispatcherServlet
 		registerDispatcherServlet(servletContext);
 	}
 
@@ -78,7 +80,7 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 	protected void registerDispatcherServlet(ServletContext servletContext) {
 		String servletName = getServletName();
 		Assert.hasLength(servletName, "getServletName() must not return null or empty");
-		// 创建 servlet 容器
+		// 创建 web-ioc 容器
 		WebApplicationContext servletAppContext = createServletApplicationContext();
 		Assert.notNull(servletAppContext, "createServletApplicationContext() must not return null");
 		// 创建 DispatcherServlet
@@ -93,7 +95,8 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 		}
 
 		registration.setLoadOnStartup(1);
-		registration.addMapping(getServletMappings());// 根据指定的映射路径进行注册
+		// 根据指定的映射路径进行注册
+		registration.addMapping(getServletMappings());
 		registration.setAsyncSupported(isAsyncSupported());
 
 		Filter[] filters = getServletFilters();

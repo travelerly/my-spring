@@ -517,6 +517,8 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	/**
 	 * Overridden method of {@link HttpServletBean}, invoked after any bean properties
 	 * have been set. Creates this servlet's WebApplicationContext.
+	 *
+	 * 重写父类 HttpServletBean 的模板方法 initServletBean()
 	 */
 	@Override
 	protected final void initServletBean() throws ServletException {
@@ -559,7 +561,8 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * @see #setContextConfigLocation
 	 */
 	protected WebApplicationContext initWebApplicationContext() {
-		// 先获取之前的 WebApplicationContext（构建父子容器） （rootContext 父容器）
+		// 先获取之前的 WebApplicationContext（构建父子容器）（
+		// rootContext 父容器
 		WebApplicationContext rootContext =
 				WebApplicationContextUtils.getWebApplicationContext(getServletContext());
 		WebApplicationContext wac = null;
