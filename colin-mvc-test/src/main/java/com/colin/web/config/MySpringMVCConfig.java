@@ -7,7 +7,7 @@ import org.springframework.stereotype.Controller;
 /**
  * @author colin
  * @create 2021-05-02 15:12
- * SpringMVC 只扫描 Controller 组件,这样形成了父子容器。
+ * SpringMVC 只扫描 Controller 组件,这样形成了父子容器。includeFilters{Controller.class}
  * 也可以不指定父容器类，让 MVC 扫描所有，也就没有父子容器了，只有一个容器，这样 @Component + @RequestMapping 就生效了。
  *
  */

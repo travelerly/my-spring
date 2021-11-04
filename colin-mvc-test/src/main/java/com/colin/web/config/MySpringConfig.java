@@ -7,7 +7,7 @@ import org.springframework.stereotype.Controller;
 /**
  * @author colin
  * @create 2021-04-26 15:47
- * Spring 不扫描 Controller 组件
+ * Spring 不扫描 Controller 组件，excludeFilters{Controller.class}
  */
 @ComponentScan(value = "com.colin.web",excludeFilters = {
 		@ComponentScan.Filter(type = FilterType.ANNOTATION,value = Controller.class)

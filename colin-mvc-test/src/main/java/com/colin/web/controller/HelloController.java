@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpSession;
@@ -24,8 +25,13 @@ public class HelloController {
 	@Autowired
 	HelloService helloService;
 
-	@GetMapping("/hello")
-	public String hello(String name, // 可以从请求参数中获取
+	@RequestMapping("/simple")
+	public String testSimpleMethod(){
+		return "Hello Simple Method";
+	}
+
+	@GetMapping("/sayHello")
+	public String sayHello(String name, // 可以从请求参数中获取
 						@RequestParam("user") String user, // 可以从请求参数中获取
 						HttpSession session ,// 原生的 session 对象
 						Integer num
@@ -40,7 +46,7 @@ public class HelloController {
 		}
 
 		// 方法的签名，详细参照：https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-ann-arguments
-		String mvc = helloService.sayHello(user+"MVC"+name);
+		String mvc = helloService.sayHello(user+" MVC "+name);
 		session.setAttribute("msg",mvc);
 		// 方法返回值的写法，详细参照：https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-ann-return-types
 		return "index.jsp";
