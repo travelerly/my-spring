@@ -98,11 +98,11 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 
 
 	/**
-	 * 根容器初始化 Initialize the root web application context.
+	 * Tomcat加载完Web应用后，触发监听器钩子，调用此方法，初始化根容器。Initialize the root web application context.
 	 */
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
-		// 初始化 web-ioc 容器。
+		// 初始化 IOC 容器。「所有的业务逻辑组件功能AOP，事务，IOC，自动装配，HelloService创建对像……」
 		initWebApplicationContext(event.getServletContext());
 	}
 

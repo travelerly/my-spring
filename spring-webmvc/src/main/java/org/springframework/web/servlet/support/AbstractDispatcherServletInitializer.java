@@ -60,9 +60,11 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 
 	@Override
 	public void onStartup(ServletContext servletContext) throws ServletException {
-		// 创建 ContextLoaderListener（监听器），将其注册进根容器「WebApplicationContext rootAppContext」中
+		// 创建 ContextLoaderListener（监听器），将其注册进根容器中「spring 容器/父容器」。
+		// Tomcat 加载完 web 应用后，会触发监听器钩子调用 contextInitialized() 方法初始化根容器。「所有的业务逻辑组件功能AOP，事务，IOC，自动装配，HelloService创建对像……」
 		super.onStartup(servletContext);
-		// 注册 DispatcherServlet
+		//「根据 web-ioc 容器/子容器」注册 DispatcherServlet。
+		// Tomcat 启动完以后会调用 DispatcherServlet 的初始化 init() 方法进行初始化，web-ioc.setParent(rootAppContext)形成父子容器，子容器刷新，此时Controller才开始创建对象，并自动装配Service（当前容器中没有，要去父容器中找）
 		registerDispatcherServlet(servletContext);
 	}
 
