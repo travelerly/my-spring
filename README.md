@@ -10,6 +10,41 @@ Spring 暴露给程序员的使用方式是，要么写一个 xml 文件、要�
 #### Spring 整体架构流程
 在 Spring 的底层把所有的资源（xml、注解、网络文件、磁盘文件等）都用 Resource 来表示，Spring 使用 ResourceLoader（资源加载器）加载这些资源，交给 BeanDefinitionReader 来读取和解析，并存放到 Spring 工厂的 BeanDefinitionRegistry （Bean  定义信息注册中心）中，即 Spring 一启动，就将所有资源解析成 BeanDefinition 存入到 BeanDefinitionRegistry 中。（实际是保存在一个 map 中，BeanDefinitionMap），然后 Spring 将这些 bean 的定义信息挨个创建成对象，并存入到 IOC 容器中，Spring 中使用各种池来存储对象，其中单例对象池用于保存所有的单例对象，在使用对象时，就去单例池中获取对象。
 
+```text
+ApplicationContext 和 BeanFactory 的作用：
+1.BeanFactory 定义工厂创建和获取 Bean 流程的
+2.ApplicationContext 定义了 Bean 的增强处理以及容器保存等各种流程
+3.ApplicationContext 里面第一次要用到 bean，会使用工厂 BeanFactory 先来创建，创建好后保存在容器中
+
+AOP：
+1.AnnotationAspectJAutoProxyCreator 后置处理器，会在启动的时候分析所有标注了 @Aspect 注解的切面信息，将其封装成增强器链，并为目标对象创建代理放在容器中
+2.执行期间代理对象会链式调用 AOP 切面定义的增强方法
+
+生命周期：
+1.BeanFactoryPostProcessor：在 BeanFactory 初始化前后拦截
+2.BeanPostProcessor：在所有组件创建对象及初始化前后拦截
+3.InitializingBean：组件单独实现它，可以在组件赋值结束以后调用初始化进行增强处理
+4.SmartInitializingBean：所有组件都创建好以后，每个组件再来 SmartInitializingBean
+
+Bean：保存 BeanDefinition 信息→根据 BeanDefinition 信息创建对象→赋值→初始化
+
+Bean的功能增强全都是由 BeanPostProcessor + InitializingBean (合起来)完成的。
+使用建议：
+1.所有组件可能都会使用的功能，使用后置处理器BeanPostProcessor来实现
+2.单组件增强的功能，最好使用生命周期InitializingBean来实现。
+
+新功能分析思路
+1.组件的新功能一般都是由Bean的生命周期机制增强出来的
+2.这个新功能加入了哪些组件，这些组件在生命周期期间做了什么
+
+Spring的套路点
+1.AbstractBeanDefinition 如何给容器中注入了什么组件
+2.BeanFactory 初始化完成后，监控其中多了哪些后置处理器
+3.分析后置处理器什么时候调用，做了什么功能。
+以上所有的前提，是理解容器刷新12大步与getBean流程，防止混乱
+a.工厂后置处理器执行
+b.bean后置处理器执行、bean的生命周期（后置处理器+InitializingBean）
+```
 ---
 #### Spring架构原理图
 ![](src/docs/spring/Spring架构原理图.jpg)
