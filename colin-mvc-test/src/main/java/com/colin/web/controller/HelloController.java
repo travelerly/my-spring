@@ -45,20 +45,18 @@ public class HelloController {
 			throw new InvalidUserException();
 		}
 
-		// 方法的签名，详细参照：https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-ann-arguments
+		// 方法的参数写法，详细参照：https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-ann-arguments
 		String mvc = helloService.sayHello(user+" MVC "+name);
 		session.setAttribute("msg",mvc);
 		// 方法返回值的写法，详细参照：https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-ann-return-types
 		return "index.jsp";
 	}
 
-	@GetMapping("/meinv")
-	public String meinv(String name, Model model){
-
+	@GetMapping("/myView")
+	public String myViewTest(String name, Model model){
 		// 模拟数据库查询数据
-		model.addAttribute("info","meinv info");
-
-		// 页面渲染的效果是美女的详情
-		return "meinv:"+name;
+		model.addAttribute("info","myView info");
+		// 页面渲染的效果是"小罗"的详情
+		return "myView:"+name;
 	}
 }

@@ -1,15 +1,6 @@
 package com.colin.web.config;
 
-import com.colin.web.view.MeiNvResolver;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
-import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.servlet.view.InternalResourceViewResolver;
-import org.springframework.web.util.UrlPathHelper;
-
-import java.util.function.Predicate;
 
 /**
  * @author colin

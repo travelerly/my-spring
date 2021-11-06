@@ -806,7 +806,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			}
 		}
 		else {
-			// 非同步请求，返回目标方法返回值的模型视图.No synchronization on session demanded at all...
+			// 不加会话锁的情况下，执行目标方法并返回目标方法返回值的模型视图。No synchronization on session demanded at all...
 			mav = invokeHandlerMethod(request, response, handlerMethod);
 		}
 
@@ -857,7 +857,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		try {
 			// 数据绑定器「请求数据到自定义Object属性的映射需要 WebDataBinder（数据类型装换、绑定错误处理等）」
 			WebDataBinderFactory binderFactory = getDataBinderFactory(handlerMethod);
-			// 获取到模型工厂 Model 「要交给页面的数据」
+			// 获取到模型工厂「Model：要交给页面的数据」
 			ModelFactory modelFactory = getModelFactory(handlerMethod, binderFactory);
 			// 封装 handlerMethod 变为 ServletInvocableHandlerMethod 「提供了handlerMethod中信息的快速获取」
 			ServletInvocableHandlerMethod invocableMethod = createInvocableHandlerMethod(handlerMethod);
@@ -1019,7 +1019,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			Map<String, ?> flashAttributes = ((RedirectAttributes) model).getFlashAttributes();
 			HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
 			if (request != null) {
-				// 重定向数据的共享。「RedirectView，先把数据移到request中，再把request移到session中」
+				// 重定向数据的共享。「RedirectView，先把数据移到 request 中，再把 request 移到 session 中」
 				RequestContextUtils.getOutputFlashMap(request).putAll(flashAttributes);
 			}
 		}

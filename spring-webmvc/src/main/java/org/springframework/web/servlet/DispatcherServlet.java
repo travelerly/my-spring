@@ -1070,7 +1070,7 @@ public class DispatcherServlet extends FrameworkServlet {
 					return;
 				}
 
-				// 真正执行目标方法。「确定参数值，反射执行目标方法，处理返回值-->将返回值封装成 ModelAndView」Actually invoke the handler.
+				// 真正执行目标方法。「适配器执行目标方法」「确定参数值，反射执行目标方法，处理返回值-->将返回值封装成 ModelAndView」Actually invoke the handler.
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
@@ -1456,6 +1456,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		if (this.viewResolvers != null) {
 			// 所有的视图解析器「ViewResolver」，尝试根据当前视图名「viewName」得到对应的视图「view」对象
+			// 即使某个返回值满足多种视图解析规则，排在前面的视图解析器解析成功，就直接返回
 			for (ViewResolver viewResolver : this.viewResolvers) {
 				View view = viewResolver.resolveViewName(viewName, locale);
 				if (view != null) {
