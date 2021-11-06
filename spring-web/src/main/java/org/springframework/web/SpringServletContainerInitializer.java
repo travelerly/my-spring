@@ -110,7 +110,7 @@ import org.springframework.util.ReflectionUtils;
  * @see #onStartup(Set, ServletContext)
  * @see WebApplicationInitializer
  *
- * Servlet规范，ServletContainerInitializer 接口的实现类处理 @HandlesTypes 注解
+ * Servlet规范，ServletContainerInitializer 接口的实现类负责处理 @HandlesTypes 注解
  * ServletContainerInitializer 接口的所有实现类是由 Tomcat 使用 SPI 机制加载的。
  */
 @HandlesTypes(WebApplicationInitializer.class)

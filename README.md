@@ -139,14 +139,83 @@ MVC 整体架构
 
 ---
 #### MVC启动过程
+引入的 spring-web 的类路径（/spring-web/src/main/resources/META-INF/services/javax.servlet.ServletContainerInitializer）下指定了 Servlet 规范的实现类（org.springframework.web.SpringServletContainerInitializer），Servlet 规范规定，ServletContainerInitializer 这个接口的实现类负责处理 @HandleTypes 注解，这个接口的所有实现类是由 Tomcat 使用 SPI 机制加载的。
+
+Tomcat 启动时利用 SPI 机制加载，扫描所有实现了 WebApplicationInitializer 接口的实现类，调用这些实现类的 onStartup() 方法完成了下面两件事：
+1. 创建了一个空的 IOC 容器（根容器/父容器），利用根容器创建一个监听器，并保存进 Tomcat 中，容器此时没有刷新；当 Tomcat 加载完 web 应用后，会触发监听器钩子回调 contextInitialized() 方法，来初始化刷新根容器，此时所有的业务逻辑组件功能AOP，事务，IOC，自动装配，HelloService创建对像……
+2. 创建了一个空的 web-ioc 容器（子容器），利用这个 web-ioc 容器创建 DispatcherServlet 对象，此时 DispatcherServlet 中保存了 web-ioc 容器；DispatcherServlet 继承自 GenericServlet，GenericServlet 有初始化方法 init()，当 Tomcat加载完 web 应用后，会初始化DispatcherServlet，即会触发 GenericServlet 子类的初始化模板方法，就会执行 FrameworkServlet 的 initWebApplicationContext() 方法来初始化刷新 web-ioc 容器，期间 web-ioc.setParent(IOC容器)，形成父子容器，子容器刷新，此时 Controller 才开始创建对象，并自动装配 Service（如过当前容器中没有，要去父容器中找）。
+
+即 MVC 容器的刷新基于两种方式
+1. 监听器回调；
+2. 初始化回调。
 ![](src/docs/mvc/MVC启动过程.jpg)
 
 ---
 #### MVC请求处理流程
+1. 用户发送请求至前端控制器 「DispatcherServlet」
+2. 前端控制器 「DispatcherServlet」 收到请求，调用处理器映射器「HandlerMapping」，返回处理器执行链「HandlerExecutionChain」，执行链包含目标方法以及所有的拦截器
+3. 前端控制器 「DispatcherServlet」 根据处理器执行链，遍历所有的处理器适配器「HandlerAdapter」，获取能够支持当前处理器的适配器
+4. 处理器适配器「HandlerAdapter」调用处理器「Controller」执行目标方法，将返回值封装成模型视图「 ModelAndView」，并返回给前端控制器 「DispatcherServlet」
+5. 前端控制器 「DispatcherServlet」将模型视图「 ModelAndView」传给视图解析器「ViewResolver」进行解析，返回视图「View」对象
+6. 前端控制器 「DispatcherServlet」根据视图对象进行渲染，即将模型数据填充至视图中，并向用户展示。
+
+
+
+浏览器发起请求，带有应用名称和请求路径，会被 DispatcherServlet 的 doDispatcher() 方法接收并处理；
+
+1. 文件上传预处理
+2. getHandler(processedRequest)：返回 handler 的执行链，包括目标方法和所有的拦截器
+3. getHandlerAdapter()：寻找适配器，HandlerAdapter 是超级反射工具
+4. mappedHandler.applyPreHandle()：拦截器**前置拦截**过程 preHandle
+5. ha.handle()：目标方法执行过程(适配器代为执行），返回值封装成 ModelAndView
+6. mappedHandler.applyPostHandle()：拦截器**后置拦截**过程 postHandle
+7. processDispatchResult(……)：以下都是对封装好的返回值「ModelAndView」的处理环节
+    1. 处理异常「异常解析器」，返回ModelAndView
+    2. render()：渲染 ModelAndView，解析模型与视图，最终决定响应效果
+
+处理异常「异常解析器」，返回ModelAndView。（HandlerExceptionResolver 异常解析器）
+
+1. ExceptionHandlerExceptionResolver：处理所有 @ExceptionHandler 注解方式的异常，容器启动扫描所有标注了@ControllerAdvice 注解的类，以及这个类里面所有标注了 @ExceptionHandler 注解的方法，并缓存这个方法能处理的异常类型
+2. ResponseStatusExceptionResolver：处理标注了 @ResponseStatus 注解的异常
+3. DefaultHandlerExceptionResolver：判断异常是否是 Spring 指定的异常，如果是，直接响应错误页面 sendError 以及错误代码，并返回空的 ModelAndView 对象（new出的空对象）
+
+发生异常，先由@ExceptionHandler来处理，如果不能处理，在交由其他的异常解析器处理
+
+- 自定义异常解析器思路（实现特定异常时记录日志）参照 ExceptionHandlerExceptionResolver
+- 自定义异常解析器「MyExceptionResolver」实现 InitializingBean 接口，在初始化调用 afterPropertiesSet() 方法的时候，分析所有组件上标注了自定义异常解析注解「@MyExceptionHandler」的所有方法上，在方法执行的时候记录日志。
+
+render()：渲染 ModelAndView，解析模型与视图，最终决定响应效果
+
+1. resolveViewName()，使用所有视图解析器根据视图名循环解析，将视图模型转化成对应的视图对象
+2. view.render()，渲染视图，获取请求转发器，并使用转发器进行转发
+
 ![](src/docs/mvc/MVC请求处理流程.jpg)
 
 ---
 #### HandlerMapping与HandlerAdapter的交互
+HandlerMapping 的生命周期
+1. DispatcherServlet 创建对象后，Tomcat 调用初始化回调钩子 initServletBean() 方法
+2. 最终容器启动完成，Spring 发送事件，回调到 DispatcherServlet 的 onRefresh() 方法
+3. onRefresh 初始化九大组件
+4. handlerMapping 初始化
+    1. 创建所有配置中指定的 HandlerMapping 对象
+    2. 启动了 creatBean 来创建 HandlerMapping 的流程
+    3. RequestMappingHandlerMapping 对象创建完成后开始了初始化流程
+    4. RequestMappingHandlerMapping 实现了 InitializingBean
+    5. 调用了 RequestMappingHandlerMapping 的初始化方法 afterPropertiesSet
+    6. 拿到 Web 容器（子容器）中的所有组件，挨个遍历，判断是否有 @Controller 或者 @RequestMapping 注解
+    7. 把分析到的 RequestMapping 信息注册到 HandlerMapping 的 registry 中
+
+HandlerMapping：保存了所有 url 的映射关系
+
+1. BeanNameURLHandlerMapping：以 bean 的名字作为URL路径，进行映射
+2. RequestMappingHandlerMapping：@RequestMapping 注解作为 url 路径，进行映射。默认使用 RequestMappingHandlerMapping，其父类的内部类 MappingRegistry 的 registry 中保存了所有的请求映射信息。
+3. RouterFunctionMapping：支持函数式处理以及 webflux 相关功能
+
+HandleAdapter：超级反射工具
+1. HttpRequestHandlerAdapter：判断当前的 Handler 是否是 HttpRequestHandler 的接口
+2. SimpleControllerHandlerAdapter：判断当前的 Handler 是否实现了 Controller 接口
+3. RequestMappingHandlerAdapter：判断当前的 Handler 是否是 HandlerMethod，只有RequestMappingHandlerAdapter 能处理复杂方法。
 ![](src/docs/mvc/HandlerMapping与HandlerAdapter的交互.jpg)
 
 ---
@@ -155,4 +224,9 @@ MVC 整体架构
 
 ---
 #### @EnableWebMvc注解原理
+1. @EnableWebMvc会给容器中导入九大组件，并且还都留有了入口，可以结合WebMvcConfigurer接口实现组件自定义。此时容器中含有九大组件
+2. DispatcherServlet在启动的时候是从容器中获取九大组件，并初始化，而不是使用默认「配置文件」的组件初始化。
+
+@EnableWebMvc 注解引入（Import）了 DelegatingWebMvcConfiguration，而 DelegatingWebMvcConfiguration 继承了 WebMvcConfigurationSupport，WebMvcConfigurationSupport 通过 @Bean 给容器中导入了九大组件，requestMappingHandlerMapping、beanNameHandlerMapping、mvcViewResolver、handlerExceptionResolver……
+九大组件的每一个组件的核心都留给子类模板方法实现父类调用子类重写的方法完成九大组件的导入
 ![](src/docs/mvc/@EnableWebMvc注解原理.jpg)

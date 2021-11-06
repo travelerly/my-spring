@@ -499,7 +499,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		initMultipartResolver(context);// 文件上传解析器初始化
 		initLocaleResolver(context);// 国际化解析器初始化
 		initThemeResolver(context);// 模板解析器初始化
-		initHandlerMappings(context);// 处理器映射器初始化
+		initHandlerMappings(context);// 处理器映射器初始化(内部保存了映射以及其对应的处理器类和方法)
 		initHandlerAdapters(context);// 处理器适配器初始化
 		initHandlerExceptionResolvers(context);// 处理器异常解析器初始化
 		initRequestToViewNameTranslator(context);// 视图名翻译器初始化
@@ -1053,7 +1053,7 @@ public class DispatcherServlet extends FrameworkServlet {
 					return;
 				}
 
-				// 确定处理适配器（遍历所有的适配器，找到能够支持当前处理器的适配器）。Determine handler adapter for the current request.
+				// 获取处理适配器（遍历所有的适配器，找到能够支持当前处理器的适配器）。Determine handler adapter for the current request.
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// 获取请求方式（GET、POST...）。Process last-modified header, if supported by the handler.
@@ -1065,12 +1065,12 @@ public class DispatcherServlet extends FrameworkServlet {
 						return;
 					}
 				}
-				// 所有拦截器的 PreHandle 方法的执行
+				// 所有拦截器的前置拦截 PreHandle 方法的执行
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
 					return;
 				}
 
-				// 真正执行目标方法。「确定参数值，反射执行目标方法，处理返回值-->封装成 ModelAndView」Actually invoke the handler.
+				// 真正执行目标方法。「确定参数值，反射执行目标方法，处理返回值-->将返回值封装成 ModelAndView」Actually invoke the handler.
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
@@ -1078,7 +1078,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				applyDefaultViewName(processedRequest, mv);
-				// 所有拦截器的 PostHandle 方法的执行
+				// 所有拦截器的后置拦截 PostHandle 方法的执行
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
@@ -1414,6 +1414,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			if (mv.getStatus() != null) {
 				response.setStatus(mv.getStatus().value());
 			}
+			// 渲染视图
 			view.render(mv.getModelInternal(), request, response);
 		}
 		catch (Exception ex) {

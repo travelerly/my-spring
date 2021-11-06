@@ -791,7 +791,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		ModelAndView mav;
  		checkRequest(request);
 
-		// 会话锁，每一个用户和服务器交互，无论发送了多少请求都只会有一个会话，限制用户的线程 Execute invokeHandlerMethod in synchronized block if required.
+		// 会话锁，每一个用户和服务器交互，无论发送了多少请求都只会有一个会话，限制用户的线程。 Execute invokeHandlerMethod in synchronized block if required.
 		if (this.synchronizeOnSession) {
 			HttpSession session = request.getSession(false);
 			if (session != null) {
@@ -806,7 +806,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			}
 		}
 		else {
-			// No synchronization on session demanded at all...
+			// 非同步请求，返回目标方法返回值的模型视图.No synchronization on session demanded at all...
 			mav = invokeHandlerMethod(request, response, handlerMethod);
 		}
 
@@ -901,7 +901,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			if (asyncManager.isConcurrentHandlingStarted()) {
 				return null;
 			}
-			// 提取出 ModelAndView 数据
+			// 从临时容器中提取出 ModelAndView 数据
 			return getModelAndView(mavContainer, modelFactory, webRequest);
 		}
 		finally {
