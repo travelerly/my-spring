@@ -1092,7 +1092,8 @@ public class DispatcherServlet extends FrameworkServlet {
 			// 处理结果
 			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
 		}
-		catch (Exception ex) {// 下面的逻辑处理完成后，异常继续抛出
+		catch (Exception ex) {
+			// 所有异常处理器无法处理的异常被抛至此，然后下面的逻辑处理完成后，异常继续抛出至 Tomcat，错误也展示默认的堆栈信息。
 			triggerAfterCompletion(processedRequest, response, mappedHandler, ex);
 		}
 		catch (Throwable err) {
@@ -1144,7 +1145,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				mv = ((ModelAndViewDefiningException) exception).getModelAndView();
 			}
 			else {
-				// 定义不同的异常解析器，就会得到不同的异常解析效果
+				// 定义不同的异常解析器，就会得到不同的异常解析效果。如果所有的异常解析器都不能处理的异常，则这个异常就直接抛出去，无需再进行渲染。
 				Object handler = (mappedHandler != null ? mappedHandler.getHandler() : null);
 				mv = processHandlerException(request, response, handler, exception);
 				errorView = (mv != null);
@@ -1340,6 +1341,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		if (this.handlerExceptionResolvers != null) {
 			// 所有的异常解析器尝试解析异常「策略模式」
 			for (HandlerExceptionResolver resolver : this.handlerExceptionResolvers) {
+				// 解析异常，将异常转化成异常模型视图
 				exMv = resolver.resolveException(request, response, handler, ex);
 				if (exMv != null) {
 					break;

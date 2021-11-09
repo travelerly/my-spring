@@ -159,10 +159,7 @@ Tomcat 启动时利用 SPI 机制加载，扫描所有实现了 WebApplicationIn
 5. 前端控制器 「DispatcherServlet」将模型视图「 ModelAndView」传给视图解析器「ViewResolver」进行解析，返回视图「View」对象
 6. 前端控制器 「DispatcherServlet」根据视图对象进行渲染，即将模型数据填充至视图中，并向用户展示。
 
-
-
 浏览器发起请求，带有应用名称和请求路径，会被 DispatcherServlet 的 doDispatcher() 方法接收并处理；
-
 1. 文件上传预处理
 2. getHandler(processedRequest)：返回 handler 的执行链，包括目标方法和所有的拦截器
 3. getHandlerAdapter()：寻找适配器，HandlerAdapter 是超级反射工具
@@ -174,20 +171,17 @@ Tomcat 启动时利用 SPI 机制加载，扫描所有实现了 WebApplicationIn
     2. render()：渲染 ModelAndView，解析模型与视图，最终决定响应效果
 
 处理异常「异常解析器」，返回ModelAndView。（HandlerExceptionResolver 异常解析器）
-
 1. ExceptionHandlerExceptionResolver：处理所有 @ExceptionHandler 注解方式的异常，容器启动扫描所有标注了@ControllerAdvice 注解的类，以及这个类里面所有标注了 @ExceptionHandler 注解的方法，并缓存这个方法能处理的异常类型
 2. ResponseStatusExceptionResolver：处理标注了 @ResponseStatus 注解的异常
 3. DefaultHandlerExceptionResolver：判断异常是否是 Spring 指定的异常，如果是，直接响应错误页面 sendError 以及错误代码，并返回空的 ModelAndView 对象（new出的空对象）
 
 发生异常，先由@ExceptionHandler来处理，如果不能处理，在交由其他的异常解析器处理
-
 - 自定义异常解析器思路（实现特定异常时记录日志）参照 ExceptionHandlerExceptionResolver
 - 自定义异常解析器「MyExceptionResolver」实现 InitializingBean 接口，在初始化调用 afterPropertiesSet() 方法的时候，分析所有组件上标注了自定义异常解析注解「@MyExceptionHandler」的所有方法上，在方法执行的时候记录日志。
 
 render()：渲染 ModelAndView，解析模型与视图，最终决定响应效果
-
 1. resolveViewName()，使用所有视图解析器根据视图名循环解析，将视图模型转化成对应的视图对象
-2. view.render()，渲染视图，获取请求转发器，并使用转发器进行转发
+2. view.render()，使用视图对象进行渲染视图
 
 ![](src/docs/mvc/MVC请求处理流程.jpg)
 
@@ -207,7 +201,6 @@ HandlerMapping 的生命周期
     7. 把分析到的 RequestMapping 信息注册到 HandlerMapping 的 registry 中
 
 HandlerMapping：保存了所有 url 的映射关系
-
 1. BeanNameURLHandlerMapping：以 bean 的名字作为URL路径，进行映射
 2. RequestMappingHandlerMapping：@RequestMapping 注解作为 url 路径，进行映射。默认使用 RequestMappingHandlerMapping，其父类的内部类 MappingRegistry 的 registry 中保存了所有的请求映射信息。
 3. RouterFunctionMapping：支持函数式处理以及 webflux 相关功能
