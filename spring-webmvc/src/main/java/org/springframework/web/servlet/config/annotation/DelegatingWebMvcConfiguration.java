@@ -98,8 +98,10 @@ public class DelegatingWebMvcConfiguration extends WebMvcConfigurationSupport {
 		this.configurers.addViewControllers(registry);
 	}
 
+	// 重写了其父类 WebMvcConfigurationSupport 的方法导入视图解析器组件
 	@Override
 	protected void configureViewResolvers(ViewResolverRegistry registry) {
+		// 使用 WebMvcConfigurerComposite 导入组件
 		this.configurers.configureViewResolvers(registry);
 	}
 

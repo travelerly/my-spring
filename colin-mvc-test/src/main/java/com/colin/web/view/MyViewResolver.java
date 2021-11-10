@@ -23,4 +23,6 @@ public class MyViewResolver implements ViewResolver {
 		}
 		return null;
 	}
+
+
 }

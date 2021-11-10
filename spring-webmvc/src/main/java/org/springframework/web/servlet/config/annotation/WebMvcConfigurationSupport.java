@@ -1115,17 +1115,27 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 	 * {@link ViewResolverComposite#resolveViewName(String, Locale)} returns null in order
 	 * to allow other potential {@link ViewResolver} beans to resolve views.
 	 * @since 4.1
+	 * 此 @Bean 的目的是给容器中注册视图解析器。
+	 * 如果子类没有进行配置，则使用默认视图解析器「InternalResourceViewResolver」，否则使用子类配置的自定义视图解析器
+	 * 但如果想要自定义配置的视图解析器和这个默认的视图解析器同时注册进容器中，需将这两个判断条件的 "&&" 关系改为 "||" 的关系，「if (registry.getViewResolvers().isEmpty() || this.applicationContext != null)」
+	 * 并且同时将其内部的判断改为（true || names.length == 1），这样便使得两个视图解析器同时注册进容器中。
 	 */
 	@Bean
 	public ViewResolver mvcViewResolver(
 			@Qualifier("mvcContentNegotiationManager") ContentNegotiationManager contentNegotiationManager) {
 		ViewResolverRegistry registry =
 				new ViewResolverRegistry(contentNegotiationManager, this.applicationContext);
+		//「扩展配置视图解析器，留给子类实现」调用子类「DelegatingWebMvcConfiguration」重写的方法来实现组件的导入。「每一个关键位置都留给了子类模板实现，子类使用 configurers 实现」
+		// 导入的配置来源是实现了 WebMvcConfigurer 接口的配置类「MvcExtendConfiguration」中配置的内容。
 		configureViewResolvers(registry);
-		// 判断子类是否进行了视图解析的配置，如果没有进行配置，则使用默认视图解析器「InternalResourceViewResolver」，否则使用子类配置的视图解析器
+		// 判断子类是否进行了视图解析的配置，如果没有进行配置，则使用默认视图解析器「InternalResourceViewResolver」，否则使用子类配置的自定义视图解析器
+		// if (registry.getViewResolvers().isEmpty() || this.applicationContext != null) {
 		if (registry.getViewResolvers().isEmpty() && this.applicationContext != null) {
+			// 获取容器中所有视图解析器「ViewResolver」的 beanName 数组。「目的是获取所有视图解析器的数量」
 			String[] names = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 					this.applicationContext, ViewResolver.class, true, false);
+			// 容器中视图解析器的配置的数量如果等于 1，就表示容器中只含有一个视图解析器，就是是由此 @Bean 所配置的 mvcViewResolver。
+			// if (true || names.length == 1) {
 			if (names.length == 1) {
 				registry.getViewResolvers().add(new InternalResourceViewResolver());
 			}
