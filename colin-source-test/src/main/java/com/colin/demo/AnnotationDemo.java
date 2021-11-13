@@ -5,6 +5,8 @@ import com.colin.bean.ContextBean;
 import com.colin.bean.Hello;
 import com.colin.bean.cycle.A;
 import com.colin.bean.cycle.B;
+import com.colin.bean.cycle.X;
+import com.colin.bean.cycle.Y;
 import com.colin.config.MyConfig;
 import com.colin.listener.AppEventPublisher;
 import com.colin.listener.ChangeEvent;
@@ -21,11 +23,9 @@ public class AnnotationDemo {
 
 	public static void main(String[] args) {
 		/*aopTest();*/
-		/*testFactoryBean();*/
+		testFactoryBean();
 		/*testCycle();*/
-
-		listenerTest();
-
+		/*listenerTest();*/
 	}
 
 	private static void listenerTest() {
@@ -61,7 +61,9 @@ public class AnnotationDemo {
 
 	private static void testCycle(){
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
-		A a = applicationContext.getBean(A.class);
-		B b = applicationContext.getBean(B.class);
+		X x = applicationContext.getBean(X.class);
+		Y y = applicationContext.getBean(Y.class);
+		/*A a = applicationContext.getBean(A.class);
+		B b = applicationContext.getBean(B.class);*/
 	}
 }

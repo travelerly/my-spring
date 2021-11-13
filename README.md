@@ -10,41 +10,46 @@ Spring 暴露给程序员的使用方式是，要么写一个 xml 文件、要�
 #### Spring 整体架构流程
 在 Spring 的底层把所有的资源（xml、注解、网络文件、磁盘文件等）都用 Resource 来表示，Spring 使用 ResourceLoader（资源加载器）加载这些资源，交给 BeanDefinitionReader 来读取和解析，并存放到 Spring 工厂的 BeanDefinitionRegistry （Bean  定义信息注册中心）中，即 Spring 一启动，就将所有资源解析成 BeanDefinition 存入到 BeanDefinitionRegistry 中。（实际是保存在一个 map 中，BeanDefinitionMap），然后 Spring 将这些 bean 的定义信息挨个创建成对象，并存入到 IOC 容器中，Spring 中使用各种池来存储对象，其中单例对象池用于保存所有的单例对象，在使用对象时，就去单例池中获取对象。
 
-```text
-ApplicationContext 和 BeanFactory 的作用：
-1.BeanFactory 定义工厂创建和获取 Bean 流程的
-2.ApplicationContext 定义了 Bean 的增强处理以及容器保存等各种流程
-3.ApplicationContext 里面第一次要用到 bean，会使用工厂 BeanFactory 先来创建，创建好后保存在容器中
+ApplicationContext 和 BeanFactory 的区别和作用：
+1. AnnotationConfigApplicationContext 组合了 DefaultListableBeanFactory，在 AnnotationConfigApplicationContext 执行构造方法时，通过其父类 GenericApplicationContext 的构造方法创建了 DefaultListableBeanFactory，DefaultListableBeanFactory 中包含有用于保存 Bean 定义信息的集合、保存实例的各种池、Bean 定义信息的扫描器和读取器、底层的后置处理器等，然后 AnnotationConfigApplicationContext 再调用 refresh() 方法刷新容器；
+2. BeanFactory 定义工厂的创建和获取 Bean 流程，其中包含有用于保存Bean定义信息的集合、保存实例的各种池等，因此通常称为 IOC 容器；
+3. ApplicationContext 是建立在 BeanFactory 基础之上， 定义了 Bean 的增强处理以等各种流程，提供了更多面向应用的功能，更易于创建实际应用，因此通常称为应用上下文；
+4. ApplicationContext 里面第一次要用到 bean，会使用工厂 BeanFactory 先来创建，创建好后保存在容器中；
+5. BeanFactory 是 Spring 框架的基础设施，面向 Spring 本身，ApplicationContext 面向使用 Spring 框架的开发者，几乎所有的应用场景都可以直接使用 ApplicationContext，而非底层的 BeanFactory。
+#### ApplicationContext的继承树
+![](src/docs/spring/ApplicationContext的继承树.jpg)
 
 AOP：
-1.AnnotationAspectJAutoProxyCreator 后置处理器，会在启动的时候分析所有标注了 @Aspect 注解的切面信息，将其封装成增强器链，并为目标对象创建代理放在容器中
-2.执行期间代理对象会链式调用 AOP 切面定义的增强方法
+1. AnnotationAspectJAutoProxyCreator 后置处理器，会在启动的时候分析所有标注了 @Aspect 注解的切面信息，将其封装成增强器链，并为目标对象创建代理放在容器中；
+2. 执行期间代理对象会链式调用 AOP 切面定义的增强方法
 
 生命周期：
-1.BeanFactoryPostProcessor：在 BeanFactory 初始化前后拦截
-2.BeanPostProcessor：在所有组件创建对象及初始化前后拦截
-3.InitializingBean：组件单独实现它，可以在组件赋值结束以后调用初始化进行增强处理
-4.SmartInitializingBean：所有组件都创建好以后，每个组件再来 SmartInitializingBean
+1. BeanFactoryPostProcessor：在 BeanFactory 初始化前后拦截；
+2. BeanPostProcessor：在所有组件创建对象及初始化前后拦截；
+3. InitializingBean：组件单独实现它，可以在组件赋值结束以后调用初始化进行增强处理；
+4. SmartInitializingBean：所有组件都创建好以后，每个组件再来 SmartInitializingBean
 
-Bean：保存 BeanDefinition 信息→根据 BeanDefinition 信息创建对象→赋值→初始化
+Bean：保存 BeanDefinition 信息→根据 BeanDefinition 信息创建对象→赋值→初始化；
 
-Bean的功能增强全都是由 BeanPostProcessor + InitializingBean (合起来)完成的。
+Bean的功能增强全都是由 BeanPostProcessor + InitializingBean (合起来)完成的
+
 使用建议：
-1.所有组件可能都会使用的功能，使用后置处理器BeanPostProcessor来实现
-2.单组件增强的功能，最好使用生命周期InitializingBean来实现。
+1. 所有组件可能都会使用的功能，使用后置处理器BeanPostProcessor来实现；
+2. 单组件增强的功能，最好使用生命周期InitializingBean来实现
 
-新功能分析思路
-1.组件的新功能一般都是由Bean的生命周期机制增强出来的
-2.这个新功能加入了哪些组件，这些组件在生命周期期间做了什么
+组件新功能分析思路：
+1. 组件的新功能一般都是由Bean的生命周期机制增强出来的；
+2. 这个新功能加入了哪些组件，这些组件在生命周期期间做了什么
 
-Spring的套路点
-1.AbstractBeanDefinition 如何给容器中注入了什么组件
-2.BeanFactory 初始化完成后，监控其中多了哪些后置处理器
-3.分析后置处理器什么时候调用，做了什么功能。
-以上所有的前提，是理解容器刷新12大步与getBean流程，防止混乱
-a.工厂后置处理器执行
-b.bean后置处理器执行、bean的生命周期（后置处理器+InitializingBean）
-```
+Spring的套路点：
+1. AbstractBeanDefinition 如何给容器中注入了什么组件；
+2. BeanFactory 初始化完成后，监控其中多了哪些后置处理器；
+3. 分析后置处理器什么时候调用，做了什么功能。
+
+以上所有的前提，是理解容器刷新12大步与getBean流程，防止混乱；
+1. 工厂后置处理器执行；
+2. bean后置处理器执行、bean的生命周期（后置处理器+InitializingBean）
+
 ---
 #### Spring架构原理图
 ![](src/docs/spring/Spring架构原理图.jpg)
@@ -64,6 +69,7 @@ Spring 容器启动时，先加载一些底层的后置处理器（例如Configu
 10. registerListeners()：注册监听器，关联Spring的事件监听机制。将容器中所有的监听器 ApplicationListener 保存进多播器集合中；
 11. finishBeanFactoryInitialization(beanFactory)：bean的创建，完成BeanFactory的初始化。详细参照Bean的初始化流程，再执行所有后初始化操作「SmartInitializingSingleton.afterSingletonsInstantiated」；
 12. finishRefresh()：最后的一些清理、事件发送等处理。
+
 ![](src/docs/spring/容器刷新完整流程.jpg)
 
 ---
@@ -84,6 +90,22 @@ Spring 容器启动时，先加载一些底层的后置处理器（例如Configu
 
 ---
 #### AOP执行链执行流程
+
+目标方法的执行，容器中保存了组件的代理对象「cglib增强后的对象」，这个对象里面保存了详细信息（比如增强器、目标对象等）
+1. CglibAopProxy.intercept(),拦截目标方法的执行；
+2. 根据ProxyFactory对象获取将要执行的目标方法的拦截器链， 
+   List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
+   1. List<Object> interceptorList：保存所有的拦截器，一个默认的ExposeInvocationInterceptor和四个增强器「通知方法」；
+   2. 遍历所有的增强器，将其转换成 Interceptor：MethodInterceptor[] interceptors = registry.getInterceptors(advisor)；
+   3. 将增强器转为 List<MethodInterceptor>；
+      1. 如果是 MethodInterceptor ，直接加入到集合中；
+      2. 如果不是 MethodInterceptor，则使用 AdvisorAdapter 将增强器转为 MethodInterceptor，转换完成后，返回 MethodInterceptor 数组。
+3. 如果没有拦截器链，则直接执行目标方法。「拦截器链：每一个通知方法又被包装成方法拦截器，利用 MethodInterceptor 拦截器机制执行」；
+4. 如果有拦截器链，把需要执行的目标对象、目标方法、拦截器链等信息传入创建的CglibMethodInvokation对象，并调用Object retVal = mi.procceed()；
+5. 拦截器链的触发过程；
+   1. 如果没有拦截器或者拦截器索引和拦截器数组-1的大小相同（指定到了最后一个拦截器），则执行目标方法；
+   2. 链式获取每一个拦截器，拦截器执行 invoke() 方法，每一个拦截器等待下一个拦截器执行完成返回以后再执行。「拦截器链的机制，保证通知方法和目标方法的执行顺序」
+
 ```
 目标方法的执行
 容器中保存了组件的代理对象「cglib增强后的对象」，这个对象里面保存了详细信息（比如增强器、目标对象等）
@@ -95,7 +117,7 @@ Spring 容器启动时，先加载一些底层的后置处理器（例如Configu
    2. 遍历所有的增强器，将其转换成 Interceptor：MethodInterceptor[] interceptors = registry.getInterceptors(advisor)
    3. 将增强器转为 List<MethodInterceptor>
       1. 如果是 MethodInterceptor ，直接加入到集合中
-      2. 如果不是 MethodInterceptor，则使用 AdvisorAdapter 将增强器转为 MethodInterceptor，转换完成后，返回 MethodInterceptor 数组。
+      2. 如果不是 MethodInterceptor，则使用 AdvisorAdapter 将增强器转为 MethodInterceptor，转换完成后，返回 MethodInterceptor 数组。、
 3. 如果没有拦截器链，则直接执行目标方法
    拦截器链：每一个通知方法又被包装成方法拦截器，利用 MethodInterceptor 拦截器机制执行
 4. 如果有拦截器链，把需要执行的目标对象、目标方法、拦截器链等信息传入创建的CglibMethodInvokation对象，并调用Object retVal = mi.procceed()
