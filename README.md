@@ -244,4 +244,5 @@ DelegatingWebMvcConfiguration 的作用
    1. 任意配置类上加注解 @EnableWebMvc，然后实 WebMvcConfigurer 接口，进行扩展；
    2. 任意配置类继承 DelegatingWebMvcConfiguration，然后实现 WebMvcConfigurer 接口，进行扩展；
    3. 任意配置类继承 WebMvcConfigurationSupport，实现他预留的模板方法进行扩展
+
 ![](src/docs/mvc/@EnableWebMvc注解原理.jpg)
