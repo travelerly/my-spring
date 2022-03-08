@@ -639,10 +639,12 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 				}
 			}
 			else {
+				// 解析引用字段
 				value = resolveFieldValue(field, bean, beanName);
 			}
 			if (value != null) {
 				ReflectionUtils.makeAccessible(field);
+				// 属性赋值（循环引用对象在此处赋值）。
 				field.set(bean, value);
 			}
 		}

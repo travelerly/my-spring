@@ -189,17 +189,17 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					// 再次检查单例缓存池，获取当前对象。Consistent creation of early reference within full singleton lock
 					singletonObject = this.singletonObjects.get(beanName);
 					if (singletonObject == null) {
-						//再从（二级）缓存中查询
+						// 再从（二级）缓存中查询
 						singletonObject = this.earlySingletonObjects.get(beanName);
 						if (singletonObject == null) {
-							//再从（三级）缓存中查询
+							// 再从（三级）缓存中查询
 							ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 							if (singletonFactory != null) {
-								//回调创建对象
+								// 回调创建对象
 								singletonObject = singletonFactory.getObject();
-								//将当前对象放入（二级）缓存池中
+								// 将当前对象放入（二级）缓存池中
 								this.earlySingletonObjects.put(beanName, singletonObject);
-								//将当前对象从（三级）缓存中删除
+								// 将当前对象从（三级）缓存中删除
 								this.singletonFactories.remove(beanName);
 							}
 						}
