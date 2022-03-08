@@ -5,8 +5,6 @@ import com.colin.bean.ContextBean;
 import com.colin.bean.Hello;
 import com.colin.bean.cycle.A;
 import com.colin.bean.cycle.B;
-import com.colin.bean.cycle.X;
-import com.colin.bean.cycle.Y;
 import com.colin.config.MyConfig;
 import com.colin.listener.AppEventPublisher;
 import com.colin.listener.ChangeEvent;
@@ -23,8 +21,8 @@ public class AnnotationDemo {
 
 	public static void main(String[] args) {
 		/*aopTest();*/
-		testFactoryBean();
-		/*testCycle();*/
+		/*testFactoryBean();*/
+		testCycle();
 		/*listenerTest();*/
 	}
 
@@ -56,14 +54,12 @@ public class AnnotationDemo {
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
 		ContextBean contextBean = applicationContext.getBean(ContextBean.class);
 		ApplicationContext context = contextBean.getContext();
-		System.out.println("注解版Bean中是否可以注入ioc容器==>"+(applicationContext==context));
+		System.out.println("注解版 Bean 中是否可以注入 ioc 容器==>"+(applicationContext==context));
 	}
 
 	private static void testCycle(){
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
-		X x = applicationContext.getBean(X.class);
-		Y y = applicationContext.getBean(Y.class);
-		/*A a = applicationContext.getBean(A.class);
-		B b = applicationContext.getBean(B.class);*/
+		A a = applicationContext.getBean(A.class);
+		B b = applicationContext.getBean(B.class);
 	}
 }

@@ -512,7 +512,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		try {
-			// 创建对象之前给我们一个机会，返回组件的代理对象。「AOP的后置处理器没有利用这次机会」 Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
+			// 创建对象之前给我们一个机会，返回组件的代理对象。「AOP 的后置处理器没有利用这次机会」 Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
 			if (bean != null) {
 				// 如果返回了对象（InstantiationAwareBeanPostProcessor.postProcessBeforeInstantiation()返回的对象），则直接退出对象创建过程
@@ -591,7 +591,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 		}
 
-		// 提前暴露单实例Bean，专门解决循环依赖。 Eagerly cache singletons to be able to resolve circular references
+		// 提前暴露单实例 Bean，专门解决循环依赖。 Eagerly cache singletons to be able to resolve circular references
 		// even when triggered by lifecycle interfaces like BeanFactoryAware.
 		boolean earlySingletonExposure = (mbd.isSingleton() && this.allowCircularReferences &&
 				isSingletonCurrentlyInCreation(beanName));
@@ -1126,7 +1126,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			// Make sure bean class is actually resolved at this point.
 			if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
 				Class<?> targetType = determineTargetType(beanName, mbd);
-				if (targetType != null) { // bean 创建之前先进行增强（后置处理器介入）
+				if (targetType != null) {
+					// bean 创建之前先进行增强（后置处理器介入）
 					bean = applyBeanPostProcessorsBeforeInstantiation(targetType, beanName);
 					if (bean != null) {
 						bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
@@ -1211,7 +1212,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 		}
 
-		// 后置处理器有机会在这里决定当前Bean使用哪个构造器-->SmartInstantiationAwareBeanPostProcessor.determineCandidateConstructors()  Candidate constructors for autowiring?
+		// 后置处理器有机会在这里决定当前 Bean 使用哪个构造器-->SmartInstantiationAwareBeanPostProcessor.determineCandidateConstructors()  Candidate constructors for autowiring?
 		Constructor<?>[] ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName);
 		if (ctors != null || mbd.getResolvedAutowireMode() == AUTOWIRE_CONSTRUCTOR ||
 				mbd.hasConstructorArgumentValues() || !ObjectUtils.isEmpty(args)) {
@@ -1427,7 +1428,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 			// 使用后置处理器处理属性
 			for (InstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().instantiationAware) {
-				// 处理属性的后置处理器开始工作。「例如自动装配功能再此执行，处理@Autowired、@Value、@Inject注解标注的原信息」
+				// 处理属性的后置处理器开始工作。「例如自动装配功能再此执行，处理 @Autowired、@Value、@Inject 注解标注的原信息」
 				PropertyValues pvsToUse = bp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
 				if (pvsToUse == null) {
 					if (filteredPds == null) {
@@ -1449,7 +1450,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		if (pvs != null) {
-			// 把处理好的 PropertyValues（属性名和属性值）给Bean里面赋值，主要是上面步骤没有给bean设置的属性。（xml版的所有配置会在此给属性赋值）
+			// 把处理好的 PropertyValues（属性名和属性值）给Bean里面赋值，主要是上面步骤没有给 bean 设置的属性。（xml 版的所有配置会在此给属性赋值）
 			applyPropertyValues(beanName, mbd, bw, pvs);
 		}
 	}

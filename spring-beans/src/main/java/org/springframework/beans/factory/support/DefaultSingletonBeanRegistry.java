@@ -263,11 +263,11 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					if (recordSuppressedExceptions) {
 						this.suppressedExceptions = null;
 					}
-					// 单实例创建结束后，在 Set<String> singletonsCurrentlyInCreation 池中清除当前bean的记录「清除对象正在创建状态」
+					// 单实例创建结束后，在 Set<String> singletonsCurrentlyInCreation 池中清除当前 bean 的记录「清除对象正在创建状态」
 					afterSingletonCreation(beanName);
 				}
 				if (newSingleton) {
-					// 将对象保存到ioc容器-单例池中，并在二、三级缓存中信息移除。「Map<String, Object> singletonObjects」
+					// 将对象保存到 ioc 容器-单例池中，并在二、三级缓存中信息移除。「Map<String, Object> singletonObjects」
 					addSingleton(beanName, singletonObject);
 				}
 			}

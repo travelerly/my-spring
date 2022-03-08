@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  *
  * 事件监听器原理：
  */
-@Component
+//@Component
 public class AppEventListener {
 
 	public AppEventListener() {

@@ -394,9 +394,9 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 
 	@Override
 	public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) {
-		//找到自动装配的元信息。处理@Autowired、@Value、@Inject注解标注的原信息
+		// 找到自动装配的元信息。处理 @Autowired、@Value、@Inject 注解标注的原信息
 		InjectionMetadata metadata = findAutowiringMetadata(beanName, bean.getClass(), pvs);
-		try {
+		try { // 属性注入
 			metadata.inject(bean, beanName, pvs);
 		}
 		catch (BeanCreationException ex) {
@@ -452,7 +452,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 					if (metadata != null) {
 						metadata.clear(pvs);
 					}
-					//分析当前类的方法或属性是都有标注@Autowired、@Value、@Inject自动赋值的注解，然后封装为InjectedElement
+					// 分析当前类的方法或属性是都有标注 @Autowired、@Value、@Inject 自动赋值的注解，然后封装为 InjectedElement
 					metadata = buildAutowiringMetadata(clazz);
 					this.injectionMetadataCache.put(cacheKey, metadata);
 				}

@@ -567,27 +567,29 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 				StartupStep beanPostProcess = this.applicationStartup.start("spring.context.beans.post-process");
 				// 工厂的增强： 执行所有的 BeanFactory 后置处理器对工厂进行修改或增强(配置类会在这里解析)。 Invoke factory processors registered as beans in the context.
+				// 所有的 BeanDefinition 就已经准备就绪了（配置类会在这里解析，注册了所有标有 @Component、@ComponentScans、@ImportResource、@PropertySources、@Bean、@Import 等注解的 bean）
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// 注册所有的 bean 的后置处理器。「BeanPostProcessor」 Register bean processors that intercept bean creation.
 				registerBeanPostProcessors(beanFactory);
 				beanPostProcess.end();
 
-				// 初始化，国际化组件。「观察容器中是否含有MessageResource的定义信息，如果没有就注册一个」Initialize message source for this context.
+				// 初始化国际化组件。「观察容器中是否含有 MessageResource 的定义信息，如果没有就注册一个并放到单例池中」Initialize message source for this context.
 				initMessageSource();
 
 				// 初始化事件多播功能「之后注册的监听器和发布事件都是基于该事件多播器执行的」。
-				// 判断容器中是否有id为applicationEventMulticaster的定义信息，如果没有就注册一个事件多播组件SimpleApplicationEventMulticaster放到单例池中。Initialize event multicaster for this context.
+				// 判断容器中是否有 id 为 applicationEventMulticaster 的定义信息，如果没有就注册一个事件多播组件 SimpleApplicationEventMulticaster 放到单例池中。Initialize event multicaster for this context.
 				initApplicationEventMulticaster();
 
 				// 留给子类继续增强处理逻辑「模板模式」。Initialize other special beans in specific context subclasses.
 				onRefresh();
 
-				// 注册监听器，关联Spring的事件监听机制。
+				// 注册监听器，关联 Spring 的事件监听机制。
 				// 将容器中所有的监听器 ApplicationListener 保存进多播器集合中。Check for listener beans and register them.
 				registerListeners();
 
 				// bean 的创建：完成 BeanFactory 的初始化。「详细参照 Bean 的初始化流程，再执行所有后初始化操作」「SmartInitializingSingleton.afterSingletonsInstantiated」。 Instantiate all remaining (non-lazy-init) singletons.
+				// 初始化所有非懒加载的单实例 Bean。
 				finishBeanFactoryInitialization(beanFactory);
 
 				// 最后的一些清理、事件发送等处理。 Last step: publish corresponding event.

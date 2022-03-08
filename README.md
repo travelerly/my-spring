@@ -1,23 +1,26 @@
-# <img src="src/docs/spring-framework.png" width="80" height="80"> Spring Framework 
+# <img src="src/docs/spring-framework.png" width="80" height="80"> Spring Framework
 
 ---
 
 ## Spring 整体架构
 
 #### Spring 如何工作
+
 Spring 暴露给程序员的使用方式是，要么写一个 xml 文件、要么使用注解、要么利用磁盘文件、网络文件等，把需要的功能定义出来，这个信息最终会生成一个组件或者功能配置清单，Spring 会去读取并解析这些功能清单，这些信息就会决定 Spring 框架中的各种行为。
 
 #### Spring 整体架构流程
+
 在 Spring 的底层把所有的资源（xml、注解、网络文件、磁盘文件等）都用 Resource 来表示，Spring 使用 ResourceLoader（资源加载器）加载这些资源，交给 BeanDefinitionReader 来读取和解析，并存放到 Spring 工厂的 BeanDefinitionRegistry （Bean  定义信息注册中心）中，即 Spring 一启动，就将所有资源解析成 BeanDefinition 存入到 BeanDefinitionRegistry 中。（实际是保存在一个 map 中，BeanDefinitionMap），然后 Spring 将这些 bean 的定义信息挨个创建成对象，并存入到 IOC 容器中，Spring 中使用各种池来存储对象，其中单例对象池用于保存所有的单例对象，在使用对象时，就去单例池中获取对象。
 
 ApplicationContext 和 BeanFactory 的区别和作用：
-1. AnnotationConfigApplicationContext 组合了 DefaultListableBeanFactory，在 AnnotationConfigApplicationContext 执行构造方法时，通过其父类 GenericApplicationContext 的构造方法创建了 DefaultListableBeanFactory，DefaultListableBeanFactory 中包含有用于保存 Bean 定义信息的集合、保存实例的各种池、Bean 定义信息的扫描器和读取器、底层的后置处理器等，然后 AnnotationConfigApplicationContext 再调用 refresh() 方法刷新容器；
-2. BeanFactory 定义工厂的创建和获取 Bean 流程，其中包含有用于保存Bean定义信息的集合、保存实例的各种池等，因此通常称为 IOC 容器；
+1. AnnotationConfigApplicationContext 组合了 DefaultListableBeanFactory，在 AnnotationConfigApplicationContext 执行构造方法时，通过其父类 GenericApplicationContext 的构造方法创建了 DefaultListableBeanFactory，DefaultListableBeanFactory 及其父类创初始化了用于保存 Bean 定义信息的集合、保存实例的各种池、Bean 定义信息的扫描器和读取器、底层的后置处理器等，然后 AnnotationConfigApplicationContext 再创建 BeanDefinition 的扫描器和读取器，并注册主配置类，最后调用 refresh() 方法刷新容器；
+2. BeanFactory 定义工厂的创建和获取 Bean 流程，其中包含有用于保存 Bean 定义信息的集合、保存实例的各种池等，因此通常称为 IOC 容器；
 3. ApplicationContext 是建立在 BeanFactory 基础之上， 定义了 Bean 的增强处理以等各种流程，提供了更多面向应用的功能，更易于创建实际应用，因此通常称为应用上下文；
 4. ApplicationContext 里面第一次要用到 bean，会使用工厂 BeanFactory 先来创建，创建好后保存在容器中；
 5. BeanFactory 是 Spring 框架的基础设施，面向 Spring 本身，ApplicationContext 面向使用 Spring 框架的开发者，几乎所有的应用场景都可以直接使用 ApplicationContext，而非底层的 BeanFactory。
 
 #### ApplicationContext的继承树
+
 ![](src/docs/spring/ApplicationContext的继承树.jpg)
 
 AOP：
@@ -31,23 +34,26 @@ AOP：
 4. SmartInitializingBean：所有组件都创建好以后，每个组件再来 SmartInitializingBean
 
 Bean：保存 BeanDefinition 信息→根据 BeanDefinition 信息创建对象→赋值→初始化；
-Bean的功能增强全都是由 BeanPostProcessor + InitializingBean (合起来)完成的
+Bean 的功能增强全都是由 BeanPostProcessor + InitializingBean (合起来)完成的
 使用建议：
-1. 所有组件可能都会使用的功能，使用后置处理器BeanPostProcessor来实现；
-2. 单组件增强的功能，最好使用生命周期InitializingBean来实现
+
+1. 所有组件可能都会使用的功能，使用后置处理器 BeanPostProcessor 来实现；
+2. 单个组件增强的功能，最好使用生命周期 InitializingBean 来实现
 
 组件新功能分析思路：
-1. 组件的新功能一般都是由Bean的生命周期机制增强出来的；
+1. 组件的新功能一般都是由 Bean 的生命周期机制增强出来的；
 2. 这个新功能加入了哪些组件，这些组件在生命周期期间做了什么
 
-Spring的套路点：
+
+
+Spring 的套路点：
 1. AbstractBeanDefinition 如何给容器中注入了什么组件；
 2. BeanFactory 初始化完成后，监控其中多了哪些后置处理器；
 3. 分析后置处理器什么时候调用，做了什么功能。
 
-以上所有的前提，是理解容器刷新12大步与getBean流程，防止混乱；
+以上所有的前提，是理解容器刷新 12 大步与 getBean() 流程，防止混乱；
 1. 工厂后置处理器执行；
-2. bean后置处理器执行、bean的生命周期（后置处理器+InitializingBean）
+2. bean 后置处理器执行、bean 的生命周期（后置处理器 + InitializingBean）
 
 ---
 #### Spring架构原理图
@@ -55,24 +61,25 @@ Spring的套路点：
 
 ---
 #### 容器刷新完整流程
-Spring 容器启动时，先加载一些底层的后置处理器（例如ConfigurationClassPostProcessor「配置类后置处理器」，容器刷新时，执行工厂后置处理器，注册系统内所有配置类定义信息、AutowiredAnnotationBeanPostProcessor「自动装配功能后置处理器」……），然后再将由构造传入的所有主配置类的定义信息注册进容器。然后开始刷新容器的步骤（容器刷新十二大步）。
+Spring 容器启动时，先加载一些底层的后置处理器（例如 ConfigurationClassPostProcessor「配置类后置处理器」，容器刷新时，执行工厂后置处理器，注册系统内所有配置类定义信息、AutowiredAnnotationBeanPostProcessor「自动装配功能后置处理器」……），然后再将由构造传入的所有主配置类的定义信息注册进容器。然后开始刷新容器的步骤（容器刷新十二大步）。
 1. prepareRefresh()：准备上下文环境；
-2. obtainFreshBeanFactory()：工厂的创建，BeanFactory第一次创建「有 xml 的解析逻辑」，获取当前准备好的空容器，返回在 this() 环节就准备（new）好的 BeanFactory；
+2. obtainFreshBeanFactory()：工厂的创建，BeanFactory 的第一次创建（有 xml 的解析逻辑），获取当前准备好的空容器，返回在 this() 环节就准备（new）好的 BeanFactory；
 3. prepareBeanFactory(beanFactory)：预准备工厂，给容器中注册了环境信息作为单实例 Bean，方便后续自动装配；beanPostProcessor 池中注册了一些后置处理器（处理监听功能、XXXAware功能）；
 4. postProcessBeanFactory(beanFactory)：留给子类的模板方法，允许子类继续对工厂执行一些处理；
-5. invokeBeanFactoryPostProcessors(beanFactory)：工厂的增强或修改：执行所有的 BeanFactory 后置处理器，所有的 BeanDefinition 就已经准备就绪了（配置类会在这里解析，注册了所有标有@Component、@ComponentScans、@ImportResource、@PropertySources、@Bean、@Import等注解的 bean）；
-6. registerBeanPostProcessors(beanFactory)：注册所有的 bean 的后置处理器。BeanPostProcessor、ApplicationListenerDetector详细参照 Bean 的生命周期流程；
-7. initMessageSource()：初始化，国际化组件。观察容器中是否含有MessageResource的定义信息，如果没有就注册一个放到单例池；
-8. initApplicationEventMulticaster()：初始化事件多播功能「事件派发」。观察容器中是否有id为applicationEventMulticaster的定义信息，如果没有就注册一个事件多播器ApplicationEventMulticaster放到单例池中；
-9. onRefresh()：留给子类继续增强处理逻辑「模板模式」；
-10. registerListeners()：注册监听器，关联Spring的事件监听机制。将容器中所有的监听器 ApplicationListener 保存进多播器集合中；
-11. finishBeanFactoryInitialization(beanFactory)：bean的创建，完成BeanFactory的初始化。详细参照Bean的初始化流程，再执行所有后初始化操作「SmartInitializingSingleton.afterSingletonsInstantiated」；
+5. invokeBeanFactoryPostProcessors(beanFactory)：工厂的增强或修改：执行所有的 BeanFactory 后置处理器，所有的 BeanDefinition 就已经准备就绪了（配置类会在这里解析，注册了所有标有 @Component、@ComponentScans、@ImportResource、@PropertySources、@Bean、@Import 等注解的 bean）；
+6. registerBeanPostProcessors(beanFactory)：注册所有的 bean 的后置处理器。BeanPostProcessor、ApplicationListenerDetector 详细参照 Bean 的生命周期流程；
+7. initMessageSource()：初始化国际化组件。观察容器中是否含有 MessageResource 的定义信息，如果没有就注册一个并放到单例池中；
+8. initApplicationEventMulticaster()：初始化事件多播功能（事件派发）。观察容器中是否有 id 为 applicationEventMulticaster 的定义信息，如果没有就注册一个事件多播器 ApplicationEventMulticaster 放到单例池中；
+9. onRefresh()：留给子类继续增强处理逻辑（模板模式）；
+10. registerListeners()：注册监听器，关联 Spring 的事件监听机制。将容器中所有的监听器 ApplicationListener 保存进多播器集合中；
+11. finishBeanFactoryInitialization(beanFactory)：bean 的创建，完成 BeanFactory 的初始化。详细参照 Bean 的初始化流程，再执行所有后初始化操作「SmartInitializingSingleton.afterSingletonsInstantiated」；
 12. finishRefresh()：最后的一些清理、事件发送等处理。
 
 ![](src/docs/spring/容器刷新完整流程.jpg)
 
 ---
 #### Bean的初始化流程
+
 ![](src/docs/spring/Bean的初始化流程.jpg)
 
 ---
