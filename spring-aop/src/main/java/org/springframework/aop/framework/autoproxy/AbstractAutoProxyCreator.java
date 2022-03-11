@@ -248,9 +248,9 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		if (!StringUtils.hasLength(beanName) || !this.targetSourcedBeans.contains(beanName)) {
 			if (this.advisedBeans.containsKey(cacheKey)) {// 判断缓存中是都存在已经分析过的组件
 				return null;
-			}
+			} // 判断是否是切面或者是否需要跳过
 			if (isInfrastructureClass(beanClass) || shouldSkip(beanClass, beanName)) {
-				// 所有增强了的组件会被缓存在 advisedBeans 中。如果是需要增强的的 Bean，应该放入缓存中。
+				// 所有增强了的组件会被缓存在 advisedBeans 中。如果是需要增强的的 Bean，应该放入缓存中。例如 AOP 中的切面类会被拦截
 				this.advisedBeans.put(cacheKey, Boolean.FALSE);
 				return null;
 			}
@@ -288,6 +288,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		if (bean != null) {
 			Object cacheKey = getCacheKey(bean.getClass(), beanName);
 			if (this.earlyProxyReferences.remove(cacheKey) != bean) {
+				// 为 AOP 目标对象创建代理对象
 				return wrapIfNecessary(bean, beanName, cacheKey);
 			}
 		}
@@ -335,12 +336,15 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			return bean;
 		}
 
-		// 如果有切面的通知方法切入这个对象，就给对象创建代理对象。Create proxy if we have advice.
+		// (获取符合条件的增强器集合)。如果有切面的通知方法切入这个对象，就给对象创建代理对象。Create proxy if we have advice.
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
 		if (specificInterceptors != DO_NOT_PROXY) {
 			this.advisedBeans.put(cacheKey, Boolean.TRUE);
+
+			// 利用增强器为 AOP 目标对象创建代理对象
 			Object proxy = createProxy(
 					bean.getClass(), beanName, specificInterceptors, new SingletonTargetSource(bean));
+
 			this.proxyTypes.put(cacheKey, proxy.getClass());
 			return proxy;
 		}

@@ -73,7 +73,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 
 	// Exclude @Pointcut methods
 	private static final MethodFilter adviceMethodFilter = ReflectionUtils.USER_DECLARED_METHODS
-			.and(method -> (AnnotationUtils.getAnnotation(method, Pointcut.class) == null));// 切入点表达式
+			.and(method -> (AnnotationUtils.getAnnotation(method, Pointcut.class) == null)); // 切入点表达式的方式
 
 	private static final Comparator<Method> adviceMethodComparator;
 
@@ -120,7 +120,8 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 	}
 
 
-	@Override // 找到切面中定义的所有增强器
+	// 找到切面中定义的所有增强器
+	@Override
 	public List<Advisor> getAdvisors(MetadataAwareAspectInstanceFactory aspectInstanceFactory) {
 		Class<?> aspectClass = aspectInstanceFactory.getAspectMetadata().getAspectClass();
 		String aspectName = aspectInstanceFactory.getAspectMetadata().getAspectName();
@@ -130,7 +131,8 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 		// so that it will only instantiate once.
 		MetadataAwareAspectInstanceFactory lazySingletonAspectInstanceFactory =
 				new LazySingletonAspectInstanceFactoryDecorator(aspectInstanceFactory);
-		// 准备要搜集所有增强器的集合;getAdvisorMethods(aspectClass)找到当前类中的所有方法，包括继承自父类的方法
+
+		// 准备要搜集所有增强器的集合；getAdvisorMethods(aspectClass) 找到当前类中的所有方法，包括继承自父类的方法
 		List<Advisor> advisors = new ArrayList<>();
 		for (Method method : getAdvisorMethods(aspectClass)) {
 			// Prior to Spring Framework 5.2.7, advisors.size() was supplied as the declarationOrderInAspect
@@ -140,7 +142,9 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 			// Thus, we now hard code the declarationOrderInAspect to 0 for all advice methods
 			// discovered via reflection in order to support reliable advice ordering across JVM launches.
 			// Specifically, a value of 0 aligns with the default value used in
-			// 遍历所有方法，如果当前方法是通知方法，这被封装为增强器「Advisor」。AspectJPrecedenceComparator.getAspectDeclarationOrder(Advisor).
+			// AspectJPrecedenceComparator.getAspectDeclarationOrder(Advisor).
+
+			// 遍历所有方法，如果当前方法是通知方法，就被封装为增强器「Advisor」。
 			Advisor advisor = getAdvisor(method, lazySingletonAspectInstanceFactory, 0, aspectName);
 			if (advisor != null) {
 				advisors.add(advisor);
@@ -204,7 +208,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 			int declarationOrderInAspect, String aspectName) {
 
 		validate(aspectInstanceFactory.getAspectMetadata().getAspectClass());
-
+		// 获取切入点表达式
 		AspectJExpressionPointcut expressionPointcut = getPointcut(
 				candidateAdviceMethod, aspectInstanceFactory.getAspectMetadata().getAspectClass());
 		if (expressionPointcut == null) {

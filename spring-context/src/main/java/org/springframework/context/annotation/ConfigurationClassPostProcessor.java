@@ -243,6 +243,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 					"postProcessBeanFactory already called on this post-processor against " + registry);
 		}
 		this.registriesPostProcessed.add(registryId);
+
 		// 处理配置的 BeanDefinition 信息
 		processConfigBeanDefinitions(registry);
 	}
@@ -275,6 +276,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	 */
 	public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
 		List<BeanDefinitionHolder> configCandidates = new ArrayList<>();
+
 		// 拿到所有 BeanDefinition 的名字。「包含后置处理器和配置类」
 		String[] candidateNames = registry.getBeanDefinitionNames();
 
@@ -327,8 +329,11 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 
 		Set<BeanDefinitionHolder> candidates = new LinkedHashSet<>(configCandidates);
 		Set<ConfigurationClass> alreadyParsed = new HashSet<>(configCandidates.size());
+
+		// 循环处理配置类的定义信息
 		do {
 			StartupStep processConfig = this.applicationStartup.start("spring.context.config-classes.parse");
+
 			// 解析配置类，所有需要扫描进来的组件的 BeanDefinition 都已经准备好了。「例如标注了@Component注解的类信息会被注册进来」
 			parser.parse(candidates);
 			parser.validate();
@@ -336,12 +341,14 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			Set<ConfigurationClass> configClasses = new LinkedHashSet<>(parser.getConfigurationClasses());
 			configClasses.removeAll(alreadyParsed);
 
-			// 处理 @Import 注解的配置类信息。 Read the model and create bean definitions based on its content
+			// （为每一个组件）处理 @Import 注解的配置类信息。 Read the model and create bean definitions based on its content
 			if (this.reader == null) {
 				this.reader = new ConfigurationClassBeanDefinitionReader(
 						registry, this.sourceExtractor, this.resourceLoader, this.environment,
 						this.importBeanNameGenerator, parser.getImportRegistry());
 			}
+
+			// loadBeanDefinitions(configClasses)：加载配置类信息
 			this.reader.loadBeanDefinitions(configClasses);
 			alreadyParsed.addAll(configClasses);
 			processConfig.tag("classCount", () -> String.valueOf(configClasses.size())).end();

@@ -942,7 +942,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 					}
 				}
 				else {
-					//（非 FactoryBean ）普通单实例、非懒加载Bean的创建
+					//（非 FactoryBean）普通单实例、非懒加载 Bean 的创建
 					getBean(beanName);
 				}
 			}

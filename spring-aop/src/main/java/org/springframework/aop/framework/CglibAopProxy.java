@@ -659,12 +659,14 @@ class CglibAopProxy implements AopProxy, Serializable {
 			this.advised = advised;
 		}
 
+		// 代理的回调方法
 		@Override
-		@Nullable // 代理的回调方法
+		@Nullable
 		public Object intercept(Object proxy, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
 			Object oldProxy = null;
 			boolean setProxyContext = false;
 			Object target = null;
+
 			// 拿到目标对象
 			TargetSource targetSource = this.advised.getTargetSource();
 			try {
@@ -677,7 +679,8 @@ class CglibAopProxy implements AopProxy, Serializable {
 				// Get as late as possible to minimize the time we "own" the target, in case it comes from a pool...
 				target = targetSource.getTarget();
 				Class<?> targetClass = (target != null ? target.getClass() : null);
-				// chain 是AOP后置处理器在容器启动的时候就生成好的5个增强器，然后封装成的 MethodInterceptor。就是拦截器链。
+
+				// chain 是 AOP 后置处理器在容器启动的时候就生成好的 5 个增强器，然后封装成的 MethodInterceptor。就是拦截器链。
 				List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
 				Object retVal;
 				// Check whether we only have one InvokerInterceptor: that is,
@@ -691,10 +694,12 @@ class CglibAopProxy implements AopProxy, Serializable {
 					retVal = methodProxy.invoke(target, argsToUse);
 				}
 				else {
-					// 拦截器链在此执行{new CglibMethodInvocation(……).proceed()}。We need to create a method invocation...
+
+					// 拦截器链在此执行 {new CglibMethodInvocation(……).proceed()}。We need to create a method invocation...
 					retVal = new CglibMethodInvocation(proxy, target, method, args, targetClass, chain, methodProxy).proceed();
 				}
 				retVal = processReturnType(proxy, target, method, retVal);
+				// 返回方法结果
 				return retVal;
 			}
 			finally {

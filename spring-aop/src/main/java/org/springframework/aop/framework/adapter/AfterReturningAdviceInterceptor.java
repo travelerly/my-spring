@@ -55,6 +55,7 @@ public class AfterReturningAdviceInterceptor implements MethodInterceptor, After
 	@Nullable
 	public Object invoke(MethodInvocation mi) throws Throwable {
 		Object retVal = mi.proceed();
+		// 执行返回通知
 		this.advice.afterReturning(retVal, mi.getMethod(), mi.getArguments(), mi.getThis());
 		return retVal;
 	}

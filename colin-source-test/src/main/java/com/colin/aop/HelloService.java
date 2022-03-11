@@ -10,7 +10,7 @@ import java.util.ArrayList;
  *
  * 切面存在的话就会返回代理对象
  */
-//@Component
+@Component
 public class HelloService {
 
 	public HelloService(){

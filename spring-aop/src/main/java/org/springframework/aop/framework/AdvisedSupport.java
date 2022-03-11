@@ -468,7 +468,7 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 		List<Object> cached = this.methodCache.get(cacheKey);
 		if (cached == null) {
 			// 把增强器(只保存了信息)变成拦截器(能真正执行目标方法)
-			// 根据ProxyFactory对象获取将要执行的目标方法的拦截器链
+			// 根据 ProxyFactory 对象获取将要执行的目标方法的拦截器链
 			cached = this.advisorChainFactory.getInterceptorsAndDynamicInterceptionAdvice(
 					this, method, targetClass);
 			this.methodCache.put(cacheKey, cached);

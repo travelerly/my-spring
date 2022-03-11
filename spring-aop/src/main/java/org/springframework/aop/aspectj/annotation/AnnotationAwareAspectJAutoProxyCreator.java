@@ -75,22 +75,24 @@ public class AnnotationAwareAspectJAutoProxyCreator extends AspectJAwareAdvisorA
 		this.aspectJAdvisorFactory = aspectJAdvisorFactory;
 	}
 
-	@Override // 当前后置处理器初始化创建对象的时候调用。
+	// 当前后置处理器初始化创建对象的时候调用。
+	@Override
 	protected void initBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 		super.initBeanFactory(beanFactory);
-		if (this.aspectJAdvisorFactory == null) { // 准备 AnnotationAwareAspectJAutoProxyCreator 的属性 AspectJAdvisorFactory 值
+		if (this.aspectJAdvisorFactory == null) {
+			// 准备 AnnotationAwareAspectJAutoProxyCreator 的属性 AspectJAdvisorFactory 值
 			this.aspectJAdvisorFactory = new ReflectiveAspectJAdvisorFactory(beanFactory);
 		}
 		this.aspectJAdvisorsBuilder =
 				new BeanFactoryAspectJAdvisorsBuilderAdapter(beanFactory, this.aspectJAdvisorFactory);
 	}
 
-
-	@Override // 找到候选的增强器「各种增强方法，前置方法，后置方法等」
+	// 找到候选的增强器「各种增强方法，前置方法，后置方法等」
+	@Override
 	protected List<Advisor> findCandidateAdvisors() {
 		// Add all the Spring advisors found according to superclass rules.
 		List<Advisor> advisors = super.findCandidateAdvisors();
-		// Build Advisors for all AspectJ aspects in the bean factory.
+		// 利用建造者构建切面增强器。Build Advisors for all AspectJ aspects in the bean factory.
 		if (this.aspectJAdvisorsBuilder != null) {
 			advisors.addAll(this.aspectJAdvisorsBuilder.buildAspectJAdvisors());
 		}
@@ -106,7 +108,12 @@ public class AnnotationAwareAspectJAutoProxyCreator extends AspectJAwareAdvisorA
 		// proxy, and if the aspect implements e.g the Ordered interface it will be
 		// proxied by that interface and fail at runtime as the advice method is not
 		// defined on the interface. We could potentially relax the restriction about
-		// 判断是否是切面。 not advising aspects in the future.
+		// not advising aspects in the future.
+		/**
+		 * 判断是否是切面。
+		 * 判断是否实现了这几个接口：Advice、Pointcut、Advisor、AopInfrastructureBean
+		 * 或者当前类是否存在 @Aspect 注解
+		 */
 		return (super.isInfrastructureClass(beanClass) ||
 				(this.aspectJAdvisorFactory != null && this.aspectJAdvisorFactory.isAspect(beanClass)));
 	}

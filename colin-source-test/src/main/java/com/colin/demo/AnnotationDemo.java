@@ -20,9 +20,9 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 public class AnnotationDemo {
 
 	public static void main(String[] args) {
-		/*aopTest();*/
+		aopTest();
 		/*testFactoryBean();*/
-		testCycle();
+		/*testCycle();*/
 		/*listenerTest();*/
 	}
 
@@ -36,6 +36,10 @@ public class AnnotationDemo {
 	}
 
 	private static void aopTest() {
+		/**
+		 * AopOpenConfig、LogAspect 开启注解
+		 * HelloService.sayHello() 为目标方法
+		 */
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
 		HelloService helloService = applicationContext.getBean(HelloService.class);
 		// 代理对象执行目标方法
