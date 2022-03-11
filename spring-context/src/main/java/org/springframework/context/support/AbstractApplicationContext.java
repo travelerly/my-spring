@@ -801,7 +801,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * <p>Must be called before any instantiation of application beans.
 	 */
 	protected void registerBeanPostProcessors(ConfigurableListableBeanFactory beanFactory) {
-		// 桥接模式。『分离了工厂 BeanFactory 与工厂功能增强 BeanFactoryPostProcessor，利用 PostProcessorRegistrationDelegate 连接 BeanFactory 的初始化过程和 BeanFactoryPostProcessor 的增强过程』
+		/**
+		 * 桥接模式。
+		 * 分离了工厂 BeanFactory 与工厂功能增强 BeanFactoryPostProcessor，
+		 * 利用 PostProcessorRegistrationDelegate 连接 BeanFactory 的初始化过程和 BeanFactoryPostProcessor 的增强过程
+		 */
 		PostProcessorRegistrationDelegate.registerBeanPostProcessors(beanFactory, this);
 	}
 
