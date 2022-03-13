@@ -75,9 +75,11 @@ public abstract class AbstractAnnotationConfigDispatcherServletInitializer
 	 */
 	@Override
 	protected WebApplicationContext createServletApplicationContext() {
+
 		// 创建 web-ioc 容器
 		AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
-		// 获取 Web 应用的配置
+
+		// 获取 Web 应用的配置，并注册进 web-ioc 容器中
 		Class<?>[] configClasses = getServletConfigClasses();
 		if (!ObjectUtils.isEmpty(configClasses)) {
 			context.register(configClasses);

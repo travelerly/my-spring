@@ -12,7 +12,7 @@ import javax.servlet.ServletRegistration;
  * @author colin
  * @create 2021-04-26 15:37
  *
- * 只要写了这个类（要实现WebApplicationInitializer），就相当于配置了 springmvc 的 DispatcherServlet。
+ * 只要写了这个类（要实现 WebApplicationInitializer），就相当于配置了 springmvc 的 DispatcherServlet。
  * 1. Tomcat一启动，就会加载这个类「Tomcat 利用 SPI 机制，加载了所有实现了 WebApplicationInitializer 接口的实现类」
  * 		1.创建了容器，指定了配置类，指定了包扫描（所有的 ioc，aop 等 spring 的功能就已经就绪）
  * 		2.注册一个 servlet-->DispatcherServlet
@@ -34,12 +34,12 @@ public class AppStarter /*implements WebApplicationInitializer*/ {
 	public void onStartup(ServletContext servletContext) throws ServletException {
 		// 1.创建了IOC容器
 		AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
-		// 注册主配置类（注解版的 SpringMVC 配置「替换以前SpringMVC的配置文件」）,此时IOC容器没有启动刷新
+		// 注册主配置类（注解版的 SpringMVC 配置「替换以前 SpringMVC 的配置文件」）,此时 IOC 容器没有启动刷新
 		context.register(MySpringConfig.class);
 
 		// 以上截止，IOC 容器没有启动刷新
 
-		// 2.创建DispatcherServlet对象，并保存IOC容器。「Spring 会传入 servletContext→{Tomcat} 」
+		// 2.创建 DispatcherServlet 对象，并保存 IOC 容器。「Spring 会传入 servletContext→{Tomcat} 」
 		DispatcherServlet servlet = new DispatcherServlet(context);
 		// 利用 servlet 规范添加 servlet
 		ServletRegistration.Dynamic registration = servletContext.addServlet("app", servlet);

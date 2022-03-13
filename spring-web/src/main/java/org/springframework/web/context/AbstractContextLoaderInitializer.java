@@ -57,7 +57,8 @@ public abstract class AbstractContextLoaderInitializer implements WebApplication
 	 * @param servletContext the servlet context to register the listener against
 	 */
 	protected void registerContextLoaderListener(ServletContext servletContext) {
-		// 创建一个根容器（依据根配置RootConfig创建一个根容器，并把根配置类注册进容器）
+
+		// 创建一个根容器（依据根配置 RootConfig 创建一个根容器，并把根配置类注册进容器）
 		WebApplicationContext rootAppContext = createRootApplicationContext();
 		if (rootAppContext != null) {
 			// 利用根容器创建监听器

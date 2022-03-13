@@ -19,6 +19,6 @@ public class MyExceptionHandler {
 	@ResponseBody
 	@ExceptionHandler(value = {ArithmeticException.class})
 	public String handleZeroException(Exception exception){
-		return "ArithmeticException";
+		return "算数异常";
 	}
 }

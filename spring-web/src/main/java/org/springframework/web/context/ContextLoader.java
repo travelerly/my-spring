@@ -279,6 +279,7 @@ public class ContextLoader {
 				this.context = createWebApplicationContext(servletContext);
 			}
 			if (this.context instanceof ConfigurableWebApplicationContext) {
+				// IOC 容器(父容器)转换类型
 				ConfigurableWebApplicationContext cwac = (ConfigurableWebApplicationContext) this.context;
 				if (!cwac.isActive()) {
 					// The context has not yet been refreshed -> provide services such as
@@ -286,11 +287,11 @@ public class ContextLoader {
 					if (cwac.getParent() == null) {
 						// The context instance was injected without an explicit parent ->
 						// determine parent for root web application context, if any.
-						// 获取根容器，并设置为父容器
 						ApplicationContext parent = loadParentContext(servletContext);
 						cwac.setParent(parent);
 					}
-					// 开始刷新容器
+
+					// 开始刷新 IOC 容器(父容器)
 					configureAndRefreshWebApplicationContext(cwac, servletContext);
 				}
 			}
@@ -400,7 +401,7 @@ public class ContextLoader {
 		}
 
 		customizeContext(sc, wac);
-		// MVC 容器刷新十二大步骤
+		// IOC 容器(父容器)刷新十二大步骤
 		wac.refresh();
 	}
 
