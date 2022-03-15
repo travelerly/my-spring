@@ -12,6 +12,7 @@ import java.util.Map;
  * 自定义视图
  */
 public class MyView implements View {
+
 	@Override
 	public void render(Map<String, ?> model, HttpServletRequest request, HttpServletResponse response) throws Exception {
 		// 自定义视图渲染逻辑
@@ -22,4 +23,5 @@ public class MyView implements View {
 		stringBuffer.append("<img src='https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=1207128855,3080267973&fm=26&gp=0.jpg'>");
 		response.getWriter().write(stringBuffer.toString());
 	}
+
 }

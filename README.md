@@ -142,6 +142,7 @@ MVC 整体架构
 
 ---
 #### MVC启动原理
+
 ![](src/docs/mvc/MVC启动原理.jpg)
 
 ---
@@ -153,9 +154,21 @@ Tomcat 启动时利用 SPI 机制加载，扫描所有实现了 WebApplicationIn
 2. 创建了一个空的 web-ioc 容器（子容器），利用这个 web-ioc 容器创建 DispatcherServlet 对象，此时 DispatcherServlet 中保存了 web-ioc 容器；DispatcherServlet 继承自 GenericServlet，GenericServlet 有初始化方法 init()，当 Tomcat加载完 web 应用后，会初始化DispatcherServlet，即会触发 GenericServlet 子类的初始化模板方法，就会执行 FrameworkServlet 的 initWebApplicationContext() 方法来初始化刷新 web-ioc 容器，期间 web-ioc.setParent(IOC容器)，形成父子容器，子容器刷新，此时 Controller 才开始创建对象，并自动装配 Service（如过当前容器中没有，要去父容器中找）。
 
 即 MVC 容器的刷新基于两种方式
+
 1. 监听器回调；
+
 2. 初始化回调。
-![](src/docs/mvc/MVC启动过程.jpg)
+
+  ![](src/docs/mvc/MVC启动过程.jpg)
+
+
+
+##### MVC 九大组件的初始化
+
+1. 九大核心组件官方介绍：https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-servlet-special-bean-types
+2. 对九大组件进行自定义增强，可以自己实现指定接口，并放在容器中，SpringMVC 就会加载自定义增强的九大组件
+3. 九大组件是利用 Spring 的事件驱动完成的。Tomcat 启动-->触发 DispatcherServlet 的初始化-->初始化全部结束后，容器会发送 Spring 的事件--> SourceFilterListener 感知到容器准备好了事件-->初始化九大组件（底层是SourceFilterListener，把事件回调到 DispatcherServlet 的 onRefresh 方法）
+4. 九大组件，除了文件上传组件，都会有默认值。文件上传功能，需要自己导入相关的jar包并且进行配置。
 
 ---
 #### MVC请求处理流程
@@ -193,7 +206,8 @@ render()：渲染 ModelAndView，解析模型与视图，最终决定响应效�
 ![](src/docs/mvc/MVC请求处理流程.jpg)
 
 ---
-#### HandlerMapping与HandlerAdapter的交互
+#### HandlerMapping 与 HandlerAdapter 的交互
+
 HandlerMapping 的生命周期
 1. DispatcherServlet 创建对象后，Tomcat 调用初始化回调钩子 initServletBean() 方法
 2. 最终容器启动完成，Spring 发送事件，回调到 DispatcherServlet 的 onRefresh() 方法

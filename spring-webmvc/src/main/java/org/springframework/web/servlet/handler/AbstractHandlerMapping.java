@@ -514,7 +514,8 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 		if (!ServletRequestPathUtils.hasCachedPath(request)) {
 			initLookupPath(request);
 		}
-		// 找到前面的目标方法后，还要构造一个处理器链（目标方法+所有的拦截器）
+
+		// 找到前面的目标方法后，还要构造一个处理器链（目标方法 + 所有的拦截器）
 		HandlerExecutionChain executionChain = getHandlerExecutionChain(handler, request);
 
 		if (logger.isTraceEnabled()) {
@@ -605,6 +606,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	protected HandlerExecutionChain getHandlerExecutionChain(Object handler, HttpServletRequest request) {
 		HandlerExecutionChain chain = (handler instanceof HandlerExecutionChain ?
 				(HandlerExecutionChain) handler : new HandlerExecutionChain(handler));
+
 		// 把当前系统中所有的拦截器拿过来遍历处理
 		for (HandlerInterceptor interceptor : this.adaptedInterceptors) {
 			if (interceptor instanceof MappedInterceptor) {

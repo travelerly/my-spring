@@ -1034,7 +1034,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @param response current HTTP response
 	 * @throws Exception in case of any kind of processing failure
 	 *
-	 *  SpringMVC 处理请求的核心流程
+	 * SpringMVC 处理请求的核心流程
 	 */
 	protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		HttpServletRequest processedRequest = request;
@@ -1042,7 +1042,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		HandlerExecutionChain mappedHandler = null;
 		// 文件上传请求标志位
 		boolean multipartRequestParsed = false;
-		// 对异步请求的支持（Servlet 3.0以后才支持的，Webflux的基础）
+		// 对异步请求的支持（Servlet 3.0 以后才支持的，Webflux 的基础）
 		WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
 
 		try {
@@ -1054,15 +1054,15 @@ public class DispatcherServlet extends FrameworkServlet {
 				processedRequest = checkMultipart(request);
 				multipartRequestParsed = (processedRequest != request);
 
-				// 确定处理当前请求的 handler，返回 handler 的执行链。构造处理「目标方法+拦截器整个链路」 Determine handler for the current request.
+				// 获取处理当前请求的 handler，返回 handler 的执行链。构造处理「目标方法+拦截器整个链路」 Determine handler for the current request.
 				mappedHandler = getHandler(processedRequest);
 				if (mappedHandler == null) {
-					// 如果没找到拦截器链，则返回404
+					// 如果没找到拦截器链，则返回 404
 					noHandlerFound(processedRequest, response);
 					return;
 				}
 
-				// 获取处理适配器（遍历所有的适配器，找到能够支持当前处理器的适配器）。Determine handler adapter for the current request.
+				// 获取处理器的适配器（遍历所有的适配器，找到能够支持当前处理器的适配器）。Determine handler adapter for the current request.
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// 获取请求方式（GET、POST...）。Process last-modified header, if supported by the handler.
@@ -1079,7 +1079,7 @@ public class DispatcherServlet extends FrameworkServlet {
 					return;
 				}
 
-				// 真正执行目标方法。「适配器执行目标方法」「确定参数值，反射执行目标方法，处理返回值-->将返回值封装成 ModelAndView」Actually invoke the handler.
+				// 真正执行目标方法。「适配器执行目标方法」「确定参数值，反射执行目标方法，处理返回值-->将返回值封装成 ModelAndView」。Actually invoke the handler.
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
@@ -1130,7 +1130,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	private void applyDefaultViewName(HttpServletRequest request, @Nullable ModelAndView mv) throws Exception {
 		if (mv != null && !mv.hasView()) {
-			// 如果没有指定跳转页面，则提供一个默认页面「使用视图翻译器viewNameTranslator，把请求路径当做页面地址」
+			// 如果没有指定跳转页面，则提供一个默认页面「使用视图翻译器 viewNameTranslator，把请求路径当做页面地址」
 			String defaultViewName = getDefaultViewName(request);
 			if (defaultViewName != null) {
 				mv.setViewName(defaultViewName);
@@ -1164,8 +1164,10 @@ public class DispatcherServlet extends FrameworkServlet {
 		// 动态策略。「for循环」 Did the handler return a view to render?
 		// 注释"？"的原因：如果是 @ResponseBody「提前在解析值的时候，就将数据写出去了」，这一步就没用了。
 		if (mv != null && !mv.wasCleared()) {
+
 			// 渲染 ModelAndView，解析模型与视图，最终决定响应效果
 			render(mv, request, response);
+
 			if (errorView) {
 				WebUtils.clearErrorRequestAttributes(request);
 			}

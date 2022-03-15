@@ -44,7 +44,11 @@ public class DelegatingWebMvcConfiguration extends WebMvcConfigurationSupport {
 
 	private final WebMvcConfigurerComposite configurers = new WebMvcConfigurerComposite();
 
-	// 自动注入容器中所有的 WebMvcConfigurer，保存在内部类中的缓存「List<WebMvcConfigurer> delegates」中
+	/**
+	 * 自动注入容器中所有的 WebMvcConfigurer，保存在内部类中的缓存「List<WebMvcConfigurer> delegates」中
+	 * WebMvcConfigurer 的子类可以对 MVC 进行功能扩展(自定义九大组件)，例如自定义视图解析器
+	 * @param configurers
+	 */
 	@Autowired(required = false)
 	public void setConfigurers(List<WebMvcConfigurer> configurers) {
 		if (!CollectionUtils.isEmpty(configurers)) {
