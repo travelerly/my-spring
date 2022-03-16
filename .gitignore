@@ -53,3 +53,4 @@ atlassian-ide-plugin.xml
 /colin-mvc-test/build/tmp/compileJava/source-classes-mapping.txt
 /colin-mvc-test/build/tmp/war/MANIFEST.MF
 /colin-source-test/build/tmp/compileJava/source-classes-mapping.txt
+/colin-mvc-test/build/libs/colin-mvc-test-5.3.5-SNAPSHOT.war
