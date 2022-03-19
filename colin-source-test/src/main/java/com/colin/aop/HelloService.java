@@ -1,17 +1,14 @@
 package com.colin.aop;
 
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-
 /**
  * @author colin
  * @create 2021-03-23 16:51
  *
  * 切面存在的话就会返回代理对象
  */
-@Component
+//@Component
 public class HelloService {
+
 
 	public HelloService(){
 		System.out.println("...HelloService创建了...");

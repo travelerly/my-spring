@@ -435,8 +435,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		Object result = existingBean;
 		for (BeanPostProcessor processor : getBeanPostProcessors()) {
+
 			// 初始化方法执行完之后，尝试创建代理对象（AOP 后置处理器在此介入，创建了代理对象）
 			Object current = processor.postProcessAfterInitialization(result, beanName);
+
 			if (current == null) {
 				return result;
 			}
@@ -600,7 +602,20 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				logger.trace("Eagerly caching bean '" + beanName +
 						"' to allow for resolving potential circular references");
 			}
-			// 将对象存入「单例工厂池」中，（三级缓存，还没有被属性赋值和初始化）
+
+			/**
+			 * 将(未属性赋值、未初始化的半成品)对象存入"单例工厂池"中，即三级缓存中，进行暴露
+			 *
+			 * 三级缓存：
+			 * singletonObjects：一级缓存，即 spring 的 ioc 容器，用于存放完整的 bean 实例(已经完成属性赋值和初始化的实例对象)
+			 * earlySingletonObjects：二级缓存，存放半成品的 bean 实例(尚未被属性赋值和初始化)
+			 * 		如果 bean 被 AOP 切面代理，则其保存的是(未属性赋值的半成品的)bean 实例
+			 * 		如果 bean 不被 AOP 切面代理，则其保存的是代理的 bean 实例--beanProxy，其目标 bean 还是半成品的。
+			 * singletonObjects：三级缓存，存放的是 ObjectFactory，是一个函数式接口，
+			 * 当执行objectFactory.getObject() 方法时，最终会调用 getEarlyBeanReference(beanName, mbd, bean)，来获取早期访问的指定 bean 实例
+			 * 		如果 bean 被 AOP 代理，则其会返回 bean 的代理对象
+			 * 		如果 bean 不被 AOP 代理，则其会返回原 bean 实例对象
+			 */
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
 
@@ -1450,7 +1465,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		if (pvs != null) {
-			// 把处理好的 PropertyValues（属性名和属性值）给Bean里面赋值，主要是上面步骤没有给 bean 设置的属性。（xml 版的所有配置会在此给属性赋值）
+			// 把处理好的 PropertyValues（属性名和属性值）给 Bean 里面赋值，主要是上面步骤没有给 bean 设置的属性。（xml 版的所有配置会在此给属性赋值）
 			applyPropertyValues(beanName, mbd, bw, pvs);
 		}
 	}
@@ -1790,6 +1805,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}, getAccessControlContext());
 		}
 		else {
+			// 调用实现了 Aware 接口的方法
 			invokeAwareMethods(beanName, bean);
 		}
 
@@ -1809,7 +1825,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					beanName, "Invocation of init method failed", ex);
 		}
 		if (mbd == null || !mbd.isSynthetic()) {
-			// 后置处理器，属性设置完成后增强 AfterInitialization
+			/**
+			 * 后置处理器，属性设置完成后增强 AfterInitialization。
+			 * AOP 后置处理器在此介入，创建了代理对象
+			 */
 			wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);
 		}
 
@@ -1847,6 +1866,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 */
 	protected void invokeInitMethods(String beanName, Object bean, @Nullable RootBeanDefinition mbd)
 			throws Throwable {
+
 		// 如果组件实现了生命周期「InitializingBean」 接口，就调用组件自己的 afterPropertiesSet 方法，Bean属性设置完之后执行
 		boolean isInitializingBean = (bean instanceof InitializingBean);
 		if (isInitializingBean && (mbd == null || !mbd.isExternallyManagedInitMethod("afterPropertiesSet"))) {

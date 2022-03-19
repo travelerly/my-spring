@@ -20,8 +20,8 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 public class AnnotationDemo {
 
 	public static void main(String[] args) {
-		aopTest();
-		/*testFactoryBean();*/
+		/*aopTest();*/
+		testFactoryBean();
 		/*testCycle();*/
 		/*listenerTest();*/
 	}
@@ -37,8 +37,9 @@ public class AnnotationDemo {
 
 	private static void aopTest() {
 		/**
-		 * AopOpenConfig、LogAspect 开启注解
-		 * HelloService.sayHello() 为目标方法
+		 * AopOpenConfig 开启基于注解的 aop 功能
+		 * LogAspect 是普通切面类
+		 * CycleAspect 是验证三级缓存解决循环引用的切面类
 		 */
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
 		HelloService helloService = applicationContext.getBean(HelloService.class);

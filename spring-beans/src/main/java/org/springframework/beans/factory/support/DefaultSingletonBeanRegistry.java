@@ -195,11 +195,11 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 							// 再从（三级）缓存中查询
 							ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 							if (singletonFactory != null) {
-								// 回调创建对象
+								// 回调创建对象。三级缓存中存储的匿名内部类，最终会调用 getEarlyBeanReference(beanName, mbd, bean) 来创建对象
 								singletonObject = singletonFactory.getObject();
 								// 将当前对象放入（二级）缓存池中
 								this.earlySingletonObjects.put(beanName, singletonObject);
-								// 将当前对象从（三级）缓存中删除
+								// 根据当前对象名称删除（三级）缓存中的数据(用于创建当前对象的匿名内部类)
 								this.singletonFactories.remove(beanName);
 							}
 						}
