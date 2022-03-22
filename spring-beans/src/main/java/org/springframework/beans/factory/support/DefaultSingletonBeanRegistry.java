@@ -73,20 +73,34 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	/** Maximum number of suppressed exceptions to preserve. */
 	private static final int SUPPRESSED_EXCEPTIONS_LIMIT = 100;
 
-
-	/** 一级缓存，缓存所有单实例对象，是单例对象池，即为IOC容器-单例池。Cache of singleton objects: bean name to bean instance. */
+	/**
+	 *  一级缓存，缓存所有单实例对象，是单例对象池，即为 IOC 容器-单例池
+	 *  key：beanName，value：经历了完整生命周期的 bean 实例对象
+	 *
+	 *  Cache of singleton objects: bean name to bean instance.
+	 */
 	private final Map<String, Object> singletonObjects = new ConcurrentHashMap<>(256);
 
-	/** 三级缓存，单例工厂池。Cache of singleton factories: bean name to ObjectFactory. */
+	/**
+	 * 三级缓存，单例工厂池
+	 * key：beanName，value：ObjectFactory(生成 bean 的工厂)
+	 *
+	 * Cache of singleton factories: bean name to ObjectFactory.
+	 */
 	private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(16);
 
-	/** 二级缓存，早期单例池。Cache of early singleton objects: bean name to bean instance. */
+	/**
+	 * 二级缓存，早期单例池。
+	 * key：beanName，value：未完成生命周期的 bean 实例对象（Bean 的属性尚未赋值和初始化）。
+	 *
+	 * Cache of early singleton objects: bean name to bean instance.
+	 */
 	private final Map<String, Object> earlySingletonObjects = new ConcurrentHashMap<>(16);
 
 	/** Set of registered singletons, containing the bean names in registration order. */
 	private final Set<String> registeredSingletons = new LinkedHashSet<>(256);
 
-	/** Names of beans that are currently in creation. */
+	/** 标记当前 bean 正在被创建。Names of beans that are currently in creation. */
 	private final Set<String> singletonsCurrentlyInCreation =
 			Collections.newSetFromMap(new ConcurrentHashMap<>(16));
 
@@ -231,7 +245,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 				if (logger.isDebugEnabled()) {
 					logger.debug("Creating shared instance of singleton bean '" + beanName + "'");
 				}
-				// 单实例创建之前，将当前要创建的对象 beanName 缓存进池，记录当前对象创建状态。 Set<String> singletonsCurrentlyInCreation.add(beanName)，
+				// 单实例创建之前，将当前要创建的对象 beanName 缓存进池，记录当前对象正在被创建。 Set<String> singletonsCurrentlyInCreation.add(beanName)，
 				beforeSingletonCreation(beanName);
 				boolean newSingleton = false;
 				boolean recordSuppressedExceptions = (this.suppressedExceptions == null);
@@ -361,7 +375,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * @param beanName the name of the singleton about to be created
 	 * @see #isSingletonCurrentlyInCreation
 	 */
-	protected void beforeSingletonCreation(String beanName) {
+	protected void beforeSingletonCreation(String beanName) { // singletonsCurrentlyInCreation.add()：将当前 bean 标记为正在创建
 		if (!this.inCreationCheckExclusions.contains(beanName) && !this.singletonsCurrentlyInCreation.add(beanName)) {
 			throw new BeanCurrentlyInCreationException(beanName);
 		}

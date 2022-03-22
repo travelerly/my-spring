@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class AService {
 
-    @Autowired
-    private BService bService;
+    /*@Autowired
+    private BService bService;*/
 
     public AService() {
         System.out.println("=== AService 创建了 ===");

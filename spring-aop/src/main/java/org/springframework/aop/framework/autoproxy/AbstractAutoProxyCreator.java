@@ -134,6 +134,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 	private final Set<String> targetSourcedBeans = Collections.newSetFromMap(new ConcurrentHashMap<>(16));
 
+	// 用于记录哪些 Bean 执行过 AOP，防止后期再次对 Bean 进行 AOP
 	private final Map<Object, Object> earlyProxyReferences = new ConcurrentHashMap<>(16);
 
 	private final Map<Object, Class<?>> proxyTypes = new ConcurrentHashMap<>(16);
@@ -234,10 +235,13 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		return null;
 	}
 
+	// 三级缓存中的 bean 工厂回调创建 bean 实例的方法，此方法为 AOP 的目标类创建动态代理
 	@Override
 	public Object getEarlyBeanReference(Object bean, String beanName) {
 		Object cacheKey = getCacheKey(bean.getClass(), beanName);
+		// 记录当前 bean 被执行过 AOP 代理
 		this.earlyProxyReferences.put(cacheKey, bean);
+		// 若当前 bean 符合条件，则创建其 AOP 代理对象
 		return wrapIfNecessary(bean, beanName, cacheKey);
 	}
 
@@ -246,11 +250,17 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		Object cacheKey = getCacheKey(beanClass, beanName);
 
 		if (!StringUtils.hasLength(beanName) || !this.targetSourcedBeans.contains(beanName)) {
-			if (this.advisedBeans.containsKey(cacheKey)) {// 判断缓存中是都存在已经分析过的组件
+			// 判断缓存中是都存在已经分析过的组件
+			if (this.advisedBeans.containsKey(cacheKey)) {
 				return null;
-			} // 判断是否是切面或者是否需要跳过
+			}
+			// 判断是否是切面或者是否需要跳过
 			if (isInfrastructureClass(beanClass) || shouldSkip(beanClass, beanName)) {
-				// 所有增强了的组件会被缓存在 advisedBeans 中。如果是需要增强的的 Bean，应该放入缓存中。例如 AOP 中的切面类会被拦截
+				/**
+				 * 所有增强了的组件会被缓存在 advisedBeans 中
+				 * 如果是需要增强的的 Bean，应该放入缓存中
+				 * 例如 AOP 中的切面类会被拦截
+				 */
 				this.advisedBeans.put(cacheKey, Boolean.FALSE);
 				return null;
 			}
@@ -287,11 +297,12 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
 		if (bean != null) {
 			Object cacheKey = getCacheKey(bean.getClass(), beanName);
+			// 判断缓存中当前 bean 是否被执行过 AOP 代理，若缓存中不存在，则为其创建代理对象
 			if (this.earlyProxyReferences.remove(cacheKey) != bean) {
-				// 为 AOP 目标对象创建代理对象
+				// 若当前 bean 为 AOP 目标对象，则为其创建代理对象
 				return wrapIfNecessary(bean, beanName, cacheKey);
 			}
-		}
+		} // 至此，说明当前 bean 已经被执行过 AOP 代理，直接返回
 		return bean;
 	}
 

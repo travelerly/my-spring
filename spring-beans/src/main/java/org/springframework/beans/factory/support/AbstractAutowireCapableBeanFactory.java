@@ -612,9 +612,25 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			 * 		如果 bean 被 AOP 切面代理，则其保存的是(未属性赋值的半成品的)bean 实例
 			 * 		如果 bean 不被 AOP 切面代理，则其保存的是代理的 bean 实例--beanProxy，其目标 bean 还是半成品的。
 			 * singletonObjects：三级缓存，存放的是 ObjectFactory，是一个函数式接口，
-			 * 当执行objectFactory.getObject() 方法时，最终会调用 getEarlyBeanReference(beanName, mbd, bean)，来获取早期访问的指定 bean 实例
+			 * 当执行objectFactory.getObject() 方法时，最终会调用 getEarlyBeanReference(beanName, mbd, bean)，来获取 bean 的早期引用
 			 * 		如果 bean 被 AOP 代理，则其会返回 bean 的代理对象
 			 * 		如果 bean 不被 AOP 代理，则其会返回原 bean 实例对象
+			 *
+			 * 	只使用一级缓存和三级缓存就可以解决(非 AOP 代理类的)循环依赖：
+			 * 		一级缓存存放完整 bean、三级缓存存放提前暴露出来的对象工厂(用于创建 bean 的 lambda 表达式)
+			 *
+			 * 	对于被 AOP 代理的 bean 的循环依赖需使用三级缓存解决：
+			 * 		因为三级缓存中的 ObjectFactory 每执行一次就会创建一个对象，
+			 * 		此时需要借助另外一个缓存来存放 objectFactory.getObject() 创建的对象，即使用二级缓存来存储其创建的对象
+			 * 		所以，对于被 AOP 代理的 bean 的循环依赖需使用三级缓存解决。
+			 * 为什么要使用二级缓存 earlySingletonObjects？
+			 * 1.如果不涉及 AOP 代理，二级缓存就会显得多此一举，但如果使用了 AOP 代理，那么二级缓存就发挥作用了。
+			 * 	 bean 的 AOP 动态代理对象的创建时在 bean 的初始化之后实现的，但是循环依赖的 bean 就无法等到解决完循环依赖后再创建其代理对象了，
+			 * 	 因为这个时候需要属性注入，所以如果循环依赖的 bean 被 AOP 代理了，则需要提前创建出代理对象，然后放入到二级缓存中
+			 * 2.三级缓存中存放的是 ObjectFactory 对象工厂，当执行 objectFactory.getObject() 回调时，会调用 getEarlyBeanReference() 方法
+			 * 	 获取 bean 的早期引用，每次调用都会产生一个新的代理对象，这有悖于 Spring 的单例设计理念
+			 * 3.所以使用二级缓存来缓存 bean 的早期引用，后续步骤可以从二级缓存中获取，就解决了因每次都调用都产生新代理对象的这个问题了
+			 *   从而保证这个 bean 始终都只有这一个代理对象。
 			 */
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
@@ -622,9 +638,18 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Initialize the bean instance.
 		Object exposedObject = bean;
 		try {
-			// 给创建好的对象的每个属性进行赋值。@Autowired 发生在这里
+			/**
+			 * 给创建好的对象的每个属性进行赋值。@Autowired 发生在这里
+			 * todo：验证（若当前要注入的属性是 AOP 的目标类，并且存在循环依赖，则会为这个属性创建 AOP 代理对象）
+			 */
 			populateBean(beanName, mbd, instanceWrapper);
-			// 初始化Bean
+
+			/**
+			 * 初始化 bean
+			 * 若当前 bean 是 AOP 的目标类：
+			 * 1.并且当前 bean 不存在循环依赖，则会为其创建 AOP 动态代理类；
+			 * 2.并且当前 bean 存在循环依赖，因在其属性赋值阶段就被创建了 AOP 动态代理类，此处不再创建，直接返回已经创建好的代理类。
+			 */
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		}
 		catch (Throwable ex) {
@@ -991,6 +1016,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	protected Object getEarlyBeanReference(String beanName, RootBeanDefinition mbd, Object bean) {
 		Object exposedObject = bean;
 		if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
+			/**
+			 * AnnotationAwareAspectJAutoProxyCreator(创建 AOP 动态代理对象)
+			 * AutowirAnnotationBeanPostProcessor(没做任何处理)
+			 */
 			for (SmartInstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().smartInstantiationAware) {
 				exposedObject = bp.getEarlyBeanReference(exposedObject, beanName);
 			}
@@ -1335,8 +1364,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 						getAccessControlContext());
 			}
 			else {
+				// 利用反射创建对象
 				beanInstance = getInstantiationStrategy().instantiate(mbd, beanName, this);
 			}
+			// 包装对象
 			BeanWrapper bw = new BeanWrapperImpl(beanInstance);
 			initBeanWrapper(bw);
 			return bw;
@@ -1827,7 +1858,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (mbd == null || !mbd.isSynthetic()) {
 			/**
 			 * 后置处理器，属性设置完成后增强 AfterInitialization。
-			 * AOP 后置处理器在此介入，创建了代理对象
+			 * AOP 后置处理器在此介入，创建了代理对象。todo：验证无循环依赖情况下的 AOP 代理对象的创建。循环依赖：AOP 代理对象在属性赋值的时候就创建出了代理对象，此处直接跳过，不再创建代理对象
+			 * 1.不存在循环依赖情况下，创建 AOP 代理对象；
+			 * 2.存在循环依赖的情况下，AOP 的代理对象在属性赋值的时候就创建完成了，此处直接跳过，不再创建代理对象
 			 */
 			wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);
 		}
