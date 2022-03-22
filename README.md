@@ -95,13 +95,11 @@ Spring 容器启动时，先加载一些底层的后置处理器（例如 Config
 
 #### AOP 的循环引用
 
-![](src/docs/spring/AOP 的循环引用.jpg)
-
+![](src/docs/spring/AOP的循环引用.jpg)
 ---
 #### AOP增强流程
 
 ![](src/docs/spring/AOP增强流程.jpg)
-
 ---
 #### AOP执行链执行流程
 
