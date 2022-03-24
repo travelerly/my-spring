@@ -84,6 +84,7 @@ Spring 容器启动时，先加载一些底层的后置处理器（例如 Config
 
 ---
 #### Bean生命周期
+
 ![](src/docs/spring/Bean生命周期.jpg)
 
 ---
@@ -96,10 +97,12 @@ Spring 容器启动时，先加载一些底层的后置处理器（例如 Config
 #### AOP 的循环引用
 
 ![](src/docs/spring/AOP的循环引用.jpg)
+
 ---
 #### AOP增强流程
 
 ![](src/docs/spring/AOP增强流程.jpg)
+
 ---
 #### AOP执行链执行流程
 
@@ -245,32 +248,46 @@ HandleAdapter：超级反射工具
 
 ---
 #### @EnableWebMvc注解原理
+
 1. @EnableWebMvc会给容器中导入九大组件，并且还都留有了扩展入口，可以结合 WebMvcConfigurer 接口实现组件自定义。此时容器中含有九大组件
 2. DispatcherServlet 在启动的时候是从容器中获取九大组件，并初始化，而不是使用默认「配置文件」的组件初始化。
 
 @EnableWebMvc 注解引入（Import）了 DelegatingWebMvcConfiguration，而 DelegatingWebMvcConfiguration 继承了 WebMvcConfigurationSupport，WebMvcConfigurationSupport 通过 @Bean 给容器中导入了九大组件，requestMappingHandlerMapping、beanNameHandlerMapping、mvcViewResolver、handlerExceptionResolver……
 
-九大组件的每一个组件的核心都留给子类模板方法实现父类调用子类重写的方法完成九大组件的导入
+
+
+##### 九大组件的每一个组件的核心都留给子类模板方法实现父类调用子类重写的方法完成九大组件的导入
 
 1. WebMvcConfigurer + @EnableWebMvc 定制和扩展了 SpringMVC 功能
 2. @EnableWebMvc 导入的类会给容器中放入 SpringMVC 的很多核心组件
 3. 这些组件功能在扩展的时候都是留给接口 WebMvcConfigurer 介入并定制的
 4. @EnableWebMvc 只开启了 SpringMVC 的基本功能
 
-SpringMVC 的两种启用方式
+
+
+##### SpringMVC 的两种启用方式
+
 1. 使用注解 @EnableWebMvc 开启 SpringMVC 功能，此方式修改了 SpringMVC 底层行为，只需要实现 WebMvcConfigurer 接口，重写方法来配置组件功能。WebMvcConfigurer 预留了 SpringMVC 的扩展接口，可扩展 SpringMVC 的很多功能组件；
 2. SpringMVC 默认规则，即所有组件都是在 DispatcherServlet 初始化的时候直接使用配置文件中指定的默认组件。这种方式没有预留扩展接口，如需扩展，则要自己重新替换相应组件；
 
-WebMvcConfigurer + @EnableWebMvc 实现了定制和扩展 SpringMVC 的功能
 
-@EnableWebMvc 导入的类「DelegatingWebMvcConfiguration.class」会给容器中放入 SpringMVC 的很多核心组件，例如 HandlerMapping，ViewResolver等。并且这些组件的功能在扩展的时候都是留给接口 WebMvcConfigurer「其实现类属于访问者，拿到真正的内容进行修改」介入并定制的，例如 WebMvcConfigurer 的实现类可以配置自定义视图解析器。
 
-DelegatingWebMvcConfiguration 的作用
+##### WebMvcConfigurer + @EnableWebMvc 实现了定制和扩展 SpringMVC 的功能
+
+- @EnableWebMvc 导入的类（DelegatingWebMvcConfiguration.class）会给容器中放入 SpringMVC 的很多核心组件，例如 HandlerMapping，ViewResolver 等。并且这些组件的功能在扩展的时候都是留给接口 WebMvcConfigurer（其实现类属于访问者，拿到真正的内容进行修改）介入并定制的，例如 WebMvcConfigurer 的实现类可以配置自定义视图解析器。
+- @EnableWebMvc 开启了 MVC 的基本功能，相当于配置文件中的，<mvc:annotation-driven />，即使是以前，也是需要手动配置默认视图解析器的。因此，使用注解版并且自定义视图解析器的时候，要同时将自定义的视图解析器和默认的视图解析器注册进容器中
+
+
+
+##### DelegatingWebMvcConfiguration 的作用
+
 1. 其父类-WebMvcConfigurationSupport 中含有 @Bean 方法，给容器中放入组件；
 2. 每一个组件的核心处都采用了模板方法，留给子类 DelegatingWebMvcConfiguration 来实现；
 3. 只要这个 DelegatingWebMvcConfiguration 生效，则从容器中拿到所有的 configurers「WebMvcConfigurer 的实现类」完成相应功能；而启用 DelegatingWebMvcConfiguration 有以下几种方式
    1. 任意配置类上加注解 @EnableWebMvc，然后实 WebMvcConfigurer 接口，进行扩展；
    2. 任意配置类继承 DelegatingWebMvcConfiguration，然后实现 WebMvcConfigurer 接口，进行扩展；
    3. 任意配置类继承 WebMvcConfigurationSupport，实现他预留的模板方法进行扩展
+
+
 
 ![](src/docs/mvc/@EnableWebMvc注解原理.jpg)

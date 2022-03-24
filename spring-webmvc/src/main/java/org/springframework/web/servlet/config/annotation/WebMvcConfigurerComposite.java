@@ -112,7 +112,11 @@ class WebMvcConfigurerComposite implements WebMvcConfigurer {
 
 	@Override
 	public void configureViewResolvers(ViewResolverRegistry registry) {
-		// 遍历所有的 WebMvcConfigurer，并注册其配置的视图解析器组件
+		/**
+		 * 遍历所有的 WebMvcConfigurer，并注册其配置的视图解析器组件
+		 * 例如：MvcExtendConfiguration 是 WebMvcConfigurer 的子类
+		 * MvcExtendConfiguration 注册了自定义的视图解析器和默认的视图解析器
+		 */
 		for (WebMvcConfigurer delegate : this.delegates) {
 			delegate.configureViewResolvers(registry);
 		}

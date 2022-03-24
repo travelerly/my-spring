@@ -360,6 +360,7 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 
 		if (this.interceptors == null) {
 			InterceptorRegistry registry = new InterceptorRegistry();
+			// 子类模板先来修改 registry
 			addInterceptors(registry);
 			registry.addInterceptor(new ConversionServiceExposingInterceptor(mvcConversionService));
 			registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
@@ -1115,6 +1116,9 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 	 * {@link ViewResolverComposite#resolveViewName(String, Locale)} returns null in order
 	 * to allow other potential {@link ViewResolver} beans to resolve views.
 	 * @since 4.1
+	 *
+	 * 容器已启动，就会有 mvcViewResolver 这个 bean 的定义信息
+	 *
 	 * 此 @Bean 的目的是给容器中注册视图解析器。
 	 * 如果子类没有进行配置，则使用默认视图解析器「InternalResourceViewResolver」，否则使用子类配置的自定义视图解析器
 	 * 但如果想要自定义配置的视图解析器和这个默认的视图解析器同时注册进容器中，需将这两个判断条件的 "&&" 关系改为 "||" 的关系，「if (registry.getViewResolvers().isEmpty() || this.applicationContext != null)」
@@ -1125,22 +1129,32 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 			@Qualifier("mvcContentNegotiationManager") ContentNegotiationManager contentNegotiationManager) {
 		ViewResolverRegistry registry =
 				new ViewResolverRegistry(contentNegotiationManager, this.applicationContext);
-		//「扩展配置视图解析器，留给子类实现」调用子类「DelegatingWebMvcConfiguration」重写的方法来实现组件的导入。「每一个关键位置都留给了子类模板实现，子类使用 configurers 实现」
-		// 导入的配置来源是实现了 WebMvcConfigurer 接口的配置类「MvcExtendConfiguration」中配置的内容。
+
+		/**
+		 * (自定义扩展配置视图解析器，留给子类实现)调用子类「DelegatingWebMvcConfiguration」重写的方法来实现组件的导入。
+		 * 每一个关键位置都留给了子类模板实现，子类使用 configurers 实现
+		 * 导入的配置来源是实现了 WebMvcConfigurer 接口的配置类「MvcExtendConfiguration」中配置的内容。
+		 */
 		configureViewResolvers(registry);
+
 		// 判断子类是否进行了视图解析的配置，如果没有进行配置，则使用默认视图解析器「InternalResourceViewResolver」，否则使用子类配置的自定义视图解析器
-		// if (registry.getViewResolvers().isEmpty() || this.applicationContext != null) {
+		/*if (registry.getViewResolvers().isEmpty() || this.applicationContext != null) {*/
 		if (registry.getViewResolvers().isEmpty() && this.applicationContext != null) {
 			// 获取容器中所有视图解析器「ViewResolver」的 beanName 数组。「目的是获取所有视图解析器的数量」
 			String[] names = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 					this.applicationContext, ViewResolver.class, true, false);
-			// 容器中视图解析器的配置的数量如果等于 1，就表示容器中只含有一个视图解析器，就是是由此 @Bean 所配置的 mvcViewResolver。
-			// if (true || names.length == 1) {
+
+			/*if (true || names.length == 1) {*/
 			if (names.length == 1) {
+				// 若容器中视图解析器的数量为 1，就表示容器中只含有一个视图解析器，就是是由此 @Bean 所配置的 mvcViewResolver。
 				registry.getViewResolvers().add(new InternalResourceViewResolver());
 			}
 		}
 
+		/**
+		 * 如果自定义配置了视图解析器，则完全按照自定义配置进行，不会执行上述 if 内的逻辑
+		 * 如果没有自定义配置，则会执行上述 if 内的逻辑，即使用默认配置
+		 */
 		ViewResolverComposite composite = new ViewResolverComposite();
 		composite.setOrder(registry.getOrder());
 		composite.setViewResolvers(registry.getViewResolvers());
@@ -1156,6 +1170,8 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 	/**
 	 * Override this method to configure view resolution.
 	 * @see ViewResolverRegistry
+	 *
+	 * 留给子类的模板方法
 	 */
 	protected void configureViewResolvers(ViewResolverRegistry registry) {
 	}

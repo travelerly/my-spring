@@ -57,6 +57,7 @@ public class DelegatingWebMvcConfiguration extends WebMvcConfigurationSupport {
 	}
 
 
+	// 访问者模式
 	@Override
 	protected void configurePathMatch(PathMatchConfigurer configurer) {
 		this.configurers.configurePathMatch(configurer);
@@ -102,10 +103,10 @@ public class DelegatingWebMvcConfiguration extends WebMvcConfigurationSupport {
 		this.configurers.addViewControllers(registry);
 	}
 
-	// 重写了其父类 WebMvcConfigurationSupport 的方法导入视图解析器组件
+	// 重写了其父类 WebMvcConfigurationSupport 的方法，配置视图解析器组件
 	@Override
 	protected void configureViewResolvers(ViewResolverRegistry registry) {
-		// 使用 WebMvcConfigurerComposite 导入组件
+		// 使用 WebMvcConfigurerComposite 导入组件。让所有的 configureers 进行定制
 		this.configurers.configureViewResolvers(registry);
 	}
 

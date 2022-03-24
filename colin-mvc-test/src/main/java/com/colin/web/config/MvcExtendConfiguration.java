@@ -24,10 +24,13 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
  *   这种方式没有预留扩展接口，如需扩展，则要自己重新替换相应组件；
  *
  * WebMvcConfigurer + @EnableWebMvc 实现了定制和扩展 SpringMVC 的功能
- * @EnableWebMvc 导入的类「DelegatingWebMvcConfiguration.class」会给容器中放入 SpringMVC 的很多核心组件，
+ * @EnableWebMvc 导入的类「DelegatingWebMvcConfiguration.class」会给容器中放入 SpringMVC 的很多核心组件，拥有默认功能，
  * 		例如 HandlerMapping，ViewResolver等。
  * 并且这些组件的功能在扩展的时候都是留给接口 WebMvcConfigurer「其实现类属于访问者，拿到真正的内容进行修改」介入并定制的，
  * 		例如 WebMvcConfigurer 的实现类可以配置自定义视图解析器。
+ *
+ * @EnableWebMvc 开启了 MVC 的基本功能，相当于配置文件中的，<mvc:annotation-driven />，即使是以前，也是需要手动配置默认视图解析器的
+ * 因此，使用注解版并且自定义视图解析器的时候，要同时将自定义的视图解析器和默认的视图解析器注册进容器中
  *
  * DelegatingWebMvcConfiguration 的作用
  * 1. 其父类-WebMvcConfigurationSupport 中含有 @Bean 方法，给容器中放入组件；
@@ -44,10 +47,14 @@ public class MvcExtendConfiguration implements WebMvcConfigurer {
 	@Override
 	public void configureViewResolvers(ViewResolverRegistry registry) {
 
-		// registry.viewResolver(new MyViewResolver());
+		registry.viewResolver(new MyViewResolver());
 
-		// 若要实现自定义视图解析器和默认的视图解析器同时生效，可以修改源码的判断条件，或者自定义视图解析器的时候，再手动注册一个默认的视图解析器
-		registry.viewResolver(new InternalResourceViewResolver());
+		// 若要实现自定义视图解析器和默认的视图解析器同时生效，可以修改源码的判断条件，
+		// 或者自定义视图解析器的时候，再手动注册一个默认的视图解析器
+		InternalResourceViewResolver internalResourceViewResolver = new InternalResourceViewResolver();
+		internalResourceViewResolver.setPrefix("");
+		internalResourceViewResolver.setSuffix(".jsp");
+		registry.viewResolver(internalResourceViewResolver);
 	}
 
 

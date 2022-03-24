@@ -492,8 +492,10 @@ public class DispatcherServlet extends FrameworkServlet {
 	}
 
 	/**
-	 * 初始化所有策略，八大组件在这里进行了初始化。Initialize the strategy objects that this servlet uses.
-	 * 从容器中获取该组件，如果容器中有，则取出，如果容器中没有，则使用默认值，「文件上传为null」。<p>May be overridden in subclasses in order to initialize further strategy objects.
+	 * 初始化所有策略，八大组件在这里进行了初始化
+	 * 从容器中获取该组件，如果容器中有，则取出，如果容器中没有，则使用默认值，(文件上传为null)
+	 * Initialize the strategy objects that this servlet uses.
+	 * <p>May be overridden in subclasses in order to initialize further strategy objects.
 	 */
 	protected void initStrategies(ApplicationContext context) {
 		// 文件上传解析器初始化
