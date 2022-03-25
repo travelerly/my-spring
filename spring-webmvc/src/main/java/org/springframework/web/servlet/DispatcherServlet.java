@@ -1470,8 +1470,8 @@ public class DispatcherServlet extends FrameworkServlet {
 			Locale locale, HttpServletRequest request) throws Exception {
 
 		if (this.viewResolvers != null) {
-			// 所有的视图解析器「ViewResolver」，尝试根据当前视图名「viewName」得到对应的视图「view」对象
-			// 即使某个返回值满足多种视图解析规则，排在前面的视图解析器解析成功，就直接返回
+			// 所有的视图解析器 ViewResolver，尝试根据当前视图名 viewName 得到对应的视图对象 view
+			// 即使某个返回值满足多种视图解析规则，一旦排在前面的视图解析器解析成功，就直接返回
 			for (ViewResolver viewResolver : this.viewResolvers) {
 				View view = viewResolver.resolveViewName(viewName, locale);
 				if (view != null) {

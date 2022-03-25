@@ -40,8 +40,8 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
  *    2. 任意配置类继承 DelegatingWebMvcConfiguration，然后实现 WebMvcConfigurer 接口，进行扩展；
  *    3. 任意配置类继承 WebMvcConfigurationSupport，实现他预留的模板方法进行扩展
  */
-@EnableWebMvc // 启用 MVC 功能
-@Configuration
+/*@EnableWebMvc // 启用 MVC 功能
+@Configuration*/
 public class MvcExtendConfiguration implements WebMvcConfigurer {
 
 	@Override

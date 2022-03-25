@@ -901,7 +901,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			if (asyncManager.isConcurrentHandlingStarted()) {
 				return null;
 			}
-			// 从临时容器中提取出 ModelAndView 数据
+			// 从临时容器中提取出数据，并封装成模型视图 ModelAndView
 			return getModelAndView(mavContainer, modelFactory, webRequest);
 		}
 		finally {
@@ -1005,12 +1005,13 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	@Nullable
 	private ModelAndView getModelAndView(ModelAndViewContainer mavContainer,
 			ModelFactory modelFactory, NativeWebRequest webRequest) throws Exception {
-		// modelFactory 准备模型数据「请求域数据共享」（session里面的数据移到request域中）
+		// modelFactory 准备模型数据(请求域数据共享)（session里面的数据移到request域中）
 		modelFactory.updateModel(webRequest, mavContainer);
 		if (mavContainer.isRequestHandled()) {
 			return null;
 		}
 		ModelMap model = mavContainer.getModel();
+		// 创建模型视图对象（根据临时容器中保存的视图名称和模型数据）
 		ModelAndView mav = new ModelAndView(mavContainer.getViewName(), model, mavContainer.getStatus());
 		if (!mavContainer.isViewReference()) {
 			mav.setView((View) mavContainer.getView());

@@ -1858,7 +1858,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (mbd == null || !mbd.isSynthetic()) {
 			/**
 			 * 后置处理器，属性设置完成后增强 AfterInitialization。
-			 * AOP 后置处理器在此介入，创建了代理对象。todo：验证无循环依赖情况下的 AOP 代理对象的创建。循环依赖：AOP 代理对象在属性赋值的时候就创建出了代理对象，此处直接跳过，不再创建代理对象
+			 * AOP 后置处理器在此介入，创建了代理对象
 			 * 1.不存在循环依赖情况下，创建 AOP 代理对象；
 			 * 2.存在循环依赖的情况下，AOP 的代理对象在属性赋值的时候就创建完成了，此处直接跳过，不再创建代理对象
 			 */
