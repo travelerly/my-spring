@@ -142,6 +142,7 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 				executor.execute(() -> invokeListener(listener, event));
 			}
 			else {
+				// 执行每个监听器的逻辑
 				invokeListener(listener, event);
 			}
 		}
