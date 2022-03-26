@@ -94,10 +94,14 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 	 * @see org.springframework.beans.factory.FactoryBean#getObject()
 	 */
 	protected Object getObjectFromFactoryBean(FactoryBean<?> factory, String beanName, boolean shouldPostProcess) {
+		// 如果 FactoryBean 默认是单例的，且在单例缓存中存在 beanName 对应的单例对象
 		if (factory.isSingleton() && containsSingleton(beanName)) {
 			synchronized (getSingletonMutex()) {
+
 				Object object = this.factoryBeanObjectCache.get(beanName);
 				if (object == null) {
+					// 第一次来创建时，缓存中肯定为 null。
+					// 创建 bean 实例对象
 					object = doGetObjectFromFactoryBean(factory, beanName);
 					// Only post-process and store if not put there already during getObject() call above
 					// (e.g. because of circular reference processing triggered by custom getBean calls)
@@ -107,12 +111,17 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 					}
 					else {
 						if (shouldPostProcess) {
+							// 判断当前 bean 是否正在实例化
 							if (isSingletonCurrentlyInCreation(beanName)) {
 								// Temporarily return non-post-processed object, not storing it yet..
+								// 如果当前 bean 正在实例化，则直接返回由 FactoryBean.getObject() 方式创建的 bean 实例对象
 								return object;
 							}
+
+							// 标记当前 bean 开始创建了
 							beforeSingletonCreation(beanName);
 							try {
+								// 创建 bean 之间至此那个一些后置处理操作（默认无任何操作）
 								object = postProcessObjectFromFactoryBean(object, beanName);
 							}
 							catch (Throwable ex) {
@@ -120,10 +129,12 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 										"Post-processing of FactoryBean's singleton object failed", ex);
 							}
 							finally {
+								// 移除 bean 正在创建的标记
 								afterSingletonCreation(beanName);
 							}
 						}
 						if (containsSingleton(beanName)) {
+							// 将创建出来的 bean 缓存到 factoryBeanObjectCache 中
 							this.factoryBeanObjectCache.put(beanName, object);
 						}
 					}
@@ -166,6 +177,7 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 				}
 			}
 			else {
+				// 创建当前 bean
 				object = factory.getObject();
 			}
 		}

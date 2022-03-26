@@ -68,6 +68,7 @@ public abstract class BeanFactoryUtils {
 	 * @see BeanFactory#FACTORY_BEAN_PREFIX
 	 */
 	public static boolean isFactoryDereference(@Nullable String name) {
+		// name 不为空，且 name 以 "&" 为前缀
 		return (name != null && name.startsWith(BeanFactory.FACTORY_BEAN_PREFIX));
 	}
 
@@ -81,12 +82,16 @@ public abstract class BeanFactoryUtils {
 	public static String transformedBeanName(String name) {
 		Assert.notNull(name, "'name' must not be null");
 		if (!name.startsWith(BeanFactory.FACTORY_BEAN_PREFIX)) {
+			// 如果 name 不是以符号 "&" 为前缀的话，直接返回 name
 			return name;
 		}
+
+		// 处理 name 以符号 "&" 为前缀的的情况
 		return transformedBeanNameCache.computeIfAbsent(name, beanName -> {
 			do {
+				// 截取 name 中符号 "&" 后面的内容
 				beanName = beanName.substring(BeanFactory.FACTORY_BEAN_PREFIX.length());
-			}
+			} // 直到 name 的前缀中不包含符号 "&" 为止
 			while (beanName.startsWith(BeanFactory.FACTORY_BEAN_PREFIX));
 			return beanName;
 		});

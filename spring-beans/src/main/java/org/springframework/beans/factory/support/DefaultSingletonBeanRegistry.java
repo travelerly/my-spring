@@ -179,6 +179,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	@Override
 	@Nullable
 	public Object getSingleton(String beanName) {
+		// 获取 beanName 的单例对象（默认时允许早期引用的，即 allowEarlyReference == true）
 		return getSingleton(beanName, true);
 	}
 
@@ -194,26 +195,27 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
 		// 先检查单例缓存池，获取当前对象。 Quick check for existing instance without full singleton lock
 		Object singletonObject = this.singletonObjects.get(beanName);
-		// 检查当前 bean 是否正在创建
+		// 检查当前 bean 是否正在实例化
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
-			// 从（二级）缓存中查询
+			// 从（二级）早期单例缓存中获取初步实例化好的单例 bean
 			singletonObject = this.earlySingletonObjects.get(beanName);
 			if (singletonObject == null && allowEarlyReference) {
+				// 至此，说明早期单例 bean 还没有创建好，并且是允许早期引用
 				synchronized (this.singletonObjects) {
 					// 再次检查单例缓存池，获取当前对象。Consistent creation of early reference within full singleton lock
 					singletonObject = this.singletonObjects.get(beanName);
 					if (singletonObject == null) {
-						// 再从（二级）缓存中查询
+						// 再从（二级）早期单例缓存中获取初步实例化好的单例 bean
 						singletonObject = this.earlySingletonObjects.get(beanName);
 						if (singletonObject == null) {
-							// 再从（三级）缓存中查询
+							// 再从（三级）早期单例工厂缓存中查询对应的工厂对象
 							ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 							if (singletonFactory != null) {
-								// 回调创建对象。三级缓存中存储的匿名内部类，最终会调用 getEarlyBeanReference(beanName, mbd, bean) 来创建对象
+								// 通过工厂创建早期对象。即匿名内部类，最终会调用 getEarlyBeanReference(beanName, mbd, bean) 来创建对象
 								singletonObject = singletonFactory.getObject();
-								// 将当前对象放入（二级）缓存池中
+								// 将当前对象放入（二级）早期单例缓存池中
 								this.earlySingletonObjects.put(beanName, singletonObject);
-								// 根据当前对象名称删除（三级）缓存中的数据(用于创建当前对象的匿名内部类)
+								// 早期单例已经在上步创建好了，将该 beanName 从工厂缓存中移除，即移除用于创建当前对象的匿名内部类
 								this.singletonFactories.remove(beanName);
 							}
 						}
@@ -361,6 +363,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	}
 
 	/**
+	 * 判断当前 beanName 对应的 bean 是否正在实例化
 	 * Return whether the specified singleton bean is currently in creation
 	 * (within the entire factory).
 	 * @param beanName the name of the bean

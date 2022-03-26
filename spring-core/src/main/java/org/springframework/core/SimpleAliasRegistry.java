@@ -202,6 +202,7 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	}
 
 	/**
+	 * 通过别名缓存 aliases 来解析 bean 的实际名称
 	 * Determine the raw name, resolving aliases to canonical names.
 	 * @param name the user-specified name
 	 * @return the transformed name
@@ -211,11 +212,12 @@ public class SimpleAliasRegistry implements AliasRegistry {
 		// Handle aliasing...
 		String resolvedName;
 		do {
+			// 从别名的缓存中获取 bean 的实际名称
 			resolvedName = this.aliasMap.get(canonicalName);
 			if (resolvedName != null) {
 				canonicalName = resolvedName;
 			}
-		}
+		} // 直到当 canonicalName 从别名缓存中获取不到数据时，canonicalName 才会被认为是最终的 bean 的名称
 		while (resolvedName != null);
 		return canonicalName;
 	}
