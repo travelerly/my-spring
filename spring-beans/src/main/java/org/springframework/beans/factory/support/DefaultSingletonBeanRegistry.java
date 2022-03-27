@@ -153,6 +153,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 			this.singletonObjects.put(beanName, singletonObject);
 			this.singletonFactories.remove(beanName);
 			this.earlySingletonObjects.remove(beanName);
+			// 缓存 registeredSingletons 就是用来记录 Spring 容器中已经创建好的单例 bean 的名称
 			this.registeredSingletons.add(beanName);
 		}
 	}
@@ -237,25 +238,38 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	public Object getSingleton(String beanName, ObjectFactory<?> singletonFactory) {
 		Assert.notNull(beanName, "Bean name must not be null");
 		synchronized (this.singletonObjects) {
+			// 从单例缓存中获取 bean 实例
 			Object singletonObject = this.singletonObjects.get(beanName);
 			if (singletonObject == null) {
+
+				// 如果当前 bean 正在被销毁，则不允许对其进行创建
 				if (this.singletonsCurrentlyInDestruction) {
 					throw new BeanCreationNotAllowedException(beanName,
 							"Singleton bean creation not allowed while singletons of this factory are in destruction " +
 							"(Do not request a bean from a BeanFactory in a destroy method implementation!)");
 				}
+
 				if (logger.isDebugEnabled()) {
 					logger.debug("Creating shared instance of singleton bean '" + beanName + "'");
 				}
-				// 单实例创建之前，将当前要创建的对象 beanName 缓存进池，记录当前对象正在被创建。 Set<String> singletonsCurrentlyInCreation.add(beanName)，
+
+				// 单实例创建之前，将当前要创建的对象 beanName 缓存进池，记录当前 bean 正在被创建。 Set<String> singletonsCurrentlyInCreation.add(beanName)，
 				beforeSingletonCreation(beanName);
+
 				boolean newSingleton = false;
 				boolean recordSuppressedExceptions = (this.suppressedExceptions == null);
 				if (recordSuppressedExceptions) {
 					this.suppressedExceptions = new LinkedHashSet<>();
 				}
 				try {
-					// 回调 singletonFactory 的 lambda 表达式的内容，来真正创建组件对象
+
+					/**
+					 * 调用简单工厂方法来实例化 bean
+					 * 回调 singletonFactory 的 lambda 表达式的内容，来真正创建组件对象
+					 * ObjectFactory 接口只提供了一个方法 getObject()，Spring 默认会通过匿名内部类的方式来实现 getObject() 方法，
+					 * 在 getObject() 方法中添加了 creatBean() 方法来实例化 bean，即是普通工厂模式。
+					 * 这也就是为什么 Spring 一直被称为专门用来创建 bean 的工厂的原因。
+					 */
 					singletonObject = singletonFactory.getObject();
 					newSingleton = true;
 				}
@@ -279,7 +293,8 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					if (recordSuppressedExceptions) {
 						this.suppressedExceptions = null;
 					}
-					// 单实例创建结束后，在 Set<String> singletonsCurrentlyInCreation 池中清除当前 bean 的记录「清除对象正在创建状态」
+
+					// 单实例创建结束后，在 Set<String> singletonsCurrentlyInCreation 池中清除当前 bean 的记录「清除 bean 正在创建的状态」
 					afterSingletonCreation(beanName);
 				}
 				if (newSingleton) {
