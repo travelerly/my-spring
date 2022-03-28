@@ -472,7 +472,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 
 		do {
 			final List<InjectionMetadata.InjectedElement> currElements = new ArrayList<>();
-			//找到所有属性中标注了@Autowired、@Value、@Inject注解。   ReflectionUtils：反射工具类
+			// 找到所有属性中标注了 @Autowired、@Value、@Inject 注解。   ReflectionUtils：反射工具类
 			ReflectionUtils.doWithLocalFields(targetClass, field -> {
 				MergedAnnotation<?> ann = findAutowiredAnnotation(field);
 				if (ann != null) {
@@ -486,7 +486,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 					currElements.add(new AutowiredFieldElement(field, required));
 				}
 			});
-			//拿到所有方法，看是否有@Autowired注解
+			// 拿到所有方法，看是否有 @Autowired 注解
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
 				Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
 				if (!BridgeMethodResolver.isVisibilityBridgeMethodPair(method, bridgedMethod)) {

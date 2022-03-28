@@ -179,6 +179,7 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 
 	@Override
 	public void destroy() {
+		// 如果注册了销毁 bean 之前处理的后置处理器，那就先执行后置处理器的相关逻辑
 		if (!CollectionUtils.isEmpty(this.beanPostProcessors)) {
 			for (DestructionAwareBeanPostProcessor processor : this.beanPostProcessors) {
 				processor.postProcessBeforeDestruction(this.bean, this.beanName);
@@ -197,6 +198,7 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 					}, this.acc);
 				}
 				else {
+					// 如果 bean 实现了接口 DisposableBean，当 bean 被销毁时，就会执行 destroy() 方法
 					((DisposableBean) this.bean).destroy();
 				}
 			}
@@ -211,6 +213,7 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 			}
 		}
 
+		// 如果 bean 配置了和初始化方法对应的销毁方法，则执行自定义的销毁方法
 		if (this.destroyMethod != null) {
 			invokeCustomDestroyMethod(this.destroyMethod);
 		}
