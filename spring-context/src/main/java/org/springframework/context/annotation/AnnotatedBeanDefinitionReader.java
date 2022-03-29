@@ -83,9 +83,13 @@ public class AnnotatedBeanDefinitionReader {
 	public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry, Environment environment) {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 		Assert.notNull(environment, "Environment must not be null");
+		// 初始化成员变量 registry
 		this.registry = registry;
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
-		// 加载注册底层功能组件的后置处理器，（配置类后置处理器、自动装配功能后置处理器、JSR-250 注解支持的后置处理器、JPA 功能支持的后置处理器、事件方法功能的后置处理器、事件工厂功能的后置处理器）
+		/**
+		 * 注册一些和注解相关的后置处理器的 BeanDefinition
+		 * 配置类后置处理器、自动装配功能后置处理器、JSR-250 注解支持的后置处理器、JPA 功能支持的后置处理器、事件方法功能的后置处理器、事件工厂功能的后置处理器的定义信息
+		 */
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 	}
 

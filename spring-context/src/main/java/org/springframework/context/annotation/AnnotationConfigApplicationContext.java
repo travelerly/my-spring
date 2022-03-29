@@ -106,7 +106,9 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 */
 	public AnnotationConfigApplicationContext(String... basePackages) {
 		this();
+		// 扫描指定包下的类
 		scan(basePackages);
+		// 刷新容器
 		refresh();
 	}
 
@@ -187,6 +189,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		Assert.notEmpty(basePackages, "At least one base package must be specified");
 		StartupStep scanPackages = this.getApplicationStartup().start("spring.context.base-packages.scan")
 				.tag("packages", () -> Arrays.toString(basePackages));
+		// 通过 ClassPathBeanDefinitionScanner 来扫描
 		this.scanner.scan(basePackages);
 		scanPackages.end();
 	}

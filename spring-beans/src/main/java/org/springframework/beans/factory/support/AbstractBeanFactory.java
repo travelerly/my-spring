@@ -357,7 +357,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 							throw ex;
 						}
 					});
-					// 获取 bean 的实例对象
+					// 获取 bean 的实例             对象
 					beanInstance = getObjectForBeanInstance(sharedInstance, name, beanName, mbd);
 				}
 				// 多实例。当前 beanDefinition 为原型 prototype 类型的多实例，

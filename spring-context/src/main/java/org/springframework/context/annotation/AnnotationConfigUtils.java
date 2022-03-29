@@ -148,6 +148,7 @@ public abstract class AnnotationConfigUtils {
 	public static Set<BeanDefinitionHolder> registerAnnotationConfigProcessors(
 			BeanDefinitionRegistry registry, @Nullable Object source) {
 
+		// 将注册中心 registry 转换成 DefaultListableBeanFactory 类型的注册中心
 		DefaultListableBeanFactory beanFactory = unwrapDefaultListableBeanFactory(registry);
 		if (beanFactory != null) {
 			if (!(beanFactory.getDependencyComparator() instanceof AnnotationAwareOrderComparator)) {
@@ -158,23 +159,24 @@ public abstract class AnnotationConfigUtils {
 			}
 		}
 
+		// 封装 BeanDefinition 的集合
 		Set<BeanDefinitionHolder> beanDefs = new LinkedHashSet<>(8);
 
-		// 注册底层的处理配置类的后置处理器：ConfigurationClassPostProcessor
+		// 注册底层的处理配置类的后置处理器 ConfigurationClassPostProcessor 的 BeanDefinition
 		if (!registry.containsBeanDefinition(CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(ConfigurationClassPostProcessor.class);
 			def.setSource(source);
 			beanDefs.add(registerPostProcessor(registry, def, CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
-		// 注册底层的自动装配功能的后置处理器：AutowiredAnnotationBeanPostProcessor
+		// 注册底层的自动装配功能的后置处理器 AutowiredAnnotationBeanPostProcessor 的 BeanDefinition
 		if (!registry.containsBeanDefinition(AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(AutowiredAnnotationBeanPostProcessor.class);
 			def.setSource(source);
 			beanDefs.add(registerPostProcessor(registry, def, AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
-		// 注册支持 JSR-250 规范的后置处理器：CommonAnnotationBeanPostProcessor
+		// 注册支持 JSR-250 规范的后置处理器 CommonAnnotationBeanPostProcessor 的 BeanDefinition
 		// Check for JSR-250 support, and if present add the CommonAnnotationBeanPostProcessor.
 		if (jsr250Present && !registry.containsBeanDefinition(COMMON_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(CommonAnnotationBeanPostProcessor.class);
@@ -182,7 +184,7 @@ public abstract class AnnotationConfigUtils {
 			beanDefs.add(registerPostProcessor(registry, def, COMMON_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
-		// 注册支持 JPA 功能的后置处理器：PersistenceAnnotationBeanPostProcessor
+		// 注册支持 JPA 功能的后置处理器 PersistenceAnnotationBeanPostProcessor 的 BeanDefinition
 		// Check for JPA support, and if present add the PersistenceAnnotationBeanPostProcessor.
 		if (jpaPresent && !registry.containsBeanDefinition(PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition();
@@ -198,14 +200,14 @@ public abstract class AnnotationConfigUtils {
 			beanDefs.add(registerPostProcessor(registry, def, PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
-		// 注册支持事件方法功能的后置处理器：EventListenerMethodProcessor
+		// 注册支持事件方法功能的后置处理器 EventListenerMethodProcessor 的 BeanDefinition
 		if (!registry.containsBeanDefinition(EVENT_LISTENER_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(EventListenerMethodProcessor.class);
 			def.setSource(source);
 			beanDefs.add(registerPostProcessor(registry, def, EVENT_LISTENER_PROCESSOR_BEAN_NAME));
 		}
 
-		// 注册支持事件工厂功能的后置处理器：DefaultEventListenerFactory
+		// 注册支持事件工厂功能的后置处理器 DefaultEventListenerFactory 的 BeanDefinition
 		if (!registry.containsBeanDefinition(EVENT_LISTENER_FACTORY_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(DefaultEventListenerFactory.class);
 			def.setSource(source);
@@ -241,6 +243,7 @@ public abstract class AnnotationConfigUtils {
 	}
 	// 解读主配置类定义信息中所有需要感知的注解,并解析注解标注的内容，保存到当前配置类的定义信息（BeanDefinition）中。「@Lazy,@Primary,@DependsOn,@Role,@Description」
 	static void processCommonDefinitionAnnotations(AnnotatedBeanDefinition abd, AnnotatedTypeMetadata metadata) {
+		// 解析 @Lazy 注解
 		AnnotationAttributes lazy = attributesFor(metadata, Lazy.class);
 		if (lazy != null) {
 			abd.setLazyInit(lazy.getBoolean("value"));
@@ -252,18 +255,24 @@ public abstract class AnnotationConfigUtils {
 			}
 		}
 
+		// 解析 @Primary 注解
 		if (metadata.isAnnotated(Primary.class.getName())) {
 			abd.setPrimary(true);
 		}
+
+		// 解析 @DependsOn 注解
 		AnnotationAttributes dependsOn = attributesFor(metadata, DependsOn.class);
 		if (dependsOn != null) {
 			abd.setDependsOn(dependsOn.getStringArray("value"));
 		}
 
+		// 解析 @Role 注解
 		AnnotationAttributes role = attributesFor(metadata, Role.class);
 		if (role != null) {
 			abd.setRole(role.getNumber("value").intValue());
 		}
+
+		// 解析 @Description 注解
 		AnnotationAttributes description = attributesFor(metadata, Description.class);
 		if (description != null) {
 			abd.setDescription(description.getString("value"));
