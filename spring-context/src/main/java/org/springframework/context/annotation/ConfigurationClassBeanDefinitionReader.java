@@ -125,6 +125,8 @@ class ConfigurationClassBeanDefinitionReader {
 	 */
 	public void loadBeanDefinitions(Set<ConfigurationClass> configurationModel) {
 		TrackedConditionEvaluator trackedConditionEvaluator = new TrackedConditionEvaluator();
+
+		// 遍历处理每一个 ConfigurationClass
 		for (ConfigurationClass configClass : configurationModel) {
 			loadBeanDefinitionsForConfigurationClass(configClass, trackedConditionEvaluator);
 		}
@@ -149,6 +151,8 @@ class ConfigurationClassBeanDefinitionReader {
 		if (configClass.isImported()) {
 			registerBeanDefinitionForImportedConfigurationClass(configClass);
 		}
+
+		// 遍历处理注解配置类中的每个方法
 		for (BeanMethod beanMethod : configClass.getBeanMethods()) {
 			loadBeanDefinitionsForBeanMethod(beanMethod);
 		}
@@ -187,6 +191,8 @@ class ConfigurationClassBeanDefinitionReader {
 	@SuppressWarnings("deprecation")  // for RequiredAnnotationBeanPostProcessor.SKIP_REQUIRED_CHECK_ATTRIBUTE
 	private void loadBeanDefinitionsForBeanMethod(BeanMethod beanMethod) {
 		ConfigurationClass configClass = beanMethod.getConfigurationClass();
+
+		// 获取方法上的元数据信息
 		MethodMetadata metadata = beanMethod.getMetadata();
 		String methodName = metadata.getMethodName();
 
@@ -199,6 +205,7 @@ class ConfigurationClassBeanDefinitionReader {
 			return;
 		}
 
+		// 获取方法元数据信息中的注解 @Bean 的属性信息
 		AnnotationAttributes bean = AnnotationConfigUtils.attributesFor(metadata, Bean.class);
 		Assert.state(bean != null, "No @Bean annotation attributes");
 
@@ -221,6 +228,7 @@ class ConfigurationClassBeanDefinitionReader {
 			return;
 		}
 
+		// 数据封装为 ConfigurationClassBeanDefinition 类型的 BeanDefinition
 		ConfigurationClassBeanDefinition beanDef = new ConfigurationClassBeanDefinition(configClass, metadata, beanName);
 		beanDef.setSource(this.sourceExtractor.extractSource(metadata, configClass.getResource()));
 
@@ -293,6 +301,8 @@ class ConfigurationClassBeanDefinitionReader {
 			logger.trace(String.format("Registering bean definition for @Bean method %s.%s()",
 					configClass.getMetadata().getClassName(), beanName));
 		}
+
+		// 将方法对应的 BeanDefinition 注册到容器中
 		this.registry.registerBeanDefinition(beanName, beanDefToRegister);
 	}
 

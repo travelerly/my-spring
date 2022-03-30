@@ -170,16 +170,21 @@ class ConfigurationClassParser {
 	 * 解析配置类
  	 */
 	public void parse(Set<BeanDefinitionHolder> configCandidates) {
+		// 解析所有符合候选条件的 BeanDefinitionHolder
 		for (BeanDefinitionHolder holder : configCandidates) {
+			// 获取 BeanDefinition
 			BeanDefinition bd = holder.getBeanDefinition();
 			try {
 				if (bd instanceof AnnotatedBeanDefinition) {
+					// 解析注解类型的 BeanDefinition
 					parse(((AnnotatedBeanDefinition) bd).getMetadata(), holder.getBeanName());
 				}
 				else if (bd instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) bd).hasBeanClass()) {
+					// 解析普通类型且类名属性有值的 BeanDefinition
 					parse(((AbstractBeanDefinition) bd).getBeanClass(), holder.getBeanName());
 				}
 				else {
+					// 根据类名和 bean 名称的 BeanDefinition
 					parse(bd.getBeanClassName(), holder.getBeanName());
 				}
 			}
@@ -204,7 +209,7 @@ class ConfigurationClassParser {
 	protected final void parse(Class<?> clazz, String beanName) throws IOException {
 		processConfigurationClass(new ConfigurationClass(clazz, beanName), DEFAULT_EXCLUSION_FILTER);
 	}
-	// 解析配置类
+	// 解析配置类（注解类型）
 	protected final void parse(AnnotationMetadata metadata, String beanName) throws IOException {
 		processConfigurationClass(new ConfigurationClass(metadata, beanName), DEFAULT_EXCLUSION_FILTER);
 	}
@@ -229,6 +234,7 @@ class ConfigurationClassParser {
 			return;
 		}
 
+		// 初次执行时 existingClass 为 null
 		ConfigurationClass existingClass = this.configurationClasses.get(configClass);
 		if (existingClass != null) {
 			if (configClass.isImported()) {
@@ -249,7 +255,7 @@ class ConfigurationClassParser {
 		// Recursively process the configuration class and its superclass hierarchy.
 		SourceClass sourceClass = asSourceClass(configClass, filter);
 		do {
-			//解析配置类中的所有标注了 @Component、@ComponentScans、@ImportResource、@PropertySources、@Bean、@Import 等注解的的配置信息
+			// 解析配置类中的所有标注了 @Component、@ComponentScans、@ImportResource、@PropertySources、@Bean、@Import 等注解的的配置信息
 			sourceClass = doProcessConfigurationClass(configClass, sourceClass, filter);
 		}
 		while (sourceClass != null);
@@ -270,12 +276,13 @@ class ConfigurationClassParser {
 			ConfigurationClass configClass, SourceClass sourceClass, Predicate<String> filter)
 			throws IOException {
 
+		// 解析注解 @Component 的信息
  		if (configClass.getMetadata().isAnnotated(Component.class.getName())) {
 			// Recursively process any member (nested) classes first
 			processMemberClasses(configClass, sourceClass, filter);
 		}
 
-		// 处理 @PropertySource 指定的数据。Process any @PropertySource annotations
+		// 解析注解 @PropertySource 的信息。Process any @PropertySource annotations
 		for (AnnotationAttributes propertySource : AnnotationConfigUtils.attributesForRepeatable(
 				sourceClass.getMetadata(), PropertySources.class,
 				org.springframework.context.annotation.PropertySource.class)) {
@@ -288,7 +295,7 @@ class ConfigurationClassParser {
 			}
 		}
 
-		// 处理 @ComponentScan 指定的数据。Process any @ComponentScan annotations
+		// 解析注解 @ComponentScan 的信息。Process any @ComponentScan annotations
 		Set<AnnotationAttributes> componentScans = AnnotationConfigUtils.attributesForRepeatable(
 				sourceClass.getMetadata(), ComponentScans.class, ComponentScan.class);
 		if (!componentScans.isEmpty() &&
@@ -310,10 +317,10 @@ class ConfigurationClassParser {
 			}
 		}
 
-		// 处理 @Import 指定的数据。「AOP 就是利用此处导入一个后置处理器的」Process any @Import annotations
+		// 解析注解 @Import 的信息。「AOP 就是利用此处导入一个后置处理器的」Process any @Import annotations
 		processImports(configClass, sourceClass, getImports(sourceClass), filter, true);
 
-		// 处理 @ImportResource 指定的数据。Process any @ImportResource annotations
+		// 解析注解 @ImportResource 的信息。Process any @ImportResource annotations
 		AnnotationAttributes importResource =
 				AnnotationConfigUtils.attributesFor(sourceClass.getMetadata(), ImportResource.class);
 		if (importResource != null) {
@@ -325,7 +332,7 @@ class ConfigurationClassParser {
 			}
 		}
 
-		// 处理 @Bean 指定的数据。Process individual @Bean methods
+		// 解析注解 @Bean 的信息。Process individual @Bean methods
 		Set<MethodMetadata> beanMethods = retrieveBeanMethodMetadata(sourceClass);
 		for (MethodMetadata methodMetadata : beanMethods) {
 			configClass.addBeanMethod(new BeanMethod(methodMetadata, configClass));
