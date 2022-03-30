@@ -394,10 +394,11 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 
 	@Override
 	public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) {
+
 		// 找到自动装配的元信息。处理 @Autowired、@Value、@Inject 注解标注的原信息
 		InjectionMetadata metadata = findAutowiringMetadata(beanName, bean.getClass(), pvs);
 		try {
-			// 属性注入
+			// (属性)注入注解的元信息
 			metadata.inject(bean, beanName, pvs);
 		}
 		catch (BeanCreationException ex) {
@@ -442,10 +443,16 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 
 
 	private InjectionMetadata findAutowiringMetadata(String beanName, Class<?> clazz, @Nullable PropertyValues pvs) {
-		// Fall back to class name as cache key, for backwards compatibility with custom callers.
+
+		/**
+		 * 如果 beanName 有值，则以 beanName 作为 cacheKey，否则使用类的全限定名作为 cacheKey
+		 * Fall back to class name as cache key, for backwards compatibility with custom callers.
+		 */
 		String cacheKey = (StringUtils.hasLength(beanName) ? beanName : clazz.getName());
-		// Quick check on the concurrent map first, with minimal locking.
+
+		// 根据 cacheKey 从缓存中获取对应的信息数据。Quick check on the concurrent map first, with minimal locking.
 		InjectionMetadata metadata = this.injectionMetadataCache.get(cacheKey);
+		// 判断是否需要刷新当前的缓存数据
 		if (InjectionMetadata.needsRefresh(metadata, clazz)) {
 			synchronized (this.injectionMetadataCache) {
 				metadata = this.injectionMetadataCache.get(cacheKey);
@@ -453,7 +460,10 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 					if (metadata != null) {
 						metadata.clear(pvs);
 					}
-					// 分析当前类的方法或属性是都有标注 @Autowired、@Value、@Inject 自动赋值的注解，然后封装为 InjectedElement
+					/**
+					 * 从类 clazz 中获取注解元数据
+					 * 分析当前类的方法或属性是都有标注 @Autowired、@Value、@Inject 自动赋值的注解，然后封装为 InjectedElement
+					 */
 					metadata = buildAutowiringMetadata(clazz);
 					this.injectionMetadataCache.put(cacheKey, metadata);
 				}
@@ -463,7 +473,14 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 	}
 
 	private InjectionMetadata buildAutowiringMetadata(final Class<?> clazz) {
+
 		if (!AnnotationUtils.isCandidateClass(clazz, this.autowiredAnnotationTypes)) {
+			/**
+			 * 如果当前的类中，不存在指定类型的注解 autowiredAnnotationTypes，
+			 * 直接返回 InjectionMetadata.EMPTY，即没有解析到任何注解信息
+			 * AutowiredAnnotationBeanPostProcessor 在初始化时，就为成员变量 this.autowiredAnnotationTypes 添加了一些初始化元素
+			 * 即 Autowired.class 和 Value.class
+			 */
 			return InjectionMetadata.EMPTY;
 		}
 
@@ -472,51 +489,75 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 
 		do {
 			final List<InjectionMetadata.InjectedElement> currElements = new ArrayList<>();
-			// 找到所有属性中标注了 @Autowired、@Value、@Inject 注解。   ReflectionUtils：反射工具类
+			/**
+			 * 解析 targetClass 中的每个成员属性，即被注解 @Autowired、@Value 标注的成员属性
+			 * 找到所有成员属性中标注了 @Autowired、@Value 注解
+			 * ReflectionUtils：反射工具类
+			 */
 			ReflectionUtils.doWithLocalFields(targetClass, field -> {
+				// 取出当前成员属性中的注解
 				MergedAnnotation<?> ann = findAutowiredAnnotation(field);
 				if (ann != null) {
+					// 判断当前成员属性是否被关键字 static 修饰（不能在静态成员属性上添加 @Autowired 或 @Value）
 					if (Modifier.isStatic(field.getModifiers())) {
 						if (logger.isInfoEnabled()) {
 							logger.info("Autowired annotation is not supported on static fields: " + field);
 						}
+						// 如果是被 static 修饰，则直接跳过，即添加了 static 修饰，该注解将失效
 						return;
 					}
+					// 获取注解中的属性 required 的值
 					boolean required = determineRequiredStatus(ann);
+					// 将从类中成员属性上解析到的注解信息添加到集合 currElements 中
 					currElements.add(new AutowiredFieldElement(field, required));
 				}
 			});
-			// 拿到所有方法，看是否有 @Autowired 注解
+
+			/**
+			 * 解析 targetClass 中的每个方法，即被注解 @Autowired、@Value 标注的方法
+			 * 找到所有方法上中标注了 @Autowired、@Value 注解
+			 */
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
 				Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
 				if (!BridgeMethodResolver.isVisibilityBridgeMethodPair(method, bridgedMethod)) {
 					return;
 				}
+
+				// 从方法中获取注解
 				MergedAnnotation<?> ann = findAutowiredAnnotation(bridgedMethod);
 				if (ann != null && method.equals(ClassUtils.getMostSpecificMethod(method, clazz))) {
+					// 判断当前方法是否被关键字 static 修饰。（不能在静态方法上添加 @Autowired 或 @Value）
 					if (Modifier.isStatic(method.getModifiers())) {
 						if (logger.isInfoEnabled()) {
 							logger.info("Autowired annotation is not supported on static methods: " + method);
 						}
+						// 如果是被 static 修饰，则直接跳过，即添加了 static 修饰，该注解将失效
 						return;
 					}
 					if (method.getParameterCount() == 0) {
+						// 如果当前方法为无参方法，则无法确认需要注入的值该设置到哪个属性上，即无法注入相应属性信息，此时记录一些日志
 						if (logger.isInfoEnabled()) {
 							logger.info("Autowired annotation should only be used on methods with parameters: " +
 									method);
 						}
 					}
+
+					// 获取注解中属性 required 的值
 					boolean required = determineRequiredStatus(ann);
 					PropertyDescriptor pd = BeanUtils.findPropertyForMethod(bridgedMethod, clazz);
+					// 将从方法上解析到的注解信息添加到集合 currElements 中
 					currElements.add(new AutowiredMethodElement(method, required, pd));
 				}
 			});
 
+			// 将从类中的字段和方法上解析到的注解信息添加到集合 elements 中
 			elements.addAll(0, currElements);
 			targetClass = targetClass.getSuperclass();
 		}
+		// 获取到当前类的父类，然后重新开始 while 循环，解析父类上的注解信息
 		while (targetClass != null && targetClass != Object.class);
 
+		// 将解析到的所有注解信息封装成 InjectionMetadata，并返回
 		return InjectionMetadata.forElements(elements, clazz);
 	}
 
@@ -524,8 +565,10 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 	private MergedAnnotation<?> findAutowiredAnnotation(AccessibleObject ao) {
 		MergedAnnotations annotations = MergedAnnotations.from(ao);
 		for (Class<? extends Annotation> type : this.autowiredAnnotationTypes) {
+			// 从字段上获取注解 @Autowired 或 @Value
 			MergedAnnotation<?> annotation = annotations.get(type);
 			if (annotation.isPresent()) {
+				// 如果注解存在，则直接返回该注解
 				return annotation;
 			}
 		}
@@ -558,6 +601,11 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 	 */
 	@Deprecated
 	protected boolean determineRequiredStatus(AnnotationAttributes ann) {
+		/**
+		 * 如果注解中不存在属性 required 的值，直接返回 true
+		 * 或者属性 required 的值为 required，也直接返回 true
+		 * 否则返回 false
+		 */
 		return (!ann.containsKey(this.requiredParameterName) ||
 				this.requiredParameterValue == ann.getBoolean(this.requiredParameterName));
 	}

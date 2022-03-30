@@ -115,7 +115,9 @@ public class InjectionMetadata {
 		Collection<InjectedElement> elementsToIterate =
 				(checkedElements != null ? checkedElements : this.injectedElements);
 		if (!elementsToIterate.isEmpty()) {
+			// 遍历解析到的注解元数据
 			for (InjectedElement element : elementsToIterate) {
+				// 注入注解信息
 				element.inject(target, beanName, pvs);
 			}
 		}
@@ -223,17 +225,23 @@ public class InjectionMetadata {
 				throws Throwable {
 
 			if (this.isField) {
+				// 注解 @Autowired、@Value 标注在字段(成员属性)上
+
 				Field field = (Field) this.member;
 				ReflectionUtils.makeAccessible(field);
+				// 将注解信息赋值到字段(成员属性)上
 				field.set(target, getResourceToInject(target, requestingBeanName));
 			}
 			else {
+				// 注解 @Autowired、@Value 标注在方法上
+
 				if (checkPropertySkipping(pvs)) {
 					return;
 				}
 				try {
 					Method method = (Method) this.member;
 					ReflectionUtils.makeAccessible(method);
+					// 执行方法，设置注解信息
 					method.invoke(target, getResourceToInject(target, requestingBeanName));
 				}
 				catch (InvocationTargetException ex) {

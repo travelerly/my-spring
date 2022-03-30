@@ -129,7 +129,9 @@ public abstract class AnnotationUtils {
 	 * @see #isCandidateClass(Class, String)
 	 */
 	public static boolean isCandidateClass(Class<?> clazz, Collection<Class<? extends Annotation>> annotationTypes) {
+		// 遍历每个注解（@Autowired、@Value）
 		for (Class<? extends Annotation> annotationType : annotationTypes) {
+			// 判断 clazz 是否符合候选条件
 			if (isCandidateClass(clazz, annotationType)) {
 				return true;
 			}
@@ -167,6 +169,11 @@ public abstract class AnnotationUtils {
 		if (annotationName.startsWith("java.")) {
 			return true;
 		}
+		/**
+		 * 判断 clazz 是否符合候选条件
+		 * 如果 bean 的 class 类的全限定名称是以 "java." 为前缀的，
+		 * 或者 bean 的 class 类型为 Ordered 类型的，则为不满足候选条件
+		 */
 		if (AnnotationsScanner.hasPlainJavaAnnotationsOnly(clazz)) {
 			return false;
 		}
