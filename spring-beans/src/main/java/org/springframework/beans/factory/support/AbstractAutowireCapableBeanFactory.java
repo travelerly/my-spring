@@ -1194,6 +1194,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		Object bean = null;
 		if (!Boolean.FALSE.equals(mbd.beforeInstantiationResolved)) {
 			// Make sure bean class is actually resolved at this point.
+			// 判断当前 bean 是都是合成的 并且 是否存在实现了接口 InstantiationAwareBeanPostProcessors 的后置处理器 postProcessor
 			if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
 				Class<?> targetType = determineTargetType(beanName, mbd);
 				if (targetType != null) {
@@ -1924,12 +1925,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					(mbd != null ? mbd.getResourceDescription() : null),
 					beanName, "Invocation of init method failed", ex);
 		}
+
 		if (mbd == null || !mbd.isSynthetic()) {
 			/**
 			 * 后置处理器，属性设置完成后增强 AfterInitialization。
 			 * AOP 后置处理器在此介入，创建了代理对象
 			 * 1.不存在循环依赖情况下，创建 AOP 代理对象；
-			 * 2.存在循环依赖的情况下，AOP 的代理对象在属性赋值的时候就创建完成了，此处直接跳过，不再重复创建代理对象
+			 * 2.存在循环依赖的情况下，AOP 的代理对象在属性赋值的时候，在依赖对象的初始化过程中创建完成了，此处直接跳过，不再重复创建代理对象
 			 */
 			wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);
 		}
