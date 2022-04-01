@@ -103,7 +103,7 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 		extendAdvisors(eligibleAdvisors);
 
 		if (!eligibleAdvisors.isEmpty()) {
-			// 给增强器排序
+			// 给增强器排序（若多个切面类同时作用，增强器需按顺序执行，切面类可通过实现 Order 接口来实现优先级设定，数值越小，优先级越高）
 			eligibleAdvisors = sortAdvisors(eligibleAdvisors);
 		}
 		return eligibleAdvisors;

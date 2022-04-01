@@ -333,6 +333,7 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 
 	@Override
 	public boolean matches(Method method, Class<?> targetClass, Object... args) {
+
 		obtainPointcutExpression();
 		ShadowMatch shadowMatch = getTargetShadowMatch(method, targetClass);
 
@@ -465,7 +466,12 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 					Method methodToMatch = targetMethod;
 					try {
 						try {
-							// 切入点表达式与方法进行匹配
+							/**
+							 * 切入点表达式与方法进行匹配
+							 * obtainPointcutExpression() 方法返回的是一个 PointcutExpressionImpl 类的实例
+							 * PointcutExpressionImpl 是 aspectj 中的类
+							 * matchesMethodExecution() 方法来完成切点表达式和目标类的匹配
+							 */
 							shadowMatch = obtainPointcutExpression().matchesMethodExecution(methodToMatch);
 						}
 						catch (ReflectionWorldException ex) {

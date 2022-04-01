@@ -461,21 +461,43 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			AutoProxyUtils.exposeTargetClass((ConfigurableListableBeanFactory) this.beanFactory, beanName, beanClass);
 		}
 
+		// 创建一个代理工厂 proxyFactory 对象，即专门用来创建动态代理的工厂，可以通过其 getProxy() 方法创代理对象
 		ProxyFactory proxyFactory = new ProxyFactory();
+		// 将 AnnotationAwareAspectJAutoProxyCreator 的相关属性拷贝一份到 ProxyConfig 中
 		proxyFactory.copyFrom(this);
 
+		/**
+		 * 判断应该基于类代理还是基于接口代理，即该使用 cglib 代理还是该使用 jdk 代理
+		 * 当 proxyTargetClass 属性值为 false，则表明当前是基于接口代理的
+		 */
 		if (!proxyFactory.isProxyTargetClass()) {
+			// 表明基于接口代理
+
+			/**
+			 * 判断有没有配置 preserveTargetClass 属性，
+			 * preserveTargetClass 是 BeanDefinition 中定义的属性，可以控制是否需要基于类代理
+			 * 若 preserveTargetClass 属性值为 true，则表明需要基于类代理，否则基于接口代理
+			 */
 			if (shouldProxyTargetClass(beanClass, beanName)) {
+				// 设置基于类代理
 				proxyFactory.setProxyTargetClass(true);
 			}
 			else {
+				/**
+				 * 设置基于接口代理
+				 * 如果目标类有符合要求的接口，那么就将接口添加到 proxyFactory 的 interface 属性中
+				 * 如果目标类没有符合要求的接口，那么就只能基于类代理，此时需要将 preserveTargetClass 属性设置为 true
+				 */
 				evaluateProxyInterfaces(beanClass, proxyFactory);
 			}
 		}
-		// 构建增强器
+		// 构建增强器（将匹配到的增强拦截器和普通的拦截器进行合并）
 		Advisor[] advisors = buildAdvisors(beanName, specificInterceptors);
+		// 将合并之后的所有增强器设置到 proxyFactory 中
 		proxyFactory.addAdvisors(advisors);
+		// 设置代理的目标类
 		proxyFactory.setTargetSource(targetSource);
+		// 可以预留给子类实现定制 proxyFactory，默认为空实现
 		customizeProxyFactory(proxyFactory);
 
 		proxyFactory.setFrozen(this.freezeProxy);
@@ -488,6 +510,8 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		if (classLoader instanceof SmartClassLoader && classLoader != beanClass.getClassLoader()) {
 			classLoader = ((SmartClassLoader) classLoader).getOriginalClassLoader();
 		}
+
+		// 获取动态代理对象
 		return proxyFactory.getProxy(classLoader);
 	}
 
@@ -528,7 +552,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * @return the list of Advisors for the given bean
 	 */
 	protected Advisor[] buildAdvisors(@Nullable String beanName, @Nullable Object[] specificInterceptors) {
-		// Handle prototypes correctly...
+		// 解析普通的增强器。Handle prototypes correctly...
 		Advisor[] commonInterceptors = resolveInterceptorNames();
 
 		List<Object> allInterceptors = new ArrayList<>();
@@ -537,6 +561,8 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 				// specificInterceptors may equals PROXY_WITHOUT_ADDITIONAL_INTERCEPTORS
 				allInterceptors.addAll(Arrays.asList(specificInterceptors));
 			}
+
+			// 如果存在普通的增强器，则进行合并
 			if (commonInterceptors.length > 0) {
 				if (this.applyCommonInterceptorsFirst) {
 					allInterceptors.addAll(0, Arrays.asList(commonInterceptors));
@@ -555,6 +581,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 		Advisor[] advisors = new Advisor[allInterceptors.size()];
 		for (int i = 0; i < allInterceptors.size(); i++) {
+			// 因为在 Spring 中有很多种增强方式，比如增强方法和拦截器等，为了保证通用性，这里需要进行统一封装成 Advisor
 			advisors[i] = this.advisorAdapterRegistry.wrap(allInterceptors.get(i));
 		}
 		return advisors;

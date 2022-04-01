@@ -342,6 +342,7 @@ public abstract class AopUtils {
 				eligibleAdvisors.add(candidate);
 			}
 		}
+		// 返回合格的增强器集合，「即切面类中的各个通知增强」
 		return eligibleAdvisors;
 	}
 
