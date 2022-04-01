@@ -81,7 +81,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 	 * @see #isEligibleBean
 	 */
 	public List<Advisor> buildAspectJAdvisors() {
-		// 获取所有切面的名字
+		// 获取所有标注了注解 @Aspect 的切面的名字
 		List<String> aspectNames = this.aspectBeanNames;
 		// 双检查锁的写法
 		if (aspectNames == null) {
@@ -90,6 +90,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 				if (aspectNames == null) {
 					List<Advisor> advisors = new ArrayList<>();
 					aspectNames = new ArrayList<>();
+					// 获取容器中所有切面切入的对应的 bean 的名称
 					String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 							this.beanFactory, Object.class, true, false);
 					// 拿到容器中所有的组件，挨个遍历判断
@@ -99,10 +100,12 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 						}
 						// We must be careful not to instantiate beans eagerly as in this case they
 						// would be cached by the Spring container but would not have been weaved.
+						// 获取 bean 对应的类型
 						Class<?> beanType = this.beanFactory.getType(beanName, false);
 						if (beanType == null) {
 							continue;
 						}
+
 						if (this.advisorFactory.isAspect(beanType)) {
 							// 每一个组件先判断是否是切面，如果是切面，则放入集合 aspectNames 中
 							aspectNames.add(beanName);
@@ -110,6 +113,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 							if (amd.getAjType().getPerClause().getKind() == PerClauseKind.SINGLETON) {
 								MetadataAwareAspectInstanceFactory factory =
 										new BeanFactoryAspectInstanceFactory(this.beanFactory, beanName);
+
 								// 利用增强器工厂，获取所有的增强器
 								List<Advisor> classAdvisors = this.advisorFactory.getAdvisors(factory);
 								if (this.beanFactory.isSingleton(beanName)) {
@@ -117,8 +121,11 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 									this.advisorsCache.put(beanName, classAdvisors);
 								}
 								else {
+									// 如果不是单例，则缓存工厂，以方便下一次快速创建增强器
 									this.aspectFactoryCache.put(beanName, factory);
 								}
+
+								// 添加构建好的增强器
 								advisors.addAll(classAdvisors);
 							}
 							else {
@@ -134,6 +141,8 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 							}
 						}
 					}
+
+					// 设置处理过切面类的 beanName 数组，以便下一次直接从缓存中获取
 					this.aspectBeanNames = aspectNames;
 					return advisors;
 				}
@@ -147,11 +156,13 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 
 		// 遍历所有的切面找增强器
 		for (String aspectName : aspectNames) {
+			// 尝试直接从缓存中获取增强器集合
 			List<Advisor> cachedAdvisors = this.advisorsCache.get(aspectName);
 			if (cachedAdvisors != null) {
 				advisors.addAll(cachedAdvisors);
 			}
 			else {
+				// 若缓存中没有增强器集合，则使用工厂快速构建新的增强器 advisors
 				MetadataAwareAspectInstanceFactory factory = this.aspectFactoryCache.get(aspectName);
 				advisors.addAll(this.advisorFactory.getAdvisors(factory));
 			}

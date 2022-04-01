@@ -46,6 +46,8 @@ import org.springframework.lang.Nullable;
 public abstract class ReflectionUtils {
 
 	/**
+	 * 直接调用反射包中 Method 类的方法进行判断，非桥接方法且非合成方法会返回 true
+	 * 桥接方法和合成方法是编译器由于内部需要，编译器自己创建出来的方法，而不是我们程序员创建的方法
 	 * Pre-built MethodFilter that matches all non-bridge non-synthetic methods
 	 * which are not declared on {@code java.lang.Object}.
 	 * @since 3.0.5
@@ -357,10 +359,12 @@ public abstract class ReflectionUtils {
 		// 获取切面类中声明的所有方法。Keep backing up the inheritance hierarchy.
 		Method[] methods = getDeclaredMethods(clazz, false);
 		for (Method method : methods) {
+			// 判断当前 method 是否匹配过滤条件 MethodFilter
 			if (mf != null && !mf.matches(method)) {
 				continue;
 			}
 			try {
+				// 执行回调方法
 				mc.doWith(method);
 			}
 			catch (IllegalAccessException ex) {

@@ -74,7 +74,8 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	@Nullable
 	protected Object[] getAdvicesAndAdvisorsForBean(
 			Class<?> beanClass, String beanName, @Nullable TargetSource targetSource) {
-		// 找到这个类的所有的增强器 Advisor
+
+		// 找到这个类的所有的增强器 Advisor，例如切面类中的各个通知方法
 		List<Advisor> advisors = findEligibleAdvisors(beanClass, beanName);
 		if (advisors.isEmpty()) {
 			return DO_NOT_PROXY;
@@ -97,7 +98,7 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 		// 找到候选的增强器「各种增强方法，前置方法，后置方法等」。缓存中存在，直接获取
 		List<Advisor> candidateAdvisors = findCandidateAdvisors();
 
-		// 判断增强器能否应用到当前类上
+		// 判断增强器能否应用到当前 bean，找到与之匹配的增强器
 		List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
 		extendAdvisors(eligibleAdvisors);
 
