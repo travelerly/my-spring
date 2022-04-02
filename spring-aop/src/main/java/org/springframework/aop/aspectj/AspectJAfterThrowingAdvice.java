@@ -61,9 +61,13 @@ public class AspectJAfterThrowingAdvice extends AbstractAspectJAdvice
 	@Nullable
 	public Object invoke(MethodInvocation mi) throws Throwable {
 		try {
+			// 调用拦截器的入口 ReflectiveMethodInvocation.proceed()，继续调用下一个拦截器，即达到递归调用的目的
 			return mi.proceed();
 		}
 		catch (Throwable ex) {
+			/**
+			 * AfterThrowing 增强逻辑只有在出现异常时，才会进行增强
+			 */
 			if (shouldInvokeOnThrowing(ex)) {
 				// 执行异常通知
 				invokeAdviceMethod(getJoinPointMatch(), null, ex);

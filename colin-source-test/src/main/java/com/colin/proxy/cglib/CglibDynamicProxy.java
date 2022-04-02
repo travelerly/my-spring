@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 /**
+ * cglib 动态代理
  * @author colin
  * @create 2022-03-31 09:21
  */

@@ -58,6 +58,10 @@ public final class ExposeInvocationInterceptor implements MethodInterceptor, Pri
 		}
 	};
 
+	/**
+	 * 将 invoke() 方法的入参 mi，就是 ReflectiveMethodInvocation 实例，其中是包含了拦截器链
+	 * 将 mi 变量放入了 ThreadLocal 中，其实是将拦截器链放入到 ThreadLocal 中，这样同一个线程，就可以通过 ThreadLocal 来共享拦截器链了
+	 */
 	private static final ThreadLocal<MethodInvocation> invocation =
 			new NamedThreadLocal<>("Current AOP method invocation");
 
@@ -93,9 +97,13 @@ public final class ExposeInvocationInterceptor implements MethodInterceptor, Pri
 	public Object invoke(MethodInvocation mi) throws Throwable {
 		MethodInvocation oldInvocation = invocation.get();
 
-		// 把当前对象「封装了所有信息的 Cglib-aop-proxy对象」放到 ThreadLocal中进行线程共享
+		/**
+		 * 将 invoke() 方法的入参 mi，就是 ReflectiveMethodInvocation 实例，其中是包含了拦截器链
+		 * 将 mi 变量放入了 ThreadLocal 中，其实是将拦截器链放入到 ThreadLocal 中，这样同一个线程，就可以通过 ThreadLocal 来共享拦截器链了
+		 */
 		invocation.set(mi);
 		try {
+			// 调用拦截器的入口 ReflectiveMethodInvocation.proceed()，继续调用下一个拦截器，即达到递归调用的目的
 			return mi.proceed();
 		}
 		finally {

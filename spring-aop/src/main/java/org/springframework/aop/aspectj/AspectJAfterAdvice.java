@@ -46,10 +46,11 @@ public class AspectJAfterAdvice extends AbstractAspectJAdvice
 	@Nullable
 	public Object invoke(MethodInvocation mi) throws Throwable {
 		try {
+			// 调用拦截器的入口 ReflectiveMethodInvocation.proceed()，继续调用下一个拦截器，即达到递归调用的目的
 			return mi.proceed();
 		}
 		finally {
-			// 执行后置通知
+			// 执行后置通知（无论是否存在异常，返回通知一定会被执行）
 			invokeAdviceMethod(getJoinPointMatch(), null, null);
 		}
 	}

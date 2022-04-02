@@ -163,6 +163,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 		}
 
 		try {
+			// 获取目标类的 class 对象
 			Class<?> rootClass = this.advised.getTargetClass();
 			Assert.state(rootClass != null, "Target class must be available for creating a CGLIB proxy");
 
@@ -178,7 +179,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 			// Validate the class, writing log messages as necessary.
 			validateClassIfNecessary(proxySuperClass, classLoader);
 
-			// Configure CGLIB Enhancer...
+			// 构建字节码增强器 Enhancer。Configure CGLIB Enhancer...
 			Enhancer enhancer = createEnhancer();
 			if (classLoader != null) {
 				enhancer.setClassLoader(classLoader);
@@ -187,11 +188,17 @@ class CglibAopProxy implements AopProxy, Serializable {
 					enhancer.setUseCache(false);
 				}
 			}
+			/**
+			 * 设置代理类要继承的父类，proxySuperClass 其实就是目标类。
+			 * cglib 的原理是动态生成要代理的类(目标类)的子类，然后重写父类方法
+			 * 所以要设置代理类的父类类型
+			 */
 			enhancer.setSuperclass(proxySuperClass);
 			enhancer.setInterfaces(AopProxyUtils.completeProxiedInterfaces(this.advised));
 			enhancer.setNamingPolicy(SpringNamingPolicy.INSTANCE);
 			enhancer.setStrategy(new ClassLoaderAwareGeneratorStrategy(classLoader));
 
+			// 获取回调数组
 			Callback[] callbacks = getCallbacks(rootClass);
 			Class<?>[] types = new Class<?>[callbacks.length];
 			for (int x = 0; x < types.length; x++) {
@@ -203,6 +210,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 			enhancer.setCallbackTypes(types);
 
 			// Generate the proxy class and create a proxy instance.
+			// 创建代理类和代理类实例
 			return createProxyClassAndInstance(enhancer, callbacks);
 		}
 		catch (CodeGenerationException | IllegalArgumentException ex) {
@@ -287,7 +295,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 		boolean isFrozen = this.advised.isFrozen();
 		boolean isStatic = this.advised.getTargetSource().isStatic();
 
-		// Choose an "aop" interceptor (used for AOP calls).
+		// AOP 回调需要用到的拦截器。Choose an "aop" interceptor (used for AOP calls).
 		Callback aopInterceptor = new DynamicAdvisedInterceptor(this.advised);
 
 		// Choose a "straight to target" interceptor. (used for calls that are
@@ -678,24 +686,31 @@ class CglibAopProxy implements AopProxy, Serializable {
 				}
 				// Get as late as possible to minimize the time we "own" the target, in case it comes from a pool...
 				target = targetSource.getTarget();
+				// 获取目标
 				Class<?> targetClass = (target != null ? target.getClass() : null);
 
-				// chain 是 AOP 后置处理器在容器启动的时候就生成好的 5 个增强器，然后封装成的 MethodInterceptor。就是拦截器链。
+				// 获取拦截器链 chain，chain 是 AOP 后置处理器在容器启动的时候就生成好的 5 个增强器，然后封装成的 MethodInterceptor。
 				List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
+
 				Object retVal;
 				// Check whether we only have one InvokerInterceptor: that is,
 				// no real advice, but just reflective invocation of the target.
+				// 如果拦截器链为空，则直接调用目标方法
 				if (chain.isEmpty() && Modifier.isPublic(method.getModifiers())) {
 					// We can skip creating a MethodInvocation: just invoke the target directly.
 					// Note that the final invoker must be an InvokerInterceptor, so we know
 					// it does nothing but a reflective operation on the target, and no hot
 					// swapping or fancy proxying.
 					Object[] argsToUse = AopProxyUtils.adaptArgumentsIfNecessary(method, args);
+					// 直接调用目标方法
 					retVal = methodProxy.invoke(target, argsToUse);
 				}
 				else {
 
-					// 拦截器链在此执行 {new CglibMethodInvocation(……).proceed()}。We need to create a method invocation...
+					/**
+					 * 先将拦截器链包装到 CglibMethodInvocation 中，然后调用 proceed() 方法执行拦截器链
+					 * We need to create a method invocation...
+					 */
 					retVal = new CglibMethodInvocation(proxy, target, method, args, targetClass, chain, methodProxy).proceed();
 				}
 				retVal = processReturnType(proxy, target, method, retVal);
@@ -755,7 +770,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 		@Nullable
 		public Object proceed() throws Throwable {
 			try {
-				//调用父类模板方法
+				//调用父类模板方法，即调用 ReflectiveMethodInvocation.proceed() 完成拦截器链的执行
 				return super.proceed();
 			}
 			catch (RuntimeException ex) {

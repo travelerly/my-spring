@@ -54,7 +54,7 @@ public class AfterReturningAdviceInterceptor implements MethodInterceptor, After
 	@Override
 	@Nullable
 	public Object invoke(MethodInvocation mi) throws Throwable {
-		// 执行下一个拦截器
+		// 调用拦截器的入口 ReflectiveMethodInvocation.proceed()，继续调用下一个拦截器，即达到递归调用的目的
 		Object retVal = mi.proceed();
 		// 执行返回通知(增强)
 		this.advice.afterReturning(retVal, mi.getMethod(), mi.getArguments(), mi.getThis());

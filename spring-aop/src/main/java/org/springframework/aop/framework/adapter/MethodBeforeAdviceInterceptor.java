@@ -56,7 +56,10 @@ public class MethodBeforeAdviceInterceptor implements MethodInterceptor, BeforeA
 	public Object invoke(MethodInvocation mi) throws Throwable {
 		// 执行前置通知(增强)
 		this.advice.before(mi.getMethod(), mi.getArguments(), mi.getThis());
-		// 执行下一个拦截器
+		/**
+		 * 调用拦截器的入口 ReflectiveMethodInvocation.proceed()，拦截器链下标将变为 -1，表明当前拦截器为拦截器链中最后一个，
+		 * 则调用目标方法，并返回目标方法的返回值。
+		 */
 		return mi.proceed();
 	}
 

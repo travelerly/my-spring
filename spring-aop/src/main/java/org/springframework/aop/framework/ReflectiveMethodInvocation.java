@@ -158,18 +158,27 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 	@Override
 	@Nullable
 	public Object proceed() throws Throwable {
-		// currentInterceptorIndex：当前拦截器的索引{初始值为 -1}，判断当前拦截器的索引有没有超过拦截器总数量 - 1。 We start with an index of -1 and increment early.
+
+		/**
+		 * currentInterceptorIndex：当前拦截器的索引{初始值为 -1}，判断当前拦截器的索引有没有超过拦截器总数量 - 1。
+		 * We start with an index of -1 and increment early.
+		 */
 		if (this.currentInterceptorIndex == this.interceptorsAndDynamicMethodMatchers.size() - 1) {
+			// 至此，运行完最后一个拦截器，反射调用目标方法
 			return invokeJoinpoint();
 		}
 
+		// 获取下一个拦截器，++this.currentInterceptorIndex：当前拦截器的索引 +1
 		Object interceptorOrInterceptionAdvice =
 				this.interceptorsAndDynamicMethodMatchers.get(++this.currentInterceptorIndex);
+
 		if (interceptorOrInterceptionAdvice instanceof InterceptorAndDynamicMethodMatcher) {
 			// Evaluate dynamic method matcher here: static part will already have
 			// been evaluated and found to match.
+			// 动态方法匹配
 			InterceptorAndDynamicMethodMatcher dm =
 					(InterceptorAndDynamicMethodMatcher) interceptorOrInterceptionAdvice;
+
 			Class<?> targetClass = (this.targetClass != null ? this.targetClass : this.method.getDeclaringClass());
 			if (dm.methodMatcher.matches(this.method, targetClass, this.arguments)) {
 				return dm.interceptor.invoke(this);
@@ -177,13 +186,20 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 			else {
 				// Dynamic matching failed.
 				// Skip this interceptor and invoke the next in the chain.
+				// 动态匹配失败，跳过当前拦截器，调用下一个拦截器
 				return proceed();
 			}
 		}
 		else {
 			// It's an interceptor, so we just invoke it: The pointcut will have
 			// been evaluated statically before this object was constructed.
-			// this 封装了所有信息的 CglibAopProxy 对象 mi，使用ThreadLocal保存 mi
+			/**
+			 * 核心，执行普通拦截器。this 封装了所有信息的 CglibAopProxy 对象 mi，使用 ThreadLocal保存 mi
+			 * 将 invoke() 方法的入参 mi，就是 ReflectiveMethodInvocation 实例，其中是包含了拦截器链
+			 * 将 mi 变量放入了 ThreadLocal 中，其实是将拦截器链放入到 ThreadLocal 中，这样同一个线程，就可以通过 ThreadLocal 来共享拦截器链了
+			 *
+			 * 递归调用拦截器链，直到最后一个拦截器，调用目标方法
+			 */
 			return ((MethodInterceptor) interceptorOrInterceptionAdvice).invoke(this);
 		}
 	}
