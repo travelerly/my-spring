@@ -166,10 +166,13 @@ public abstract class AbstractAspectJAdvice implements Advice, AspectJPrecedence
 	public AbstractAspectJAdvice(
 			Method aspectJAdviceMethod, AspectJExpressionPointcut pointcut, AspectInstanceFactory aspectInstanceFactory) {
 
+		// 增强方法不能为空
 		Assert.notNull(aspectJAdviceMethod, "Advice method must not be null");
+		// 设置增强方法相关属性
 		this.declaringClass = aspectJAdviceMethod.getDeclaringClass();
 		this.methodName = aspectJAdviceMethod.getName();
 		this.parameterTypes = aspectJAdviceMethod.getParameterTypes();
+		// 设置增强方法本身，本质就是一个 Method 对象，后续反射掉员工增强方法时会使用到
 		this.aspectJAdviceMethod = aspectJAdviceMethod;
 		this.pointcut = pointcut;
 		this.aspectInstanceFactory = aspectInstanceFactory;
