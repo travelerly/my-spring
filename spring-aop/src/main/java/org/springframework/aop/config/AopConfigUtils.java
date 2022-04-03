@@ -131,11 +131,18 @@ public abstract class AopConfigUtils {
 			}
 			return null;
 		}
-		// 为容器创建一个 cls：AnnotationAwareAspectJAutoProxyCreator.class
+		/**
+		 * 为 AnnotationAwareAspectJAutoProxyCreator 构建 beanDefinition
+		 * cls 其实就代表 AnnotationAwareAspectJAutoProxyCreator 的 Class 对象
+		 */
 		RootBeanDefinition beanDefinition = new RootBeanDefinition(cls);
 		beanDefinition.setSource(source);
 		beanDefinition.getPropertyValues().add("order", Ordered.HIGHEST_PRECEDENCE);
 		beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		/**
+		 * 将 AnnotationAwareAspectJAutoProxyCreator 放入到 beanDefinitionMap 中
+		 * 其中 key 为：org.springframework.aop.config.internalAutoProxyCreator
+		 */
 		registry.registerBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME, beanDefinition);
 		return beanDefinition;
 	}

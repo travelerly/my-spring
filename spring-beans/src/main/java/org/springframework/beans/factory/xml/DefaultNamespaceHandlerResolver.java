@@ -115,7 +115,9 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 	@Override
 	@Nullable
 	public NamespaceHandler resolve(String namespaceUri) {
+		// 获取命名空间 uri 和命名空间处理器的映射关系
 		Map<String, Object> handlerMappings = getHandlerMappings();
+		// 通过映射关系获取命名空间处理器的的全限定类名，比如：org.springframework.aop.config.AopNamespaceHandler
 		Object handlerOrClassName = handlerMappings.get(namespaceUri);
 		if (handlerOrClassName == null) {
 			return null;
@@ -126,14 +128,18 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 		else {
 			String className = (String) handlerOrClassName;
 			try {
+				// 通过全限定类名获取对应的 Class 对象
 				Class<?> handlerClass = ClassUtils.forName(className, this.classLoader);
 				if (!NamespaceHandler.class.isAssignableFrom(handlerClass)) {
 					throw new FatalBeanException("Class [" + className + "] for namespace [" + namespaceUri +
 							"] does not implement the [" + NamespaceHandler.class.getName() + "] interface");
 				}
+				// 反射创建命名空间处理器实例
 				NamespaceHandler namespaceHandler = (NamespaceHandler) BeanUtils.instantiateClass(handlerClass);
+				// 初始化命名空间处理器（namespaceHandler 是 AopNamespaceHandler 的实例，此处即执行 AopNamespaceHandler 的初始化方法）
 				namespaceHandler.init();
 				handlerMappings.put(namespaceUri, namespaceHandler);
+				// 将命名空间处理器作为结果返回
 				return namespaceHandler;
 			}
 			catch (ClassNotFoundException ex) {
@@ -160,6 +166,7 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 						logger.trace("Loading NamespaceHandler mappings from [" + this.handlerMappingsLocation + "]");
 					}
 					try {
+						// 加载所有的 META-INFO/spring.handlers 下的配置文件
 						Properties mappings =
 								PropertiesLoaderUtils.loadAllProperties(this.handlerMappingsLocation, this.classLoader);
 						if (logger.isTraceEnabled()) {

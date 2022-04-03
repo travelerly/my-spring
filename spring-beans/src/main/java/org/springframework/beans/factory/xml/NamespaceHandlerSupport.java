@@ -70,7 +70,9 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	@Override
 	@Nullable
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
+		// 为标签元素匹配合适的解析器
 		BeanDefinitionParser parser = findParserForElement(element, parserContext);
+		// 解析标签元素
 		return (parser != null ? parser.parse(element, parserContext) : null);
 	}
 
@@ -80,7 +82,9 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	 */
 	@Nullable
 	private BeanDefinitionParser findParserForElement(Element element, ParserContext parserContext) {
+		// 获取标签名称，例如 AOP 相关的：aop:aspectj-autoproxy
 		String localName = parserContext.getDelegate().getLocalName(element);
+		// 从解析器 Map 中，根据标签名称获取之前注册的解析器，例如 AOP 相关的：AspectJAutoProxyBeanDefinitionParser
 		BeanDefinitionParser parser = this.parsers.get(localName);
 		if (parser == null) {
 			parserContext.getReaderContext().fatal(
