@@ -106,9 +106,18 @@ public abstract class AbstractFallbackTransactionAttributeSource
 			return null;
 		}
 
-		// First, see if we have a cached value.
+		/**
+		 * 先通过目标方法 method 和目标类 targetClass 构建一个缓存 key。
+		 * 所谓的缓存 key，其实就是将目标方法和目标类简单设置到缓存对象 MethodClassKey 内部了
+		 * First, see if we have a cached value.
+		 */
 		Object cacheKey = getCacheKey(method, targetClass);
+		/**
+		 * 再通过这个缓存 key，从缓存 attributeCache 中获取事务属性
+		 * 首次运行，缓存中数据为空
+		 */
 		TransactionAttribute cached = this.attributeCache.get(cacheKey);
+
 		if (cached != null) {
 			// Value will either be canonical value indicating there is no transaction attribute,
 			// or an actual transaction attribute.
@@ -121,6 +130,7 @@ public abstract class AbstractFallbackTransactionAttributeSource
 		}
 		else {
 			// We need to work it out.
+			// 获取注解 @Transactional 中配置的属性
 			TransactionAttribute txAttr = computeTransactionAttribute(method, targetClass);
 			// Put it in the cache.
 			if (txAttr == null) {
@@ -136,6 +146,7 @@ public abstract class AbstractFallbackTransactionAttributeSource
 				if (logger.isTraceEnabled()) {
 					logger.trace("Adding transactional method '" + methodIdentification + "' with attribute: " + txAttr);
 				}
+				// 将注解 @Transactional 中配置的属性放入缓存中，key 为添加了事务注解的方法名
 				this.attributeCache.put(cacheKey, txAttr);
 			}
 			return txAttr;
@@ -163,7 +174,11 @@ public abstract class AbstractFallbackTransactionAttributeSource
 	 */
 	@Nullable
 	protected TransactionAttribute computeTransactionAttribute(Method method, @Nullable Class<?> targetClass) {
-		// Don't allow no-public methods as required.
+		/**
+		 * 如果不是"public"的方法，直接返回 null，此时表示方法级别匹配失败，
+		 * 即该非"public"方法不会被代理，从而导致注解 @Transactional 不会生效，当前方法不支持事务
+		 * Don't allow no-public methods as required.
+		 */
 		if (allowPublicMethodsOnly() && !Modifier.isPublic(method.getModifiers())) {
 			return null;
 		}
@@ -172,13 +187,22 @@ public abstract class AbstractFallbackTransactionAttributeSource
 		// If the target class is null, the method will be unchanged.
 		Method specificMethod = AopUtils.getMostSpecificMethod(method, targetClass);
 
-		// First try is the method in the target class.
+		/**
+		 * 首先尝试在目标类中的方法上寻找事务属性
+		 * 即找到 @Transactional 注解，并获取注解中配置的属性
+		 * First try is the method in the target class.
+		 */
 		TransactionAttribute txAttr = findTransactionAttribute(specificMethod);
 		if (txAttr != null) {
 			return txAttr;
 		}
 
-		// Second try is the transaction attribute on the target class.
+		/**
+		 * 如果目标方法上没有找到事务属性，则尝试在目标类上寻找事务属性
+		 * 在类上寻找事务注解的逻辑，和在方法上寻找事务注解的逻辑是一模一样的
+		 * 其实就是通过 SpringTransactionAnnotationParser 事务注解解析器来完成解析的
+		 * Second try is the transaction attribute on the target class.
+		 */
 		txAttr = findTransactionAttribute(specificMethod.getDeclaringClass());
 		if (txAttr != null && ClassUtils.isUserLevelMethod(method)) {
 			return txAttr;

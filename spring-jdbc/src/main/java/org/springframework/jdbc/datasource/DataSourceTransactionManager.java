@@ -270,6 +270,7 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 			}
 
 			txObject.getConnectionHolder().setSynchronizedWithTransaction(true);
+			// con 是 Connection 类型，是一个 jdbc 连接
 			con = txObject.getConnectionHolder().getConnection();
 
 			Integer previousIsolationLevel = DataSourceUtils.prepareConnectionForTransaction(con, definition);
@@ -284,6 +285,10 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 				if (logger.isDebugEnabled()) {
 					logger.debug("Switching JDBC Connection [" + con + "] to manual commit");
 				}
+				/**
+				 * 通过 Connection.setAutoCommit(false) 来开启事务
+				 * con 是 Connection 类型，是一个 jdbc 连接
+				 */
 				con.setAutoCommit(false);
 			}
 
@@ -330,6 +335,7 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 			logger.debug("Committing JDBC transaction on Connection [" + con + "]");
 		}
 		try {
+			// 通过 Connection.commit() 来提交事务
 			con.commit();
 		}
 		catch (SQLException ex) {
@@ -345,6 +351,7 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 			logger.debug("Rolling back JDBC transaction on Connection [" + con + "]");
 		}
 		try {
+			// 通过 Connection.rollback() 来回滚事务
 			con.rollback();
 		}
 		catch (SQLException ex) {

@@ -1380,7 +1380,12 @@ public class BeanDefinitionParserDelegate {
 	 */
 	@Nullable
 	public BeanDefinition parseCustomElement(Element ele, @Nullable BeanDefinition containingBd) {
-		// 获取标签元素的命名空间 uri，例如 AOP 的命名空间 uri 为："http://www.springframework.org/schema/aop"
+		/**
+		 * 获取标签元素的命名空间 uri，
+		 * 例如:
+		 * 	AOP 的命名空间 uri 为："http://www.springframework.org/schema/aop"
+		 * 	事务相关的命名空间 uri 为："http://www.springframework.org/schema/tx"
+		 */
 		String namespaceUri = getNamespaceURI(ele);
 		if (namespaceUri == null) {
 			return null;
