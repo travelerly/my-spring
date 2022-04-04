@@ -557,7 +557,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		synchronized (this.startupShutdownMonitor) {
 			StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
 
-			// 初始化上下文环境 Prepare this context for refreshing.
+			/**
+			 * 初始化上下文环境
+			 * Prepare this context for refreshing.
+			 */
 			prepareRefresh();
 
 			/**
