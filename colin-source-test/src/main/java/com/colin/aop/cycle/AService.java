@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
  * @author colin
  * @create 2022-03-18 12:09
  */
-@Component
+//@Component
 public class AService {
 
     /*@Autowired

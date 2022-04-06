@@ -68,6 +68,9 @@ public class InjectionMetadata {
 
 	private final Class<?> targetClass;
 
+	/**
+	 * 需要注入的字段(或方法)的元信息
+	 */
 	private final Collection<InjectedElement> injectedElements;
 
 	@Nullable
@@ -118,6 +121,12 @@ public class InjectionMetadata {
 			// 遍历解析到的注解元数据
 			for (InjectedElement element : elementsToIterate) {
 				// 注入注解信息
+				/**
+				 * 注入注解信息
+				 * AutowiredFieldElement：处理成员属性上的注解
+				 * AutowiredMethodElement：处理成员方法上的注解
+				 * InjectedElement：为 AutowiredFieldElement 和 AutowiredMethodElement 的父类
+				 */
 				element.inject(target, beanName, pvs);
 			}
 		}

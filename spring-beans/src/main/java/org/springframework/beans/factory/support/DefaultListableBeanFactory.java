@@ -918,12 +918,23 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		// While this may not be part of the regular factory bootstrap, it does otherwise work fine.
 		List<String> beanNames = new ArrayList<>(this.beanDefinitionNames);
 
-		// 从档案馆（beanDefinitionNames）中拿到所有 bean 的名字，再挨个获取「getBean(beanName)」。
-		// Trigger initialization of all non-lazy singleton beans...
+		/**
+		 * 从档案馆（beanDefinitionNames）中拿到所有 bean 的名字，再挨个获取「getBean(beanName)」。
+		 * Trigger initialization of all non-lazy singleton beans...
+		 */
 		for (String beanName : beanNames) {
+			// 获取当前 bean 的定义信息
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
+			// 判断当前 bean 是否为普通bean、是否为单例、是否为懒加载
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
+				/**
+				 * 判断当前 bean 是否为工厂 bean
+				 * 工厂 bean，即实现了接口 FactoryBean，其 bean 实例的构建，有工厂的 getBean() 方法来完成。
+				 */
 				if (isFactoryBean(beanName)) {
+					/**
+					 * 工厂 bean 实例的构建时，其 beanName 拼接 "&" 符号
+					 */
 					Object bean = getBean(FACTORY_BEAN_PREFIX + beanName);
 					if (bean instanceof FactoryBean) {
 						FactoryBean<?> factory = (FactoryBean<?>) bean;
@@ -1285,6 +1296,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	public Object resolveDependency(DependencyDescriptor descriptor, @Nullable String requestingBeanName,
 			@Nullable Set<String> autowiredBeanNames, @Nullable TypeConverter typeConverter) throws BeansException {
 
+		/**
+		 *
+		 */
 		descriptor.initParameterNameDiscovery(getParameterNameDiscoverer());
 		if (Optional.class == descriptor.getDependencyType()) {
 			return createOptionalDependency(descriptor, requestingBeanName);

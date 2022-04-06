@@ -282,9 +282,15 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			BeanFactory parentBeanFactory = getParentBeanFactory();
 			// 如果 Spring 容器中没有注册当前 beanName 的 BeanDefinition 信息，并且存在父容器，则到父容器中加载当前 bean
 			if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
-				// 看父工厂中有没有这个组件。 Not found -> check parent.
+				// Not found -> check parent.
+				/**
+				 * 重新计算 beanName
+				 * 若当前 name 是否以前缀 "&" 开头，则拼接出工厂 bean 的 beanName
+				 * Not found -> check parent.
+				 */
 				String nameToLookup = originalBeanName(name);
 				if (parentBeanFactory instanceof AbstractBeanFactory) {
+					// 若父容器为 AbstractBeanFactory 类型，则通过父类获取当前 bean
 					return ((AbstractBeanFactory) parentBeanFactory).doGetBean(
 							nameToLookup, requiredType, args, typeCheckOnly);
 				}
@@ -301,8 +307,10 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				}
 			}
 
+			// 至此，说明当前 bean 的定义信息 BeanDefinition 已经注册进容器中，
+
 			if (!typeCheckOnly) {
-				// 标记当前 beanName 的 Bean 开始创建了。 Set<String> alreadyCreated
+				// 标记当前 beanName 的 bean 开始创建了。 Set<String> alreadyCreated
 				markBeanAsCreated(beanName);
 			}
 
@@ -319,11 +327,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				checkMergedBeanDefinition(mbd, beanName, args);
 
 				// Guarantee initialization of beans that the current bean depends on.
-				// 获取当前 bean 依赖的所有 bean 的名称数组
+				// 获取当前 bean 依赖(@DependsOn 中依赖)的所有 bean 的名称
 				String[] dependsOn = mbd.getDependsOn();
 				if (dependsOn != null) {
 					for (String dep : dependsOn) {
-						// 判断当前 bean 的名称，和自己依赖的那些 bean 名称是否存在循环关系
+						// 判断当前 bean 的名称，和自己依赖(@DependsOn 中依赖)的那些 bean 名称是否存在循环关系
 						if (isDependent(beanName, dep)) {
 							throw new BeanCreationException(mbd.getResourceDescription(), beanName,
 									"Circular depends-on relationship between '" + beanName + "' and '" + dep + "'");
@@ -341,7 +349,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					}
 				}
 
-				// 开始创建单例类型的 bean（创建之前有后置处理器介入） Create bean instance.
+				/**
+				 * 开始创建单例类型的 bean
+				 * 创建之前有后置处理器介入
+				 * Create bean instance.
+				 */
 				if (mbd.isSingleton()) {
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
@@ -357,9 +369,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 							throw ex;
 						}
 					});
-					// 获取 bean 的实例             对象
+
+					// 获取 bean 的实例对象
 					beanInstance = getObjectForBeanInstance(sharedInstance, name, beanName, mbd);
 				}
+
 				// 多实例。当前 beanDefinition 为原型 prototype 类型的多实例，
 				else if (mbd.isPrototype()) {
 					// It's a prototype -> create a new instance.
@@ -377,8 +391,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					// 获取(多实例) bean 的实例对象
 					beanInstance = getObjectForBeanInstance(prototypeInstance, name, beanName, mbd);
 				}
+
+				// 其他作用域范围
 				else {
-					// 其他作用域范围
 					String scopeName = mbd.getScope();
 					if (!StringUtils.hasLength(scopeName)) {
 						throw new IllegalStateException("No scope name defined for bean ´" + beanName + "'");
@@ -421,7 +436,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 		}
 
-		// 适配类型（类型转换，转 beanInstance 的 Object 类型为 requiredType 对应的类型）。「适配器模式」
+		// 适配类型（类型转换，转 beanInstance 的 Object 类型为 requiredType 对应的类型）。适配器模式
 		return adaptBeanInstance(name, beanInstance, requiredType);
 	}
 
@@ -1292,6 +1307,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 */
 	protected String originalBeanName(String name) {
 		String beanName = transformedBeanName(name);
+		// 校验当前 bean 的 beanName 是否以前缀 "&" 开头。(工厂 bean 的 beanName 是以前缀 "&" 开头)
 		if (name.startsWith(FACTORY_BEAN_PREFIX)) {
 			beanName = FACTORY_BEAN_PREFIX + beanName;
 		}
@@ -1884,7 +1900,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			Object beanInstance, String name, String beanName, @Nullable RootBeanDefinition mbd) {
 
 		// Don't let calling code try to dereference the factory if the bean isn't a factory.
-		// 判断参数 name 是否以 "&" 为前缀
+		// 判断参数 name 是否以 "&" 为前缀。(工厂 bean 创建实例时，beanName 会拼接 "&" 前缀)
 		if (BeanFactoryUtils.isFactoryDereference(name)) {
 			if (beanInstance instanceof NullBean) {
 				return beanInstance;

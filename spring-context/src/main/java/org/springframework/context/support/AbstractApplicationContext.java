@@ -813,10 +813,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	}
 
 	/**
+	 * 实例化并且调用所有的BeanFactoryPostProcessor
 	 * Instantiate and invoke all registered BeanFactoryPostProcessor beans,
 	 * respecting explicit order if given.
 	 * <p>Must be called before singleton instantiation.
-	 * 实例化并且调用所有的BeanFactoryPostProcessor
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
 		// 执行了所有的工厂增强器。后置处理器的注册代理（门面模式-装饰模式）
@@ -950,9 +950,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	}
 
 	/**
+	 * 多播器和监听器是观察者模式。「多播器中包含了所有的监听器」
 	 * Add beans that implement ApplicationListener as listeners.
 	 * Doesn't affect other listeners, which can be added without being beans.
-	 * 多播器和监听器是观察者模式。「多播器中包含了所有的监听器」
 	 */
 	protected void registerListeners() {
 		// Register statically specified listeners first.
@@ -985,7 +985,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * initializing all remaining singleton beans.
 	 */
 	protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
-		// 从工厂中获取 conversionService(负责类型转换的组件服务) 对应的 bean，并初始化这个 bean。
+		// 从工厂中获取 conversionService(负责类型转换的组件服务)对应的 bean，并初始化这个 bean。
 		// Initialize conversion service for this context.
 		if (beanFactory.containsBean(CONVERSION_SERVICE_BEAN_NAME) &&
 				beanFactory.isTypeMatch(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class)) {
@@ -1017,8 +1017,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// Allow for caching all bean definition metadata, not expecting further changes.
 		beanFactory.freezeConfiguration();
 
-		// 初始化所有非懒加载的单实例 Bean。
-		// Instantiate all remaining (non-lazy-init) singletons.
+		/**
+		 * 初始化所有非懒加载的单实例 Bean
+		 * Instantiate all remaining (non-lazy-init) singletons.
+		 */
 		beanFactory.preInstantiateSingletons();
 	}
 

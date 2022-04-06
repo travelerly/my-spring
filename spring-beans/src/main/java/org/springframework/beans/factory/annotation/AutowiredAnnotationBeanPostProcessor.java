@@ -243,6 +243,11 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 
 	@Override
 	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
+		/**
+		 * 获取 @Autowired、@Value 注解元数据
+		 * 获取当前类及其父类中所有标注了注解 @Autowired、@Value 的成员属性、成员方法的注解元数据
+		 * 跳过那些被 static 修饰的静态属性和静态方法的数据
+		 */
 		InjectionMetadata metadata = findAutowiringMetadata(beanName, beanType, null);
 		metadata.checkConfigMembers(beanDefinition);
 	}
@@ -491,7 +496,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 			final List<InjectionMetadata.InjectedElement> currElements = new ArrayList<>();
 			/**
 			 * 解析 targetClass 中的每个成员属性，即被注解 @Autowired、@Value 标注的成员属性
-			 * 找到所有成员属性中标注了 @Autowired、@Value 注解
+			 * 找到所有标注了注解 @Autowired、@Value 的成员属性
 			 * ReflectionUtils：反射工具类
 			 */
 			ReflectionUtils.doWithLocalFields(targetClass, field -> {
@@ -515,7 +520,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 
 			/**
 			 * 解析 targetClass 中的每个方法，即被注解 @Autowired、@Value 标注的方法
-			 * 找到所有方法上中标注了 @Autowired、@Value 注解
+			 * 找到所有标注了注解 @Autowired、@Value 的方法
 			 */
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
 				Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
@@ -647,6 +652,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 	@Nullable
 	private Object resolvedCachedArgument(@Nullable String beanName, @Nullable Object cachedArgument) {
 		if (cachedArgument instanceof DependencyDescriptor) {
+			// 类型转换
 			DependencyDescriptor descriptor = (DependencyDescriptor) cachedArgument;
 			Assert.state(this.beanFactory != null, "No BeanFactory available");
 			return this.beanFactory.resolveDependency(descriptor, beanName, null, null);
@@ -662,24 +668,32 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 	 */
 	private class AutowiredFieldElement extends InjectionMetadata.InjectedElement {
 
+		// 字段是否为必须
 		private final boolean required;
 
+		// 字段是否已缓存
 		private volatile boolean cached;
 
+		// 缓存的对象(字段的值或实例对象)
 		@Nullable
 		private volatile Object cachedFieldValue;
 
+		// 构造方法
 		public AutowiredFieldElement(Field field, boolean required) {
 			super(field, null);
 			this.required = required;
 		}
 
+		// 成员属性(字段)的注入
 		@Override
 		protected void inject(Object bean, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
+			// 获取字段
 			Field field = (Field) this.member;
 			Object value;
+			// 判断引用字段是否被缓存过
 			if (this.cached) {
 				try {
+					// 尝试从缓存中获取字段
 					value = resolvedCachedArgument(beanName, this.cachedFieldValue);
 				}
 				catch (NoSuchBeanDefinitionException ex) {
@@ -688,36 +702,47 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 				}
 			}
 			else {
-				// 解析引用字段
+				// 解析字段，获取字段的值或实例对象
 				value = resolveFieldValue(field, bean, beanName);
 			}
 			if (value != null) {
 				ReflectionUtils.makeAccessible(field);
-				// 属性赋值（循环引用对象在此处赋值）。
+				// 利用反射给字段 field 属性赋值(依赖注入)
 				field.set(bean, value);
 			}
 		}
 
 		@Nullable
 		private Object resolveFieldValue(Field field, Object bean, @Nullable String beanName) {
+
+			// 构建一个依赖注入描述器，用于保存后续创建的对象
 			DependencyDescriptor desc = new DependencyDescriptor(field, this.required);
 			desc.setContainingClass(bean.getClass());
 			Set<String> autowiredBeanNames = new LinkedHashSet<>(1);
 			Assert.state(beanFactory != null, "No BeanFactory available");
+			// 获取 bean 工厂的类型转换器
 			TypeConverter typeConverter = beanFactory.getTypeConverter();
 			Object value;
 			try {
+				// 通过工厂的方法获取引用字段 field 的值或实例对象
 				value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);
 			}
 			catch (BeansException ex) {
 				throw new UnsatisfiedDependencyException(null, beanName, new InjectionPoint(field), ex);
 			}
+
+			// 以下为缓存获取到的引用字段 field 的值或实例对象
 			synchronized (this) {
 				if (!this.cached) {
 					Object cachedFieldValue = null;
 					if (value != null || this.required) {
 						cachedFieldValue = desc;
+						/**
+						 * 将依赖关系注册进工厂中
+						 */
 						registerDependentBeans(beanName, autowiredBeanNames);
+
+						// autowiredBeanNames 可能存在别名，所以 size 可能大于 1
 						if (autowiredBeanNames.size() == 1) {
 							String autowiredBeanName = autowiredBeanNames.iterator().next();
 							if (beanFactory.containsBean(autowiredBeanName) &&
@@ -741,10 +766,13 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 	 */
 	private class AutowiredMethodElement extends InjectionMetadata.InjectedElement {
 
+		// 是否为必须
 		private final boolean required;
 
+		// 是否已缓存
 		private volatile boolean cached;
 
+		// 缓存的方法的参数对象
 		@Nullable
 		private volatile Object[] cachedMethodArguments;
 
@@ -758,10 +786,13 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 			if (checkPropertySkipping(pvs)) {
 				return;
 			}
+			// 获取方法
 			Method method = (Method) this.member;
 			Object[] arguments;
+			// 判断方法是否已缓存
 			if (this.cached) {
 				try {
+					// 尝试从缓存中获取方法的参数对象
 					arguments = resolveCachedArguments(beanName);
 				}
 				catch (NoSuchBeanDefinitionException ex) {
@@ -770,11 +801,13 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 				}
 			}
 			else {
+				// 解析方法的所有参数
 				arguments = resolveMethodArguments(method, bean, beanName);
 			}
 			if (arguments != null) {
 				try {
-					ReflectionUtils.makeAccessible(method); // 组件属性赋值（通常使用调用 setter 方法）
+					ReflectionUtils.makeAccessible(method);
+					// 通过反射，调用该方法，进行属性赋值(依赖注入)
 					method.invoke(bean, arguments);
 				}
 				catch (InvocationTargetException ex) {
@@ -798,18 +831,27 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 
 		@Nullable
 		private Object[] resolveMethodArguments(Method method, Object bean, @Nullable String beanName) {
+			// 计算方法的参数个数
 			int argumentCount = method.getParameterCount();
 			Object[] arguments = new Object[argumentCount];
+			// 构建一个依赖注入描述器数组，用于保存后续创建的对象
 			DependencyDescriptor[] descriptors = new DependencyDescriptor[argumentCount];
 			Set<String> autowiredBeans = new LinkedHashSet<>(argumentCount);
 			Assert.state(beanFactory != null, "No BeanFactory available");
 			TypeConverter typeConverter = beanFactory.getTypeConverter();
+
+			// 根据参数顺序遍历该方法的每一个参数
 			for (int i = 0; i < arguments.length; i++) {
+				// 为当前遍历到的参数创建一个 MethodParameter 对象
 				MethodParameter methodParam = new MethodParameter(method, i);
+				// 创建依赖描述器
 				DependencyDescriptor currDesc = new DependencyDescriptor(methodParam, this.required);
 				currDesc.setContainingClass(bean.getClass());
+				// 将依赖描述器添加至依赖描述器数组中
 				descriptors[i] = currDesc;
 				try {
+
+					// 通过工厂方法获取当前方法参数的值或实例对象
 					Object arg = beanFactory.resolveDependency(currDesc, beanName, autowiredBeans, typeConverter);
 					if (arg == null && !this.required) {
 						arguments = null;
@@ -821,6 +863,8 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 					throw new UnsatisfiedDependencyException(null, beanName, new InjectionPoint(methodParam), ex);
 				}
 			}
+
+			// 缓存获取到的方法参数的值或实例对象
 			synchronized (this) {
 				if (!this.cached) {
 					if (arguments != null) {

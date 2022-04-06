@@ -100,9 +100,13 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 
 				Object object = this.factoryBeanObjectCache.get(beanName);
 				if (object == null) {
-					// 第一次来创建时，缓存中肯定为 null。
-					// 创建 bean 实例对象
+
+					/**
+					 * 工厂 bean 创建实例对象
+					 * 第一次来创建时，缓存中肯定为 null。
+					 */
 					object = doGetObjectFromFactoryBean(factory, beanName);
+
 					// Only post-process and store if not put there already during getObject() call above
 					// (e.g. because of circular reference processing triggered by custom getBean calls)
 					Object alreadyThere = this.factoryBeanObjectCache.get(beanName);
@@ -118,10 +122,10 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 								return object;
 							}
 
-							// 标记当前 bean 开始创建了
+							// 标记当前工厂 bean 开始创建了
 							beforeSingletonCreation(beanName);
 							try {
-								// 创建 bean 之间至此那个一些后置处理操作（默认无任何操作）
+								// 在 FactoryBean 创建实例之后，进行一些后续处理操作	，默认无任何操作
 								object = postProcessObjectFromFactoryBean(object, beanName);
 							}
 							catch (Throwable ex) {
@@ -134,7 +138,7 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 							}
 						}
 						if (containsSingleton(beanName)) {
-							// 将创建出来的 bean 缓存到 factoryBeanObjectCache 中
+							// 将 FactoryBean 创建出来的 bean 添加到工厂 bean 缓存 factoryBeanObjectCache 中
 							this.factoryBeanObjectCache.put(beanName, object);
 						}
 					}
@@ -177,7 +181,7 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 				}
 			}
 			else {
-				// 创建当前 bean
+				// 通过 FactoryBean 的 getBean() 方法创建当前 bean。(工厂 bean 的创建方式)
 				object = factory.getObject();
 			}
 		}

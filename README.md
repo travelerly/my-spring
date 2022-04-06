@@ -142,6 +142,61 @@ Spring 容器启动时，先加载一些底层的后置处理器，例如 Config
 
 ![](src/docs/spring/AOP的循环引用.jpg)
 
+
+
+#### 三级缓存
+
+1. singletonObjects：一级缓存，即 spring 的 ioc 容器，用于存放完整的 bean 实例(已经完成属性赋值和初始化的实例对象)
+2. earlySingletonObjects：二级缓存，存放半成品的 bean 实例(尚未被属性赋值和初始化)
+    - 如果 bean 被 AOP 切面代理，则其保存的是(未属性赋值的半成品的)bean 实例
+    - 如果 bean 不被 AOP 切面代理，则其保存的是代理的 bean 实例--beanProxy，其目标 bean 还是半成品的。
+3. singletonObjects：三级缓存，存放的是 ObjectFactory，是一个函数式接口，当执行objectFactory.getObject() 方法时，最终会调用 getEarlyBeanReference(beanName, mbd, bean)，来获取 bean 的早期引用
+    - 如果 bean 被 AOP 代理，则其会返回 bean 的代理对象
+    - 如果 bean 不被 AOP 代理，则其会返回原 bean 实例对象
+
+
+
+#### 循环引用与三级缓存
+
+只使用一级缓存和三级缓存就可以解决(非 AOP 代理类的)循环依赖：一级缓存存放完整 bean、三级缓存存放提前暴露出来的对象工厂(用于创建 bean 的 lambda 表达式)
+
+对于被 AOP 代理的 bean 的循环依赖需使用三级缓存解决：因为三级缓存中的 ObjectFactory 每执行一次就会创建一个对象，此时需要借助另外一个缓存来存放 objectFactory.getObject() 创建的对象，即使用二级缓存来存储其创建的对象，所以，对于被 AOP 代理的 bean 的循环依赖需使用三级缓存解决。
+
+
+
+#### 二级缓存存在的问题
+
+1. 生成 A 的实例，然后放入缓存中，A 需要注入属性 B；
+2. .生成 B 的实例，B 需要注入属性 A，从缓存中获取 A 并注入到 B 中，并完成 B 的初始化；
+3. 将完成初始化后的 B 注入到 A 中，在完成 A 的初始化；
+4. 由于 A 是 AOP 的目标类，在其初始化后，后置处理器(AbstractAutoProxyCreator)介入，为 A 生成动态代理类。
+
+A 的最终产物为 A 的代理类，而 B 中注入的属性 A 为原始类，与代理类不是同一个对象，违背了 Spring 的单例原则
+
+
+
+#### 为什么要使用二级缓存 earlySingletonObjects？
+
+1. 如果不涉及 AOP 代理，二级缓存就会显得多此一举，但如果使用了 AOP 代理，那么二级缓存就发挥作用了。bean 的 AOP 动态代理对象的创建时在 bean 的初始化之后实现的，但是循环依赖的 bean 就无法等到解决完循环依赖后再创建其代理对象了，因为这个时候需要属性注入，所以如果循环依赖的 bean 被 AOP 代理了，则需要提前创建出代理对象，然后放入到二级缓存中；
+2. 三级缓存中存放的是 ObjectFactory 对象工厂，当执行 objectFactory.getObject() 回调时，会调用 getEarlyBeanReference() 方法。获取 bean 的早期引用，每次调用都会产生一个新的代理对象，这有悖于 Spring 的单例设计理念
+3. 所以使用二级缓存来缓存 bean 的早期引用，后续步骤可以从二级缓存中获取，就解决了因每次都调用都产生新代理对象的这个问题了，从而保证这个 bean 始终都只有这一个代理对象。
+
+
+
+#### 三级缓存解决问题
+
+三级缓存中存储的是 singletonFactories，是某个 beanName 及其对应的 objectFactory，这个 ObjectFactory 其实就是生成这个 Bean 的工厂。
+是在给 B 的属性赋值时，需要注入 A，则从三级缓存中取出 A 的缓存数据，即能够生产 A 的 objectFactory，最终回调 getEarlyBeanReference() 方法完成代理对象的创建。
+
+getEarlyBeanReference() 方法具体作用：
+
+1. 根据 beanName 将它对应的实例化后且未初始化的 Bean 存入到 Map<Object, Object> earlyProxyReferences 缓存中，标记当前 Bean 被 AOP 处理过
+2. 生成 Bean 对应的代理类并返回
+
+earlyProxyReferences 其实就是用于记录哪些 Bean 被执行过 AOP，防止后期再次对 Bean 进行 AOP 处理。
+由于此时的代理对象也是一个尚未初始化的对象，不能被直接使用，不能直接放入到一级缓存中，因此将代理对象存入二级缓存中；
+当 A 的属性赋值完成、初始化完成后，此时 A 的代理对象就已经晚上了，便将其存入到一级缓存中
+
 ---
 
 ## AOP

@@ -491,6 +491,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 				evaluateProxyInterfaces(beanClass, proxyFactory);
 			}
 		}
+
 		// 构建增强器（将匹配到的增强拦截器和普通的拦截器进行合并）
 		Advisor[] advisors = buildAdvisors(beanName, specificInterceptors);
 		// 将合并之后的所有增强器设置到 proxyFactory 中

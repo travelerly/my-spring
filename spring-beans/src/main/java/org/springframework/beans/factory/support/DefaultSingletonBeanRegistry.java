@@ -253,7 +253,10 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					logger.debug("Creating shared instance of singleton bean '" + beanName + "'");
 				}
 
-				// 单实例创建之前，将当前要创建的对象 beanName 缓存进池，记录当前 bean 正在被创建。 Set<String> singletonsCurrentlyInCreation.add(beanName)，
+				/**
+				 * 单实例创建之前，将当前要创建的对象 beanName 缓存进池，标记当前 bean 正在被创建
+				 * Set<String> singletonsCurrentlyInCreation.add(beanName)，
+				 */
 				beforeSingletonCreation(beanName);
 
 				boolean newSingleton = false;
@@ -261,8 +264,8 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 				if (recordSuppressedExceptions) {
 					this.suppressedExceptions = new LinkedHashSet<>();
 				}
-				try {
 
+				try {
 					/**
 					 * 调用简单工厂方法来实例化 bean
 					 * 回调 singletonFactory 的 lambda 表达式的内容，来真正创建组件对象
@@ -294,7 +297,10 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 						this.suppressedExceptions = null;
 					}
 
-					// 单实例创建结束后，在 Set<String> singletonsCurrentlyInCreation 池中清除当前 bean 的记录「清除 bean 正在创建的状态」
+					/**
+					 * 单实例创建结束后，在 Set<String> singletonsCurrentlyInCreation 池中清除当前 bean 的记录
+					 * 即清除 bean 正在创建的状态
+					 */
 					afterSingletonCreation(beanName);
 				}
 				if (newSingleton) {
@@ -393,7 +399,8 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * @param beanName the name of the singleton about to be created
 	 * @see #isSingletonCurrentlyInCreation
 	 */
-	protected void beforeSingletonCreation(String beanName) { // singletonsCurrentlyInCreation.add()：将当前 bean 标记为正在创建
+	protected void beforeSingletonCreation(String beanName) {
+		// singletonsCurrentlyInCreation.add()：将当前 bean 标记为正在创建
 		if (!this.inCreationCheckExclusions.contains(beanName) && !this.singletonsCurrentlyInCreation.add(beanName)) {
 			throw new BeanCurrentlyInCreationException(beanName);
 		}
@@ -485,6 +492,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	}
 
 	private boolean isDependent(String beanName, String dependentBeanName, @Nullable Set<String> alreadySeen) {
+		// alreadySeen 默认为 null
 		if (alreadySeen != null && alreadySeen.contains(beanName)) {
 			return false;
 		}

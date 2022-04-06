@@ -501,7 +501,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// 解析 BeanDefinition 中的 "class" 属性，并通过反射创建相应的 Class
 		Class<?> resolvedClass = resolveBeanClass(mbd, beanName);
 		if (resolvedClass != null && !mbd.hasBeanClass() && mbd.getBeanClassName() != null) {
+			// BeanDefinition 类型转换 RootBeanDefinition
 			mbdToUse = new RootBeanDefinition(mbd);
+			// 将 "class" 属性 封装到 RootBeanDefinition 中
 			mbdToUse.setBeanClass(resolvedClass);
 		}
 
@@ -517,12 +519,17 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		try {
 			/**
-			 * 创建对象之前留给我们一个机会，可以通过 BeanPostProcessors 创建并返回组件的代理对象。「AOP 的后置处理器没有利用这次机会」
+			 * 创建对象之前留给我们一个机会，可以通过 BeanPostProcessors 创建并返回组件的代理对象。
+			 * AOP 的后置处理器没有利用这次机会
 			 * Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
 			 */
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
+
 			if (bean != null) {
-				// 如果返回了对象（InstantiationAwareBeanPostProcessor.postProcessBeforeInstantiation()返回的对象），则直接退出对象创建过程
+				/**
+				 * 如果返回了对象，则直接退出对象创建过程
+				 * 即 InstantiationAwareBeanPostProcessor.postProcessBeforeInstantiation() 返回的对象，直接退出对象创建过程
+				 */
 				return bean;
 			}
 		}
@@ -533,11 +540,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// 没有产生代理对象，Spring 开始创建对象
 		try {
-			// Spring 真正自己创建对象（InstantiationAwareBeanPostProcessor.postProcessBeforeInstantiation()没有返回对象）
+			// Spring 真正自己创建对象实例
 			Object beanInstance = doCreateBean(beanName, mbdToUse, args);
+
 			if (logger.isTraceEnabled()) {
 				logger.trace("Finished creating instance of bean '" + beanName + "'");
 			}
+
+			// 返回对象实例
 			return beanInstance;
 		}
 		catch (BeanCreationException | ImplicitlyAppearedSingletonException ex) {
@@ -574,11 +584,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
 		}
 		if (instanceWrapper == null) {
-
-			// 创建 bean 的实例，默认使用无参构造器创建对象。「真正的创建对象，并生成其包装类 BeanWrapper」
+			/**
+			 * 创建 bean 的实例，默认使用无参构造器创建对象
+			 * 真正的创建对象，并生成其包装类 BeanWrapper，「装饰 Decorator 模式」
+			 */
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
 		}
-		// 将创建完成的实例封装成 BeanWrapper.「装饰 Decorator 模式」
+
+		// 获取(未属性赋值、未初始化的半成品)实例对象
 		Object bean = instanceWrapper.getWrappedInstance();
 		Class<?> beanType = instanceWrapper.getWrappedClass();
 		if (beanType != NullBean.class) {
@@ -590,12 +603,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			if (!mbd.postProcessed) {
 				try {
 					/**
-					 * 对象实例创建完成后，后置处理器再次介入（MergedBeanDefinitionPostProcessor），可以修改 BeanDefinition 信息。
-					 *
+					 * 对象实例创建完成后，后置处理器再次介入(MergedBeanDefinitionPostProcessor)，可以修改 BeanDefinition 信息。
 					 * MergedBeanDefinitionPostProcessor 的主要职责，就是用来合并一些信息到 BeanDefinition 中的，
-					 * 尤其是 bean 的属性上添加了注解 @Autoired、@Resource 等，这些注解上面的信息是需要被纳入到 BeanDefinition 中的。
+					 * 尤其是 bean 的属性上添加了 @Autoired、@Value、@Resource 等注解，这些注解上面的信息是需要被纳入到 BeanDefinition 中
 					 * 比如，MergedBeanDefinitionPostProcessor 有很多实现类都是和解析注解上的 BeanDefinition 信息有关的，
-					 * 如 CommonAnnotationBeanPostProcessor、AutowiredAnnotationBeanPostProcessor、RequiredAnnotationBeanPostProcessor 等
+					 * 例如：CommonAnnotationBeanPostProcessor(@Resource 相关)
+					 * 		AutowiredAnnotationBeanPostProcessor(@Autoired，@Value 相关)
 					 */
 					applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);
 				}
@@ -608,15 +621,16 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 		}
 
-		// Eagerly cache singletons to be able to resolve circular references
-		// even when triggered by lifecycle interfaces like BeanFactoryAware.
 		/**
 		 * 提前暴露单实例 Bean，专门解决循环依赖。
 		 * 如果当前 bean 为单例，并且允许循环引用，并且当前 bean 正在创建中，此时允许暴露早期单例 bean
 		 * 这也是之前可以在对象工厂缓存中获取到 ObjectFactory 的关键，ObjectFactory 就是在这里添加的。
+		 * Eagerly cache singletons to be able to resolve circular references
+		 * even when triggered by lifecycle interfaces like BeanFactoryAware.
 		 */
 		boolean earlySingletonExposure = (mbd.isSingleton() && this.allowCircularReferences &&
 				isSingletonCurrentlyInCreation(beanName));
+
 		if (earlySingletonExposure) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Eagerly caching bean '" + beanName +
@@ -718,7 +732,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Register bean as disposable.
 		try {
-			// 为当前组件注册 DisposableBean。（bean 销毁相关的方法）
+			// 为当前组件注册 DisposableBean。(bean 销毁相关的方法)
 			registerDisposableBeanIfNecessary(beanName, bean, mbd);
 		}
 		catch (BeanDefinitionValidationException ex) {
@@ -1177,6 +1191,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @see MergedBeanDefinitionPostProcessor#postProcessMergedBeanDefinition
 	 */
 	protected void applyMergedBeanDefinitionPostProcessors(RootBeanDefinition mbd, Class<?> beanType, String beanName) {
+		/**
+		 * MergedBeanDefinitionPostProcessor 的主要职责，就是用来合并一些信息到 BeanDefinition 中的，
+		 * 尤其是 bean 的属性上添加了 @Autoired、@Resource 等注解，这些注解上面的信息是需要被纳入到 BeanDefinition 中
+		 * MergedBeanDefinitionPostProcessor 有很多实现类都是和解析注解上的 BeanDefinition 信息有关的，
+		 * 例如：CommonAnnotationBeanPostProcessor(@Resource 相关)、
+		 * 		AutowiredAnnotationBeanPostProcessor(@Autoired，@Value 相关)
+		 */
 		for (MergedBeanDefinitionPostProcessor processor : getBeanPostProcessorCache().mergedDefinition) {
 			processor.postProcessMergedBeanDefinition(mbd, beanType, beanName);
 		}
@@ -1293,7 +1314,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 		}
 
-		// 后置处理器有机会在这里决定当前 Bean 使用哪个构造器-->SmartInstantiationAwareBeanPostProcessor.determineCandidateConstructors()  Candidate constructors for autowiring?
+		/**
+		 * 后置处理器有机会在这里决定当前 Bean 使用哪个构造器
+		 * 		-->SmartInstantiationAwareBeanPostProcessor.determineCandidateConstructors()
+		 * Candidate constructors for autowiring?
+		 */
 		Constructor<?>[] ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName);
 		if (ctors != null || mbd.getResolvedAutowireMode() == AUTOWIRE_CONSTRUCTOR ||
 				mbd.hasConstructorArgumentValues() || !ObjectUtils.isEmpty(args)) {
@@ -1303,10 +1328,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Preferred constructors for default construction?
 		ctors = mbd.getPreferredConstructors();
 		if (ctors != null) {
+			// 使用返回的构造器为当前组件创建对象
 			return autowireConstructor(beanName, mbd, ctors, null);
 		}
 
-		// 没有返回构造器，使用 BeanDefinition 中的构造器（默认无参构造器）为当前组件创建对象。 No special handling: simply use no-arg constructor.
+		/**
+		 * 没有返回构造器，使用 BeanDefinition 中的构造器(默认无参构造器)为当前组件创建对象。
+		 * No special handling: simply use no-arg constructor.
+		 */
 		return instantiateBean(beanName, mbd);
 	}
 
@@ -1484,8 +1513,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 		}
 
-		// 准备所有的属性键值对。从 BeanDefinition 中拿到所有属性的信息。指的是属性的键值对，属性名:属性值。
-		// 装饰 Decorator 模式，装饰了属性名和值，增强了利用反射赋值的过程
+		/**
+		 * 准备所有的属性键值对。从 BeanDefinition 中拿到所有属性的信息。指的是属性的键值对，属性名:属性值。
+		 * 装饰 Decorator 模式，装饰了属性名和值，增强了利用反射赋值的过程
+		 */
 		PropertyValues pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null);
 
 		// 获取 bean 的自动装配模式（根据名称注入/根据类型注入）
@@ -1518,9 +1549,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				pvs = mbd.getPropertyValues();
 			}
 
-			// 使用后置处理器处理属性
+			// 使用后置处理器处理属性，将属性信息填充至 bean 实例中
 			for (InstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().instantiationAware) {
-				// 处理属性的后置处理器开始工作。「例如自动装配功能再此执行，处理 @Autowired、@Value、@Inject 注解标注的原信息」
+				/**
+				 * 处理属性的后置处理器开始工作
+				 * 例如自动装配功能再此执行 AutowiredAnnotationBeanPostProcessor 处理 @Autowired、@Value 注解标注的原信息
+				 */
 				PropertyValues pvsToUse = bp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
 				if (pvsToUse == null) {
 					if (filteredPds == null) {
@@ -1543,8 +1577,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		if (pvs != null) {
-			// 将收集到的属性信息，统一设置到 bean 实例中
-			// 把处理好的 PropertyValues（属性名和属性值）给 Bean 里面赋值，主要是上面步骤没有给 bean 设置的属性。（xml 版的所有配置会在此给属性赋值）
+			/**
+			 * 将收集到的属性信息，统一设置到 bean 实例中
+			 * 把处理好的 PropertyValues（属性名和属性值）给 Bean 里面赋值，主要是上面步骤没有给 bean 设置的属性。
+			 * xml 版的所有配置会在此给属性赋值
+			 */
 			applyPropertyValues(beanName, mbd, bw, pvs);
 		}
 	}
