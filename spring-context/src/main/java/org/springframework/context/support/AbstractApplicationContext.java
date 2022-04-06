@@ -601,7 +601,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				/**
 				 * 注册所有的 bean 的后置处理器 BeanPostProcessor
 				 * 例如：
-				 * 注册了 AOP 功能导入的 AnnotationAwareAspectJAutoProxyCreator
+				 * 注册了创建 AOP 代理的入口 AnnotationAwareAspectJAutoProxyCreator
 				 * 注册了与注解 @Autowired 相关的 AutowiredAnnotationBeanPostProcessor
 				 * Register bean processors that intercept bean creation.
 				 */

@@ -354,7 +354,7 @@ final class PostProcessorRegistrationDelegate {
 			else if (beanFactory.isTypeMatch(ppName, Ordered.class)) {
 				/**
 				 * 筛选出所有实现了排序接口(Ordered)的后置处理器名称
-				 * 例如：internaLAutoProxyCreator，即 AOP 功能导入的 AnnotationAwareAspectJAutoProxyCreator
+				 * 例如：internaLAutoProxyCreator，即创建 AOP 代理的入口 AnnotationAwareAspectJAutoProxyCreator
 				 */
 				orderedPostProcessorNames.add(ppName);
 			}
