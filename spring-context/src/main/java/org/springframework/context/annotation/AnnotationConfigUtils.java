@@ -241,7 +241,13 @@ public abstract class AnnotationConfigUtils {
 	public static void processCommonDefinitionAnnotations(AnnotatedBeanDefinition abd) {
 		processCommonDefinitionAnnotations(abd, abd.getMetadata());
 	}
-	// 解读主配置类定义信息中所有需要感知的注解,并解析注解标注的内容，保存到当前配置类的定义信息（BeanDefinition）中。「@Lazy,@Primary,@DependsOn,@Role,@Description」
+
+	/**
+	 * 解读主配置类定义信息 BeanDefinition 中所有需要感知的注解，并解析注解标注的内容，保存到当前配置类的定义信息 BeanDefinition 中。
+	 * 例如：@Lazy,@Primary,@DependsOn,@Role,@Description
+	 * @param abd 主配置类定义信息 BeanDefinition
+	 * @param metadata 注解元数据
+	 */
 	static void processCommonDefinitionAnnotations(AnnotatedBeanDefinition abd, AnnotatedTypeMetadata metadata) {
 		// 解析 @Lazy 注解
 		AnnotationAttributes lazy = attributesFor(metadata, Lazy.class);

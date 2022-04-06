@@ -229,7 +229,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	}
 
 	/**
-	 *  把配置类中所有的 bean 定义信息导入进来。Derive further bean definitions from the configuration classes in the registry.
+	 * 把配置类中所有的 bean 定义信息导入进来。Derive further bean definitions from the configuration classes in the registry.
 	 */
 	@Override
 	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
@@ -277,7 +277,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			processConfigBeanDefinitions((BeanDefinitionRegistry) beanFactory);
 		}
 
-		// 对 beanFactory 中的类进行增强处理
+		// 对容器中的配置类进行增强处理(为配置类创建 cglib 动态代理类)
 		enhanceConfigurationClasses(beanFactory);
 		// 注册 bean 后置处理器 ImportAwareBeanPostProcessor
 		beanFactory.addBeanPostProcessor(new ImportAwareBeanPostProcessor(beanFactory));
@@ -297,11 +297,13 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 
 		// 遍历处理
 		for (String beanName : candidateNames) {
+
 			// 根据名字获取 BeanDefinition
 			BeanDefinition beanDef = registry.getBeanDefinition(beanName);
+
 			/**
 			 * 判断当前 BeanDefinition 是否存在属性名称为 ConfigurationClassPostProcessor.configurationClass 的值
-			 * 如果不存在，意味着注解配置类的 BeanDefinition 并没有被处理过。
+			 * 如果不存在，意味着配置类的 BeanDefinition 并没有被处理过。
 			 * 第一次执行该方法时，默认不存在。
 			 */
 			if (beanDef.getAttribute(ConfigurationClassUtils.CONFIGURATION_CLASS_ATTRIBUTE) != null) {
@@ -309,6 +311,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 					logger.debug("Bean definition has already been processed as a configuration class: " + beanDef);
 				}
 			}
+
 			/**
 			 * 检查给定的 Bean 定义是否为配置类。
 			 * 判断当前 BeanDefinition 是否满足配置类的候选条件
@@ -372,7 +375,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		do {
 			StartupStep processConfig = this.applicationStartup.start("spring.context.config-classes.parse");
 
-			// 解析配置类，所有需要扫描进来的组件的 BeanDefinition 都已经准备好了。「例如标注了@Component注解的类信息会被注册进来」
+			// 解析配置类，所有需要扫描进来的组件的 BeanDefinition 都已经准备好了。「例如标注了 @Component 注解的类信息会被注册进来」
 			parser.parse(candidates);
 			parser.validate();
 
@@ -436,7 +439,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		}
 		while (!candidates.isEmpty());
 
-		//
+
 		/**
 		 * 处理 @ImportRegistry 注解的配置类
 		 * 解析名称为 ConfigurationClassPostProcessor 的单例对象

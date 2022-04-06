@@ -566,20 +566,21 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			/**
 			 * 初始化初级容器 BeanFactory，并解析 XML 文件
 			 * 工厂的创建：BeanFactory 第一次创建，获取当前准备好的空容器。
-			 * 将配置文件中的信息注册进工厂中（信息保存在 beanDefinitionMap 中）「有 xml 解析逻辑」。
+			 * 将配置文件中的信息注册进工厂中，即信息保存在 beanDefinitionMap 中，有 xml 解析逻辑
 			 * Tell the subclass to refresh the internal bean factory.
 			 */
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			/**
-			 * 预准备工厂，给容器中注册了环境信息作为单实例 Bean，方便后续自动装配；还注册了一些后置处理器(处理监听功能、XXXAware功能)
+			 * 预准备工厂，给容器中注册了环境信息作为单实例 Bean，方便后续自动装配；
+			 * 还注册了一些后置处理器，例如监听功能、XXXAware(感知接口)功能
 			 * Prepare the bean factory for use in this context.
 			 */
 			prepareBeanFactory(beanFactory);
 
 			try {
 				/**
-				 * 留给子类的模板方法，允许子类继续对工厂执行一些处理（注册一些特殊的后置处理器）。
+				 * 留给子类的模板方法，允许子类继续对工厂执行一些处理(注册一些特殊的后置处理器)
 				 * Allows post-processing of the bean factory in context subclasses.
 				 */
 				postProcessBeanFactory(beanFactory);
@@ -587,16 +588,21 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				StartupStep beanPostProcess = this.applicationStartup.start("spring.context.beans.post-process");
 
 				/**
-				 * 工厂的增强：执行所有的 BeanFactory 后置处理器对工厂进行修改或增强(配置类会在这里解析)。
+				 * 工厂的增强：执行所有的 BeanFactory 后置处理器，对工厂进行修改或增强(配置类会在这里解析)。
 				 * 执行 spring 容器基本的后置处理器
 				 * 所有的 BeanDefinition 就已经准备就绪了
-				 * 解析配置类，注册了所有标有 @Component、@ComponentScans、@ImportResource、@PropertySources、@Bean、@Import 等注解的 bean
+				 * 例如配置类的后置处理器 ConfigurationClassPostProcessor，会在此解析配置类，
+				 * 		注册了所有标有 @Component、@ComponentScans、@ImportResource、@PropertySources、@Bean、@Import 等注解的 bean
+				 *
 				 * Invoke factory processors registered as beans in the context.
 				 */
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				/**
 				 * 注册所有的 bean 的后置处理器 BeanPostProcessor
+				 * 例如：
+				 * 注册了 AOP 功能导入的 AnnotationAwareAspectJAutoProxyCreator
+				 * 注册了与注解 @Autowired 相关的 AutowiredAnnotationBeanPostProcessor
 				 * Register bean processors that intercept bean creation.
 				 */
 				registerBeanPostProcessors(beanFactory);
@@ -610,7 +616,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				initMessageSource();
 
 				/**
-				 * 初始化事件多播器(之后注册的监听器和发布事件都是基于该事件多播器执行的）
+				 * 初始化事件多播器(之后注册的监听器和发布事件都是基于该事件多播器执行的)
 				 * 判断容器中是否有 id 为 applicationEventMulticaster 的定义信息，
 				 * 如果没有就注册一个事件多播组件 SimpleApplicationEventMulticaster 放到单例池中。
 				 * Initialize event multicaster for this context.
@@ -640,7 +646,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				finishBeanFactoryInitialization(beanFactory);
 
 				/**
-				 * 初始化声明周期处理器，并发出相应的事件进行通知
+				 * 初始化生命周期处理器，并发出相应的事件进行通知
 				 * Last step: publish corresponding event.
 				 */
 				finishRefresh();
@@ -771,7 +777,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.registerResolvableDependency(ApplicationContext.class, this);
 
 		// Register early post-processor for detecting inner beans as ApplicationListeners.
-		// 为 beanFactory 注册能探查到内部容器中监听器的后置处理器
+		// 为 beanFactory 注册能探查到内部容器中的监听器的后置处理器
 		beanFactory.addBeanPostProcessor(new ApplicationListenerDetector(this));
 
 		// Detect a LoadTimeWeaver and prepare for weaving, if found.

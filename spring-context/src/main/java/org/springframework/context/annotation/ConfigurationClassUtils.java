@@ -97,7 +97,7 @@ abstract class ConfigurationClassUtils {
 		}
 
 		AnnotationMetadata metadata;
-		// 判断当前 beanDef 是注解类型的，且注解元数据中包含了 bean 类的全限定名称
+		// 判断当前 beanDef 是否是注解类型的，且注解元数据中是否包含了 bean 类的全限定名称
 		if (beanDef instanceof AnnotatedBeanDefinition &&
 				className.equals(((AnnotatedBeanDefinition) beanDef).getMetadata().getClassName())) {
 			// Can reuse the pre-parsed metadata from the given BeanDefinition...
@@ -154,7 +154,7 @@ abstract class ConfigurationClassUtils {
 		}
 
 		// It's a full or lite configuration candidate... Let's determine the order value, if any.
-		// 获取注解中的 @Order 注解的值，并设置到 BeanDefinition 中
+		// 获取注解元数据中的 @Order 注解的值，若非空，则将其设置到 BeanDefinition 中
 		Integer order = getOrder(metadata);
 		if (order != null) {
 			beanDef.setAttribute(ORDER_ATTRIBUTE, order);
