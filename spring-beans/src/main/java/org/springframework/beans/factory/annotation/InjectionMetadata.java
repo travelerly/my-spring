@@ -120,11 +120,10 @@ public class InjectionMetadata {
 		if (!elementsToIterate.isEmpty()) {
 			// 遍历解析到的注解元数据
 			for (InjectedElement element : elementsToIterate) {
-				// 注入注解信息
 				/**
-				 * 注入注解信息
-				 * AutowiredFieldElement：处理成员属性上的注解
-				 * AutowiredMethodElement：处理成员方法上的注解
+				 * 依赖注入
+				 * AutowiredFieldElement：成员属性的依赖注入
+				 * AutowiredMethodElement：成员方法的依赖注入
 				 * InjectedElement：为 AutowiredFieldElement 和 AutowiredMethodElement 的父类
 				 */
 				element.inject(target, beanName, pvs);

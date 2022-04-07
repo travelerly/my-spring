@@ -133,8 +133,10 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	// 可以被当前后置处理器解析的注解
 	private final Set<Class<? extends Annotation>> autowiredAnnotationTypes = new LinkedHashSet<>(4);
 
+	// @Autowired 注解的属性
 	private String requiredParameterName = "required";
 
 	private boolean requiredParameterValue = true;
@@ -399,11 +401,14 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 
 	@Override
 	public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) {
-
-		// 找到自动装配的元信息。处理 @Autowired、@Value、@Inject 注解标注的原信息
+		/**
+		 * 解析当前 bean 对应的依赖注入的属性或方法的元数据，并封装成 InjectionMetadata
+		 * 处理 @Autowired、@Value、@Inject 注解标注的元信息
+		 */
 		InjectionMetadata metadata = findAutowiringMetadata(beanName, bean.getClass(), pvs);
+
 		try {
-			// (属性)注入注解的元信息
+			// 依赖注入
 			metadata.inject(bean, beanName, pvs);
 		}
 		catch (BeanCreationException ex) {
@@ -448,7 +453,6 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 
 
 	private InjectionMetadata findAutowiringMetadata(String beanName, Class<?> clazz, @Nullable PropertyValues pvs) {
-
 		/**
 		 * 如果 beanName 有值，则以 beanName 作为 cacheKey，否则使用类的全限定名作为 cacheKey
 		 * Fall back to class name as cache key, for backwards compatibility with custom callers.
@@ -492,8 +496,10 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 		List<InjectionMetadata.InjectedElement> elements = new ArrayList<>();
 		Class<?> targetClass = clazz;
 
+		// do-while 循环解析当前类及其所有父类中的注解元数据
 		do {
 			final List<InjectionMetadata.InjectedElement> currElements = new ArrayList<>();
+
 			/**
 			 * 解析 targetClass 中的每个成员属性，即被注解 @Autowired、@Value 标注的成员属性
 			 * 找到所有标注了注解 @Autowired、@Value 的成员属性
@@ -503,7 +509,10 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 				// 取出当前成员属性中的注解
 				MergedAnnotation<?> ann = findAutowiredAnnotation(field);
 				if (ann != null) {
-					// 判断当前成员属性是否被关键字 static 修饰（不能在静态成员属性上添加 @Autowired 或 @Value）
+					/**
+					 * 判断当前成员属性是否被关键字 static 修饰
+					 * 不能在静态成员属性上添加 @Autowired 或 @Value，否则该注解失效
+					 */
 					if (Modifier.isStatic(field.getModifiers())) {
 						if (logger.isInfoEnabled()) {
 							logger.info("Autowired annotation is not supported on static fields: " + field);
@@ -511,9 +520,10 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 						// 如果是被 static 修饰，则直接跳过，即添加了 static 修饰，该注解将失效
 						return;
 					}
-					// 获取注解中的属性 required 的值
+
+					// 解析注解中的 required 属性的值
 					boolean required = determineRequiredStatus(ann);
-					// 将从类中成员属性上解析到的注解信息添加到集合 currElements 中
+					// 将从类中成员属性上解析到的注解信息封装成 AutowiredFieldElement，并添加到集合 currElements 中
 					currElements.add(new AutowiredFieldElement(field, required));
 				}
 			});
@@ -531,7 +541,10 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 				// 从方法中获取注解
 				MergedAnnotation<?> ann = findAutowiredAnnotation(bridgedMethod);
 				if (ann != null && method.equals(ClassUtils.getMostSpecificMethod(method, clazz))) {
-					// 判断当前方法是否被关键字 static 修饰。（不能在静态方法上添加 @Autowired 或 @Value）
+					/**
+					 * 判断当前方法是否被关键字 static 修饰
+					 * 不能在静态方法上添加 @Autowired 或 @Value，否则该注解失效
+					 */
 					if (Modifier.isStatic(method.getModifiers())) {
 						if (logger.isInfoEnabled()) {
 							logger.info("Autowired annotation is not supported on static methods: " + method);
@@ -539,6 +552,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 						// 如果是被 static 修饰，则直接跳过，即添加了 static 修饰，该注解将失效
 						return;
 					}
+
 					if (method.getParameterCount() == 0) {
 						// 如果当前方法为无参方法，则无法确认需要注入的值该设置到哪个属性上，即无法注入相应属性信息，此时记录一些日志
 						if (logger.isInfoEnabled()) {
@@ -547,15 +561,18 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 						}
 					}
 
-					// 获取注解中属性 required 的值
+					// 解析注解中的 required 属性的值
 					boolean required = determineRequiredStatus(ann);
 					PropertyDescriptor pd = BeanUtils.findPropertyForMethod(bridgedMethod, clazz);
-					// 将从方法上解析到的注解信息添加到集合 currElements 中
+					// 将从方法上解析到的注解信息封装成 AutowiredMethodElement，并添加到集合 currElements 中
 					currElements.add(new AutowiredMethodElement(method, required, pd));
 				}
 			});
 
-			// 将从类中的字段和方法上解析到的注解信息添加到集合 elements 中
+			/**
+			 * 将从类中的字段和方法上解析到的注解信息添加到集合 elements 中，
+			 * 循环调用，保证父类的注解元数据放置在集合的第一位，所以父类是最先完成依赖注入的
+			 */
 			elements.addAll(0, currElements);
 			targetClass = targetClass.getSuperclass();
 		}
@@ -760,7 +777,6 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 		}
 	}
 
-
 	/**
 	 * Class representing injection information about an annotated method.
 	 */
@@ -781,6 +797,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 			this.required = required;
 		}
 
+		// 成员方法的注入
 		@Override
 		protected void inject(Object bean, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
 			if (checkPropertySkipping(pvs)) {
