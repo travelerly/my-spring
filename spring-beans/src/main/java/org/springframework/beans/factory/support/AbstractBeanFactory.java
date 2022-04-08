@@ -730,7 +730,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	public Class<?> getType(String name, boolean allowFactoryBeanInit) throws NoSuchBeanDefinitionException {
 		String beanName = transformedBeanName(name);
 
-		// Check manually registered singletons.
+		// 根据 beanName，到单例缓存池中查找其对相应的实例对象。Check manually registered singletons.
 		Object beanInstance = getSingleton(beanName, false);
 		if (beanInstance != null && beanInstance.getClass() != NullBean.class) {
 			if (beanInstance instanceof FactoryBean && !BeanFactoryUtils.isFactoryDereference(name)) {
@@ -747,7 +747,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			// No bean definition found in this factory -> delegate to parent.
 			return parentBeanFactory.getType(originalBeanName(name));
 		}
-
+		// 根据 beanName 获取其对应的 bean 定义信息
 		RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
 
 		// Check decorated bean definition, if any: We assume it'll be easier
@@ -774,6 +774,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 		}
 		else {
+			// 返回 Class 对象，例如："class com.coLin. bean.cycte.B"
 			return (!BeanFactoryUtils.isFactoryDereference(name) ? beanClass : null);
 		}
 	}

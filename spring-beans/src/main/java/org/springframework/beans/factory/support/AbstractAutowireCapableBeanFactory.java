@@ -1552,7 +1552,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			// 使用后置处理器处理属性，将属性信息填充至 bean 实例中
 			for (InstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().instantiationAware) {
 				/**
-				 * 处理属性的后置处理器开始工作
+				 * 处理属性的后置处理器开始工作，将注解元信息封装成键值对
 				 * 例如自动装配功能再此执行 AutowiredAnnotationBeanPostProcessor 处理 @Autowired、@Value 注解标注的原信息
 				 */
 				PropertyValues pvsToUse = bp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
@@ -1890,7 +1890,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			mpvs.setConverted();
 		}
 
-		// 深拷贝所有PropertyValues应该对应的属性 Set our (possibly massaged) deep copy.
+		// 深拷贝所有 PropertyValues 应该对应的属性。Set our (possibly massaged) deep copy.
 		try {
 			bw.setPropertyValues(new MutablePropertyValues(deepCopy));
 		}

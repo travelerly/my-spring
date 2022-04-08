@@ -704,7 +704,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 		// 成员属性(字段)的注入
 		@Override
 		protected void inject(Object bean, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
-			// 获取字段
+			// 获取成员属性(字段)，例如："private com.cotin.bean.cycle.B com.coLin.bean.cycte.A.b"
 			Field field = (Field) this.member;
 			Object value;
 			// 判断引用字段是否被缓存过
@@ -719,7 +719,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 				}
 			}
 			else {
-				// 解析字段，获取字段的值或实例对象
+				// 解析字段，获取字段的实例对象
 				value = resolveFieldValue(field, bean, beanName);
 			}
 			if (value != null) {
@@ -741,14 +741,14 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 			TypeConverter typeConverter = beanFactory.getTypeConverter();
 			Object value;
 			try {
-				// 通过工厂的方法获取引用字段 field 的值或实例对象
+				// 通过工厂的方法获取引用字段 field 的实例对象
 				value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);
 			}
 			catch (BeansException ex) {
 				throw new UnsatisfiedDependencyException(null, beanName, new InjectionPoint(field), ex);
 			}
 
-			// 以下为缓存获取到的引用字段 field 的值或实例对象
+			// 以下为缓存获取到的引用字段 field de实例对象
 			synchronized (this) {
 				if (!this.cached) {
 					Object cachedFieldValue = null;
@@ -763,7 +763,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 						if (autowiredBeanNames.size() == 1) {
 							String autowiredBeanName = autowiredBeanNames.iterator().next();
 							if (beanFactory.containsBean(autowiredBeanName) &&
-									beanFactory.isTypeMatch(autowiredBeanName, field.getType())) {
+									beanFactory.isTypeMatch(autowiredBeanName, field.getType())) { // 缓存 属性字段的名称和 Class 对象
 								cachedFieldValue = new ShortcutDependencyDescriptor(
 										desc, autowiredBeanName, field.getType());
 							}

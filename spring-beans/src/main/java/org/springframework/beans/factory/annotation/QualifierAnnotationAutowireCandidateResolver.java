@@ -143,13 +143,23 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 	 */
 	@Override
 	public boolean isAutowireCandidate(BeanDefinitionHolder bdHolder, DependencyDescriptor descriptor) {
+		// 父类校验：判断是都允许注入，泛型匹配
 		boolean match = super.isAutowireCandidate(bdHolder, descriptor);
 		if (match) {
+			/**
+			 * 校验注解 @Qualifier 的规则
+			 * bdHolder：相当于候选 bean，即符合属性类型的 bean
+			 * descriptor：是持有依赖注入属性 bean 的描述器
+			 * descriptor.getAnnotations()：属性注解信息的数组
+			 */
 			match = checkQualifiers(bdHolder, descriptor.getAnnotations());
+			// 进一步校验标注在构造函数或方法上的 @Qualifier 注解规则
 			if (match) {
 				MethodParameter methodParam = descriptor.getMethodParameter();
+				// 如果当前是依赖注入属性，methodParam == null，注解返回 match
 				if (methodParam != null) {
 					Method method = methodParam.getMethod();
+					// 校验标注在构造函数或方法上的 @Qualifier 注解规则
 					if (method == null || void.class == method.getReturnType()) {
 						match = checkQualifiers(bdHolder, methodParam.getMethodAnnotations());
 					}
@@ -167,32 +177,44 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 			return true;
 		}
 		SimpleTypeConverter typeConverter = new SimpleTypeConverter();
+		// 遍历属性注解信息的数组
 		for (Annotation annotation : annotationsToSearch) {
 			Class<? extends Annotation> type = annotation.annotationType();
 			boolean checkMeta = true;
 			boolean fallbackToMeta = false;
+			// 判断是否是 @Qualifier 注解
 			if (isQualifier(type)) {
+				// 通常会匹配注解的属性值是否和候选 bean 的 beanName 一致
 				if (!checkQualifier(bdHolder, annotation, typeConverter)) {
+					// 表示第一次匹配失败，进而进行元注解匹配
 					fallbackToMeta = true;
 				}
 				else {
+					// 匹配成功，就不用往下进行元注解匹配了
 					checkMeta = false;
 				}
 			}
+
+			// 本身不是 @Qualifier 注解或匹配失败的情况都会进行元注解匹配
 			if (checkMeta) {
 				boolean foundMeta = false;
+				// 遍历元注解，即注解里的注解，只遍历一层元注解
 				for (Annotation metaAnn : type.getAnnotations()) {
 					Class<? extends Annotation> metaType = metaAnn.annotationType();
+					// 判断元注解是否为 @Qualifier 注解
 					if (isQualifier(metaType)) {
 						foundMeta = true;
 						// Only accept fallback match if @Qualifier annotation has a value...
 						// Otherwise it is just a marker for a custom qualifier annotation.
+						// 元注解匹配
 						if ((fallbackToMeta && ObjectUtils.isEmpty(AnnotationUtils.getValue(metaAnn))) ||
 								!checkQualifier(bdHolder, metaAnn, typeConverter)) {
 							return false;
 						}
 					}
 				}
+
+				// 两次匹配都失败，返回 false
 				if (fallbackToMeta && !foundMeta) {
 					return false;
 				}
