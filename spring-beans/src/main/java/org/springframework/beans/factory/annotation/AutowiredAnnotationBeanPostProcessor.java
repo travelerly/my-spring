@@ -704,7 +704,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 		// 成员属性(字段)的注入
 		@Override
 		protected void inject(Object bean, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
-			// 获取成员属性(字段)，例如："private com.cotin.bean.cycle.B com.coLin.bean.cycte.A.b"
+			// 获取成员属性(依赖注入的字段)，例如："private com.cotin.bean.cycle.B com.coLin.bean.cycte.A.b"
 			Field field = (Field) this.member;
 			Object value;
 			// 判断引用字段是否被缓存过
