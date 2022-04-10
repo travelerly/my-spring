@@ -985,8 +985,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * initializing all remaining singleton beans.
 	 */
 	protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
-		// 从工厂中获取 conversionService(负责类型转换的组件服务)对应的 bean，并初始化这个 bean。
-		// Initialize conversion service for this context.
+		/**
+		 * 从工厂中获取 conversionService(负责类型转换的组件服务)对应的 bean，并初始化这个 bean。
+		 * Initialize conversion service for this context.
+		 */
 		if (beanFactory.containsBean(CONVERSION_SERVICE_BEAN_NAME) &&
 				beanFactory.isTypeMatch(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class)) {
 			beanFactory.setConversionService(
