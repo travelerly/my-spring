@@ -132,6 +132,19 @@ Spring 容器启动时，先加载一些底层的后置处理器，例如 Config
 
 
 
+#### 工厂 Bean 创建对象的步骤：
+
+1. 定义工厂 bean：实现 FactoryBean 接口，并指定 bean 的类型(例如 Hello)，并重写方法 getObject() 和 getObjectType()，getObjectType() 方法的返回值与指定的类型一致，getObject() 方法中定义指定类型的 bean 的创建方法，例如 new Hello()。
+2. 从容器中获取指定类型的 bean 实例对象，例如获取 Hello 的实例对象：
+    1. 获取可以匹配指定类型的组件名称，遍历容器中所有组件进行筛选
+        - 若当前遍历到的组件是工厂 bean，且工厂 bean 中的 getObjectType() 方法的返回值与指定类型相同，则返回此工厂组件名称
+        - 若当前组件是普通 bean，则直接返回该组件的名称
+    2. 根据组件名称来获取组件实例对象
+        - 若组件是工厂 bean，则调用工厂 bean 的 getObject() 方法，获取指定类型的实例对象；
+        - 若组件是普通 bean，则调用 spring 获取对象
+
+
+
 ### 循环引用
 
 ![](src/docs/spring/循环引用.jpg)

@@ -4,6 +4,7 @@ import com.colin.aop.HelloService;
 import com.colin.bean.ContextBean;
 import com.colin.bean.Hello;
 import com.colin.bean.HelloFactory;
+import com.colin.bean.Person;
 import com.colin.bean.cycle.A;
 import com.colin.bean.cycle.B;
 import com.colin.config.MyConfig;
@@ -60,6 +61,7 @@ public class AnnotationDemo {
 	private static void testFactoryBean(){
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
 		HelloFactory helloFactory = applicationContext.getBean(HelloFactory.class);
+		Person person = applicationContext.getBean(Person.class);
 		Hello hello = applicationContext.getBean(Hello.class);
 		System.out.println("hello: "+ hello);
 	}

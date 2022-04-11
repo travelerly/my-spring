@@ -492,11 +492,14 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	@Nullable
 	private <T> T resolveBean(ResolvableType requiredType, @Nullable Object[] args, boolean nonUniqueAsNull) {
-		// 封装了 bean 的名称和 bean 实例，requiredType 为目标对象的类型
+		// 获取对象实例。NamedBeanHolder 封装了 bean 的名称和 bean 实例，requiredType 为目标对象的类型
 		NamedBeanHolder<T> namedBean = resolveNamedBean(requiredType, args, nonUniqueAsNull);
+
 		if (namedBean != null) {
+			// 若结果非空，则获取其内部封装的 bean 实例
 			return namedBean.getBeanInstance();
 		}
+
 		BeanFactory parent = getParentBeanFactory();
 		if (parent instanceof DefaultListableBeanFactory) {
 			return ((DefaultListableBeanFactory) parent).resolveBean(requiredType, args, nonUniqueAsNull);
@@ -524,8 +527,10 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	@Override
 	public String[] getBeanNamesForType(ResolvableType type, boolean includeNonSingletons, boolean allowEagerInit) {
+		// 获取指定类型的 Class 对象
 		Class<?> resolved = type.resolve();
 		if (resolved != null && !type.hasGenerics()) {
+			//  获取所有可以匹配指定类型的组件名称
 			return getBeanNamesForType(resolved, includeNonSingletons, allowEagerInit);
 		}
 		else {
@@ -549,18 +554,25 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		if (resolvedBeanNames != null) {
 			return resolvedBeanNames;
 		}
+
+		/**
+		 * 根据指定类型(type)，获取容器中所有可以匹配的组件名称。
+		 * 若被工厂 bean 匹配到，即工厂 bean 中 getObjectType() 方法返回的类型与指定类型相同，则返回此工厂 bean 的名称。
+		 * 若是普通组件，则返回该组件自身名称。
+		 */
 		resolvedBeanNames = doGetBeanNamesForType(ResolvableType.forRawClass(type), includeNonSingletons, true);
+
 		if (ClassUtils.isCacheSafe(type, getBeanClassLoader())) {
 			cache.put(type, resolvedBeanNames);
 		}
 		return resolvedBeanNames;
 	}
 
-	// 获取某个组件类型在容器中的名字。遍历所有组件的名称，拿到组件名称对应的定义信息，再根据定义信息判断是否符合指定的类型。
+	// 根据指定类型，获取容器中所有对应的组件名称。遍历所有组件的名称，拿到组件名称对应的定义信息，再根据定义信息判断是否符合指定的类型。
 	private String[] doGetBeanNamesForType(ResolvableType type, boolean includeNonSingletons, boolean allowEagerInit) {
 		List<String> result = new ArrayList<>();
 
-		// Check all bean definitions.
+		// 遍历容器中所有的组件的名称。Check all bean definitions.
 		for (String beanName : this.beanDefinitionNames) {
 			// Only consider bean as eligible if the bean name is not defined as alias for some other bean.
 			if (!isAlias(beanName)) {
@@ -570,6 +582,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 					if (!mbd.isAbstract() && (allowEagerInit ||
 							(mbd.hasBeanClass() || !mbd.isLazyInit() || isAllowEagerClassLoading()) &&
 									!requiresEagerInitForType(mbd.getFactoryBeanName()))) {
+						// 判断当前遍历到的名称对应的组件是否为工厂 bean
 						boolean isFactoryBean = isFactoryBean(beanName, mbd);
 						BeanDefinitionHolder dbd = mbd.getDecoratedDefinition();
 						boolean matchFound = false;
@@ -577,12 +590,17 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 						boolean isNonLazyDecorated = (dbd != null && !mbd.isLazyInit());
 						if (!isFactoryBean) {
 							if (includeNonSingletons || isSingleton(beanName, mbd, dbd)) {
-								matchFound = isTypeMatch(beanName, type, allowFactoryBeanInit);// 是否类型匹配
+								// 当前遍历到的组件(非工厂 bean)名称是否匹配指定的类型(type)
+								matchFound = isTypeMatch(beanName, type, allowFactoryBeanInit);
 							}
 						}
 						else {
 							if (includeNonSingletons || isNonLazyDecorated ||
 									(allowFactoryBeanInit && isSingleton(beanName, mbd, dbd))) {
+								/**
+								 * 当前遍历到的组件(工厂 bean)名称是否匹配指定的类型(type)
+								 * 调用工厂 bean 的 getObjectType()，其返回值与指定类型(type)对比，判断是否一致
+								 */
 								matchFound = isTypeMatch(beanName, type, allowFactoryBeanInit);
 							}
 							if (!matchFound) {
@@ -591,7 +609,12 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 								matchFound = isTypeMatch(beanName, type, allowFactoryBeanInit);
 							}
 						}
+
 						if (matchFound) {
+							/**
+							 * 若当前遍历到的组件名称对应的 bean 可以匹配指定的类型(type)，则将组件名称存入集合 result 中。
+							 * 例如：HelloFactory(工厂 Bean)可以匹配指定的类型-"Hello"
+							 */
 							result.add(beanName);
 						}
 					}
@@ -639,6 +662,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 		}
 
+		// 返回所有可以匹配指定类型的组件名称
 		return StringUtils.toStringArray(result);
 	}
 
@@ -1237,6 +1261,12 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			ResolvableType requiredType, @Nullable Object[] args, boolean nonUniqueAsNull) throws BeansException {
 
 		Assert.notNull(requiredType, "Required type must not be null");
+		/**
+		 * 根据指定类型(type)，获取容器中所有对应的可以匹配的组件名称。
+		 * 遍历容器中所有组件，删选出可以匹配的组件名称。
+		 * 若被工厂 bean 匹配到，即工厂 bean 中 getObjectType() 方法返回的类型与指定类型相同，则返回此工厂 bean 的名称。
+		 * 若是普通 bean 则返回其自身的名称
+		 */
 		String[] candidateNames = getBeanNamesForType(requiredType);
 
 		if (candidateNames.length > 1) {
@@ -1252,6 +1282,11 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		}
 
 		if (candidateNames.length == 1) {
+			/**
+			 * 如果只有一个组件名称，则使用该组件获取指定类型的实例对象。
+			 * 若组件是工厂 bean，则调用工厂 bean 的 getObject() 方法，获取指定类型的实例对象；
+			 * 若组件是普通 bean，则调用 spring 获取对象
+			 */
 			return resolveNamedBean(candidateNames[0], requiredType, args);
 		}
 		else if (candidateNames.length > 1) {
@@ -1292,8 +1327,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			String beanName, ResolvableType requiredType, @Nullable Object[] args) throws BeansException {
 		/**
 		 * 根据组件名称获取实例对象。
-		 * 普通 bean，调用 AbstractBeanFactory 的 getBean() 方法；
-		 * 工厂 bean，调用工厂 Bean 的 getObject()
+		 * 普通 bean，调用 AbstractBeanFactory 的 getBean() 方法来获取实例对象；
+		 * 工厂 bean，调用工厂 Bean 的 getObject() 来获取实例对象
 		 */
 		Object bean = getBean(beanName, null, args);
 		if (bean instanceof NullBean) {
