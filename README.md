@@ -1,4 +1,6 @@
-# <img src="src/docs/spring-framework.png" style="zoom: 33%;" /> Spring Framework
+# <img src="src/docs/spring-framework.png" width="80" height="80"> Spring Framework
+
+---
 
 ## Spring 整体架构
 
