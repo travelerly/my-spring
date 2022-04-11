@@ -346,6 +346,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	@Override
 	public <T> T getBean(Class<T> requiredType, @Nullable Object... args) throws BeansException {
 		Assert.notNull(requiredType, "Required type must not be null");
+		// 获取对象实例，requiredType 为目标对象的类型
 		Object resolved = resolveBean(ResolvableType.forRawClass(requiredType), args, false);
 		if (resolved == null) {
 			throw new NoSuchBeanDefinitionException(requiredType);
@@ -491,6 +492,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	@Nullable
 	private <T> T resolveBean(ResolvableType requiredType, @Nullable Object[] args, boolean nonUniqueAsNull) {
+		// 封装了 bean 的名称和 bean 实例，requiredType 为目标对象的类型
 		NamedBeanHolder<T> namedBean = resolveNamedBean(requiredType, args, nonUniqueAsNull);
 		if (namedBean != null) {
 			return namedBean.getBeanInstance();
@@ -554,7 +556,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		return resolvedBeanNames;
 	}
 
-	// 获取某个组件类型在容器中的名字。遍历所有组件的beanName，拿到beanName对应的定义信息，再根据定义信息判断是否符合指定的类型。
+	// 获取某个组件类型在容器中的名字。遍历所有组件的名称，拿到组件名称对应的定义信息，再根据定义信息判断是否符合指定的类型。
 	private String[] doGetBeanNamesForType(ResolvableType type, boolean includeNonSingletons, boolean allowEagerInit) {
 		List<String> result = new ArrayList<>();
 
@@ -930,7 +932,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
 				/**
 				 * 判断当前 bean 是否为工厂 bean
-				 * 工厂 bean，即实现了接口 FactoryBean，其 bean 实例的构建，有工厂的 getBean() 方法来完成。
+				 * 工厂 bean，即实现了接口 FactoryBean，其 bean 实例的构建，由工厂的 getBean() 方法来完成。
 				 */
 				if (isFactoryBean(beanName)) {
 					/**
@@ -961,7 +963,11 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 		}
 
-		// 触发 post-initialization 逻辑。「实现 SmartInitializingSingleton 接口的 afterSingletonsInstantiated() 方法进行增强」 Trigger post-initialization callback for all applicable beans...
+		/**
+		 * 触发 post-initialization 逻辑。
+		 * 实现 SmartInitializingSingleton 接口的 afterSingletonsInstantiated() 方法进行增强
+		 * Trigger post-initialization callback for all applicable beans...
+		 */
 		for (String beanName : beanNames) {
 			Object singletonInstance = getSingleton(beanName);
 			if (singletonInstance instanceof SmartInitializingSingleton) {
@@ -1284,11 +1290,16 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	@Nullable
 	private <T> NamedBeanHolder<T> resolveNamedBean(
 			String beanName, ResolvableType requiredType, @Nullable Object[] args) throws BeansException {
-
+		/**
+		 * 根据组件名称获取实例对象。
+		 * 普通 bean，调用 AbstractBeanFactory 的 getBean() 方法；
+		 * 工厂 bean，调用工厂 Bean 的 getObject()
+		 */
 		Object bean = getBean(beanName, null, args);
 		if (bean instanceof NullBean) {
 			return null;
 		}
+		// 封装了 bean 实例对象为 NamedBeanHolder
 		return new NamedBeanHolder<T>(beanName, adaptBeanInstance(beanName, bean, requiredType.toClass()));
 	}
 

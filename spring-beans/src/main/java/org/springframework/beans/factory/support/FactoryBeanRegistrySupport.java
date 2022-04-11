@@ -61,6 +61,7 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 						(PrivilegedAction<Class<?>>) factoryBean::getObjectType, getAccessControlContext());
 			}
 			else {
+				// 获取工厂 bean 的 getObjectType() 方法的返回的类型
 				return factoryBean.getObjectType();
 			}
 		}
@@ -125,7 +126,7 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 							// 标记当前工厂 bean 开始创建了
 							beforeSingletonCreation(beanName);
 							try {
-								// 在 FactoryBean 创建实例之后，进行一些后续处理操作	，默认无任何操作
+								// 在 FactoryBean 创建实例之后，进行一些后续处理操作，默认无任何操作
 								object = postProcessObjectFromFactoryBean(object, beanName);
 							}
 							catch (Throwable ex) {
@@ -181,7 +182,10 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 				}
 			}
 			else {
-				// 通过 FactoryBean 的 getBean() 方法创建当前 bean。(工厂 bean 的创建方式)
+				/**
+				 * 通过 FactoryBean 的 getObject() 方法创建当前 bean。(工厂 bean 的创建方式)
+				 * 工厂 bean 实现了 FactoryBean，并重写 getObject() 方法，以实现自定义 bean 的创建
+				 */
 				object = factory.getObject();
 			}
 		}

@@ -248,7 +248,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	protected <T> T doGetBean(
 			String name, @Nullable Class<T> requiredType, @Nullable Object[] args, boolean typeCheckOnly)
 			throws BeansException {
-		// 转换并获得 Bean 的最终名称
+		// 转换并获得 Bean 的真实名称(例如去掉工厂 bean 名称的前缀 "&")
 		String beanName = transformedBeanName(name);
 		Object beanInstance;
 
@@ -269,7 +269,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		}
 
 		else {
-			// 如果当前 bean 没有被实例化，则从当前分支开始实例化 bean
+			// 如果当前 bean 没有被实例化（缓存中没有），则从当前分支开始实例化 bean
 
 			// Fail if we're already creating this bean instance:
 			// We're assumably within a circular reference.
@@ -584,6 +584,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		if (beanInstance != null && beanInstance.getClass() != NullBean.class) {
 			if (beanInstance instanceof FactoryBean) {
 				if (!isFactoryDereference) {
+					// 获取工厂 bean 的 getObjectType() 方法的返回的类型
 					Class<?> type = getTypeForFactoryBean((FactoryBean<?>) beanInstance);
 					return (type != null && typeToMatch.isAssignableFrom(type));
 				}

@@ -3,6 +3,7 @@ package com.colin.demo;
 import com.colin.aop.HelloService;
 import com.colin.bean.ContextBean;
 import com.colin.bean.Hello;
+import com.colin.bean.HelloFactory;
 import com.colin.bean.cycle.A;
 import com.colin.bean.cycle.B;
 import com.colin.config.MyConfig;
@@ -21,8 +22,9 @@ public class AnnotationDemo {
 
 	public static void main(String[] args) {
 		/*aopTest();*/
-		/*testFactoryBean();*/
-		testCycle();
+		/*testBean();*/
+		testFactoryBean();
+		/*testCycle();*/
 		/*listenerTest();*/
 	}
 
@@ -48,11 +50,18 @@ public class AnnotationDemo {
 		System.out.println("==============");
 	}
 
-	private static void testFactoryBean() {
+	private static void testBean() {
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
 		Hello hello = applicationContext.getBean(Hello.class);
 		Hello hello2 = applicationContext.getBean(Hello.class);
 		System.out.println(hello==hello2);
+	}
+
+	private static void testFactoryBean(){
+		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
+		HelloFactory helloFactory = applicationContext.getBean(HelloFactory.class);
+		Hello hello = applicationContext.getBean(Hello.class);
+		System.out.println("hello: "+ hello);
 	}
 
 	private static void testAutowiredContext() {

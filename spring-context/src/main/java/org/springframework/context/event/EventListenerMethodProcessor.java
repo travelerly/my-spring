@@ -121,7 +121,7 @@ public class EventListenerMethodProcessor
 	public void afterSingletonsInstantiated() {
 		ConfigurableListableBeanFactory beanFactory = this.beanFactory;
 		Assert.state(this.beanFactory != null, "No ConfigurableListableBeanFactory set");
-		// (容器最后初始化环节)拿到容器中所有的组件
+		// (容器最后初始化环节)拿到容器中所有组件的名称
 		String[] beanNames = beanFactory.getBeanNamesForType(Object.class);
 		for (String beanName : beanNames) {
 			if (!ScopedProxyUtils.isScopedTarget(beanName)) {
@@ -172,7 +172,7 @@ public class EventListenerMethodProcessor
 
 			Map<Method, EventListener> annotatedMethods = null;
 			try {
-				// 找到组件中所有标注了@EventListener注解的方法。「监听方法」
+				// 找到组件中所有标注了 @EventListener 注解的方法。「监听方法」
 				annotatedMethods = MethodIntrospector.selectMethods(targetType,
 						(MethodIntrospector.MetadataLookup<EventListener>) method ->
 								AnnotatedElementUtils.findMergedAnnotation(method, EventListener.class));
@@ -196,11 +196,11 @@ public class EventListenerMethodProcessor
 				Assert.state(context != null, "No ApplicationContext set");
 				List<EventListenerFactory> factories = this.eventListenerFactories;
 				Assert.state(factories != null, "EventListenerFactory List not initialized");
-				// 遍历所有方法「所有标注了@EventListener注解的方法」
+				// 遍历所有方法「所有标注了 @EventListener 注解的方法」
 				for (Method method : annotatedMethods.keySet()) {
 					// 每一个监听方法在遍历期间，再遍历所有的事件监听工厂(EventListenerFactory)
 					for (EventListenerFactory factory : factories) {
-						// 默认的事件监听工厂DefaultEventListenerFactory都是支持监听方法的，supportsMethod()默认放回 true。
+						// 默认的事件监听工厂 DefaultEventListenerFactory 都是支持监听方法的，supportsMethod() 默认放回 true。
 						if (factory.supportsMethod(method)) {
 							Method methodToUse = AopUtils.selectInvocableMethod(method, context.getType(beanName));
 							// 利用事件监听工厂创建一个监听器，将当前方法、beanName 等封装到适配器中(ApplicationListenerMethodAdapter)，这个适配器就是监听器。
