@@ -24,7 +24,7 @@ public class AnnotationDemo {
 	public static void main(String[] args) {
 		/*aopTest();*/
 		/*testBean();*/
-		testFactoryBean();
+		/*testFactoryBean();*/
 		/*testCycle();*/
 		/*listenerTest();*/
 	}

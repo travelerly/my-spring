@@ -160,7 +160,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	/** Map from dependency type to corresponding autowired value. */
 	private final Map<Class<?>, Object> resolvableDependencies = new ConcurrentHashMap<>(16);
 
-	/** 按照 beanName 保存所有 Bean 定义信息「BeanDefinition」。（档案馆） Map of bean definition objects, keyed by bean name. */
+	/** 按照 beanName 保存所有 Bean 定义信息 BeanDefinition。（档案馆） Map of bean definition objects, keyed by bean name. */
 	private final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256);
 
 	/** Map from bean name to merged BeanDefinitionHolder. */
