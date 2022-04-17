@@ -66,7 +66,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	public static final String SCOPE_DEFAULT = "";
 
 	/**
-	 * 默认不进行自动装配
+	 * 通过反射装配(注入)，非 xml 配置的默认装配模式，即 @Autowire 注解的默认装配模式
 	 * Constant that indicates no external autowiring at all.
 	 * @see #setAutowireMode
 	 */
@@ -636,7 +636,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 			return AUTOWIRE_CONSTRUCTOR;
 		}
 		else {
-			// 默认的装配模式（AUTOWIRE_NO == 0，不自动装配）
+			// AUTOWIRE_NO == 0，通过反射装配(注入)，非 xml 配置的默认装配模式，即 @Autowire 注解的默认装配模式
 			return this.autowireMode;
 		}
 	}

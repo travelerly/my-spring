@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
  * @author colin
  * @create 2021-03-12 14:03
  */
-@Component
+//@Component
 public class Person {
 
 	public String name;

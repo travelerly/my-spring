@@ -25,7 +25,7 @@ public class AnnotationDemo {
 		/*aopTest();*/
 		/*testBean();*/
 		/*testFactoryBean();*/
-		/*testCycle();*/
+		testCycle();
 		/*listenerTest();*/
 	}
 

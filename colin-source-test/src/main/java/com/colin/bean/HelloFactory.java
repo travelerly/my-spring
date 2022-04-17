@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
  * @author colin
  * @create 2021-03-19 08:57
  */
-@Component  // 也可以通过实现 SmartFactoryBean 来指定提前加载
+//@Component  // 也可以通过实现 SmartFactoryBean 来指定提前加载
 public class HelloFactory implements FactoryBean<Hello> {
 
 	@Override

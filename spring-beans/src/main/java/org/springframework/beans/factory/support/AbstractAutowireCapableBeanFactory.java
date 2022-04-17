@@ -586,7 +586,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (instanceWrapper == null) {
 			/**
 			 * 创建 bean 的实例，默认使用无参构造器创建对象
-			 * 真正的创建对象，并生成其包装类 BeanWrapper，「装饰 Decorator 模式」
+			 * 真正的创建对象，并生成其包装类 BeanWrapper，属于装饰(Decorator)模式
 			 */
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
 		}
@@ -603,7 +603,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			if (!mbd.postProcessed) {
 				try {
 					/**
-					 * 对象实例创建完成后，后置处理器再次介入(MergedBeanDefinitionPostProcessor)，可以修改 BeanDefinition 信息。
+					 * 对象实例化之后，后置处理器再次介入(MergedBeanDefinitionPostProcessor)，可以修改 BeanDefinition 信息。
 					 * MergedBeanDefinitionPostProcessor 的主要职责，就是用来合并一些信息到 BeanDefinition 中的，
 					 * 尤其是 bean 的属性上添加了 @Autoired、@Value、@Resource 等注解，这些注解上面的信息是需要被纳入到 BeanDefinition 中
 					 * 比如，MergedBeanDefinitionPostProcessor 有很多实现类都是和解析注解上的 BeanDefinition 信息有关的，
@@ -1268,8 +1268,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @see #instantiateBean
 	 */
 	protected BeanWrapper createBeanInstance(String beanName, RootBeanDefinition mbd, @Nullable Object[] args) {
-		// Make sure bean class is actually resolved at this point.
-		// 解析 BeanDefinition 中的 "class" 属性，确保现在的 bean 的 Class 已经被解析好了
+		/**
+		 * 解析 BeanDefinition 中的 "class" 属性，确保现在的 bean 的 Class 已经被解析好了
+		 * Make sure bean class is actually resolved at this point.
+		 */
 		Class<?> beanClass = resolveBeanClass(mbd, beanName);
 
 		/**
@@ -1504,7 +1506,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Give any InstantiationAwareBeanPostProcessors the opportunity to modify the
 		// state of the bean before properties are set. This can be used, for example,
 		// to support styles of field injection.
-		// 在属性赋值之前，后置处理器可以做些增强操作，可以中断初始化行为。(提供了一个修改 bean 状态的机会)
+		// 在属性赋值之前，后置处理器可以做些增强操作，可以中断初始化行为。(提供了一个修改 bean 状态的机会，默认未做任何操作)
 		if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
 			for (InstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().instantiationAware) {
 				if (!bp.postProcessAfterInstantiation(bw.getWrappedInstance(), beanName)) {
@@ -1519,14 +1521,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		 */
 		PropertyValues pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null);
 
-		// 获取 bean 的自动装配模式（根据名称注入/根据类型注入）
+		// 获取 bean 的自动装配模式(根据名称注入/根据类型注入/通过反射注入，这也是非 xml 配置的默认装配模式)
 		int resolvedAutowireMode = mbd.getResolvedAutowireMode();
 		// bean 属性的注入类型
 		if (resolvedAutowireMode == AUTOWIRE_BY_NAME || resolvedAutowireMode == AUTOWIRE_BY_TYPE) {
 			MutablePropertyValues newPvs = new MutablePropertyValues(pvs);
 			// Add property values based on autowire by name if applicable.
 			if (resolvedAutowireMode == AUTOWIRE_BY_NAME) {
-				// 根据名称注入
+				// 根据名称注入(使用 setter 方法，并且setter 方法的名称和属性名一致)
 				autowireByName(beanName, mbd, bw, newPvs);
 			}
 			// Add property values based on autowire by type if applicable.
@@ -1537,7 +1539,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			pvs = newPvs;
 		}
 
-		// 检查 Spring 容器中，是否注册过后置处理器 InstantiationAwareBeanPostProcessor
+		/**
+		 * 检查 Spring 容器中，是否注册过后置处理器 InstantiationAwareBeanPostProcessor
+		 * 它是 BeanPostProcessor 的子接口，可以在 Bean 生命周期的另外两个时期提供扩展的回调接口，
+		 * 即实例化 Bean 之前（调用 postProcessBeforeInstantiation方法）介入
+		 * 和实例化 Bean 之后（调用 postProcessAfterInstantiation 方法）介入
+		 */
 		boolean hasInstAwareBpps = hasInstantiationAwareBeanPostProcessors();
 		// 检查是否需要对属性进行引用检查
 		boolean needsDepCheck = (mbd.getDependencyCheck() != AbstractBeanDefinition.DEPENDENCY_CHECK_NONE);
@@ -1553,7 +1560,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			for (InstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().instantiationAware) {
 				/**
 				 * 处理属性的后置处理器开始工作，将注解元信息封装成键值对
-				 * 例如自动装配功能再此执行 AutowiredAnnotationBeanPostProcessor 处理 @Autowired、@Value 注解标注的原信息
+				 * 例如自动装配功能再此执行 AutowiredAnnotationBeanPostProcessor 处理 @Autowired、@Value 注解标注的元信息
 				 */
 				PropertyValues pvsToUse = bp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
 				if (pvsToUse == null) {

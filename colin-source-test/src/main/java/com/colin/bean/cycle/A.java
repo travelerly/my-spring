@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
  * @author colin
  * @create 2021-03-20 15:50
  */
-//@Component
+@Component
 public class A {
 
 	@Autowired

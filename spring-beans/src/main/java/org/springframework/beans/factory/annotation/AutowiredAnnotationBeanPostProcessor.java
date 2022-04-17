@@ -451,7 +451,6 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 		}
 	}
 
-
 	private InjectionMetadata findAutowiringMetadata(String beanName, Class<?> clazz, @Nullable PropertyValues pvs) {
 		/**
 		 * 如果 beanName 有值，则以 beanName 作为 cacheKey，否则使用类的全限定名作为 cacheKey
@@ -459,7 +458,10 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 		 */
 		String cacheKey = (StringUtils.hasLength(beanName) ? beanName : clazz.getName());
 
-		// 根据 cacheKey 从缓存中获取对应的信息数据。Quick check on the concurrent map first, with minimal locking.
+		/**
+		 * 根据 cacheKey 从缓存中获取对应注解 @Autowired、@Value 的注解元数据
+		 * Quick check on the concurrent map first, with minimal locking.
+		 */
 		InjectionMetadata metadata = this.injectionMetadataCache.get(cacheKey);
 		// 判断是否需要刷新当前的缓存数据
 		if (InjectionMetadata.needsRefresh(metadata, clazz)) {
@@ -472,8 +474,11 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 					/**
 					 * 从类 clazz 中获取注解元数据
 					 * 分析当前类的方法或属性是都有标注 @Autowired、@Value、@Inject 自动赋值的注解，然后封装为 InjectedElement
+					 * 即 bean 实例化之后，后置处理器将会执行此方法，将 @Autowired、@Value 的注解元数据放入缓存中，
+					 * 以便在 bean 属性赋值时使用，直接从缓存中获取注解元数据
 					 */
 					metadata = buildAutowiringMetadata(clazz);
+					// 缓存注解元数据
 					this.injectionMetadataCache.put(cacheKey, metadata);
 				}
 			}
