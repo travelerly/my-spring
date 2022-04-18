@@ -1,5 +1,7 @@
 package com.colin.aop;
 
+import org.springframework.stereotype.Component;
+
 /**
  * @author colin
  * @create 2021-03-23 16:51
@@ -8,7 +10,6 @@ package com.colin.aop;
  */
 //@Component
 public class HelloService {
-
 
 	public HelloService(){
 		System.out.println("...HelloService创建了...");

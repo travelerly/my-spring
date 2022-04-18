@@ -675,7 +675,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			/**
 			 * 为创建好的对象的每个属性进行赋值。@Autowired 发生在这里
 			 * bean 属性相关的信息都存放在 BeanDefinition 中
-			 * todo：验证（若当前要注入的属性是 AOP 的目标类，并且存在循环依赖，则会为这个属性创建 AOP 代理对象）
+			 * 若当前要注入的属性是 AOP 的目标类，并且存在循环依赖，则会为这个属性创建 AOP 代理对象
 			 */
 			populateBean(beanName, mbd, instanceWrapper);
 
@@ -1058,7 +1058,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
 			/**
 			 * AnnotationAwareAspectJAutoProxyCreator(创建 AOP 动态代理对象)
-			 * AutowirAnnotationBeanPostProcessor(没做任何处理)
+			 * AutowiredAnnotationBeanPostProcessor(没做任何处理)
 			 */
 			for (SmartInstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().smartInstantiationAware) {
 				exposedObject = bp.getEarlyBeanReference(exposedObject, beanName);

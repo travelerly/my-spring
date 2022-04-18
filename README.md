@@ -222,6 +222,36 @@ earlyProxyReferences 其实就是用于记录哪些 Bean 被执行过 AOP，防�
 
 
 
+### Spring 5.0 通知方法执行顺序
+
+#### 正常执行顺序
+
+1. 前置通知
+2. 目标方法
+3. 返回通知
+4. 后置通知
+
+#### 异常执行顺序
+
+1. 前置通知
+2. 目标方法
+3. 异常通知
+4. 后置通知
+
+```java
+try {
+	前置通知
+	目标方法
+	返回通知
+} catch (Exception e) {
+	异常通知
+} finally {
+	后置通知
+}
+```
+
+
+
 ### AOP增强流程
 
 ![](src/docs/spring/AOP增强流程.jpg)
@@ -274,7 +304,43 @@ earlyProxyReferences 其实就是用于记录哪些 Bean 被执行过 AOP，防�
 
 ## 动态代理
 
+### 动态代理对象的创建时机分为两处：
 
+#### 属性赋值时：
+
+**若当前注入的属性是 AOP 的目标类，且存在循环依赖，则会为这个属性创建 AOP代理对象**
+
+例如：
+
+1. AService 中注入 BService，BService 中注入 AService，且 AService 为 AOP 的目标类，
+2. 则在为 AService 的属性赋值时，需要注入 BService，
+3. 此时要创建 BService，BService 实例化后，需要为其属性赋值，注入 AService，
+4. 而此时 AService 未属性赋值和初始化的早期引用对象位于三级缓存中，其又是 AOP 目标类，需要为其创建 AOP 代理对象，
+5. 当执行 objectFactory.getObject() 回调时，最终会调用 getEarlyBeanReference() 方法，来获取 AService 的早期引用对象，
+6. 此时 AbstractAutoProxyCreator 会介入，会为其创建 AOP 代理对象，
+7. 所以 BService 属性赋值注入的是 AService 的代理对象……
+
+```java
+public class AService {
+    @Autowired
+    private BService bService;
+}
+
+public class BService {
+    @Autowired
+    private AService aService;
+}
+```
+
+
+
+#### 初始化时：
+
+**若当前类是 AOP 目标类，且不存在循环依赖，则会为其创建 AOP 代理对象。**
+
+AService 在初始化之后，后置处理器 AbstractAutoProxyCreator 的后置处理逻辑介入，为其创建 AOP 代理对象。
+
+---
 
 ## Spring 事务
 

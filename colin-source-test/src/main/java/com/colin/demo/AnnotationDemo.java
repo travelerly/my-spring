@@ -1,6 +1,7 @@
 package com.colin.demo;
 
 import com.colin.aop.HelloService;
+import com.colin.aop.cycle.AService;
 import com.colin.bean.ContextBean;
 import com.colin.bean.Hello;
 import com.colin.bean.HelloFactory;
@@ -23,12 +24,16 @@ public class AnnotationDemo {
 
 	public static void main(String[] args) {
 		/*aopTest();*/
-		/*testBean();*/
+		testBean();
 		/*testFactoryBean();*/
-		testCycle();
+		/*testCycle();*/
 		/*listenerTest();*/
+		/*testCycleAop();*/
 	}
 
+	/**
+	 * 测试事件
+	 */
 	private static void listenerTest() {
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
 		AppEventPublisher appEventPublisher = applicationContext.getBean(AppEventPublisher.class);
@@ -38,6 +43,9 @@ public class AnnotationDemo {
 		appEventPublisher.publish(new ChangeEvent(appEventPublisher,"ending……"));
 	}
 
+	/**
+	 * 测试 aop
+	 */
 	private static void aopTest() {
 		/**
 		 * AopOpenConfig 开启基于注解的 aop 功能
@@ -51,6 +59,9 @@ public class AnnotationDemo {
 		System.out.println("==============");
 	}
 
+	/**
+	 * 测试普通 bean
+	 */
 	private static void testBean() {
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
 		Hello hello = applicationContext.getBean(Hello.class);
@@ -58,6 +69,9 @@ public class AnnotationDemo {
 		System.out.println(hello==hello2);
 	}
 
+	/**
+	 * 测试工厂 bean
+	 */
 	private static void testFactoryBean(){
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
 		HelloFactory helloFactory = applicationContext.getBean(HelloFactory.class);
@@ -66,6 +80,9 @@ public class AnnotationDemo {
 		System.out.println("hello: "+ hello);
 	}
 
+	/**
+	 * 测试 bean 中是否可以注入 ioc 容器
+	 */
 	private static void testAutowiredContext() {
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
 		ContextBean contextBean = applicationContext.getBean(ContextBean.class);
@@ -73,9 +90,22 @@ public class AnnotationDemo {
 		System.out.println("注解版 Bean 中是否可以注入 ioc 容器==>"+(applicationContext==context));
 	}
 
+	/**
+	 * 测试循环依赖
+	 */
 	private static void testCycle(){
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
 		A a = applicationContext.getBean(A.class);
 		B b = applicationContext.getBean(B.class);
+	}
+
+	/**
+	 * 测试循环依赖的 aop
+	 */
+	private static void testCycleAop(){
+		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
+		AService aService = applicationContext.getBean(AService.class);
+		String result = aService.helloCycleAspect("colin");
+		System.out.println(result);
 	}
 }

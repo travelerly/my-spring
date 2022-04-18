@@ -10,8 +10,8 @@ import java.util.Arrays;
  * @author colin
  * @create 2022-03-18 12:13
  */
-//@Component
-//@Aspect
+/*@Component
+@Aspect*/
 public class CycleAspect {
 
     public CycleAspect() {
