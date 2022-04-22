@@ -76,7 +76,6 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	/**
 	 *  一级缓存，缓存所有单实例对象，是单例对象池，即为 IOC 容器-单例池
 	 *  key：beanName，value：经历了完整生命周期的 bean 实例对象
-	 *
 	 *  Cache of singleton objects: bean name to bean instance.
 	 */
 	private final Map<String, Object> singletonObjects = new ConcurrentHashMap<>(256);
@@ -84,7 +83,6 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	/**
 	 * 三级缓存，单例工厂池
 	 * key：beanName，value：ObjectFactory(生成 bean 的工厂)
-	 *
 	 * Cache of singleton factories: bean name to ObjectFactory.
 	 */
 	private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(16);
@@ -92,7 +90,6 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	/**
 	 * 二级缓存，早期单例池。
 	 * key：beanName，value：未完成生命周期的 bean 实例对象（Bean 的属性尚未赋值和初始化）。
-	 *
 	 * Cache of early singleton objects: bean name to bean instance.
 	 */
 	private final Map<String, Object> earlySingletonObjects = new ConcurrentHashMap<>(16);

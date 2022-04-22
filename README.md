@@ -18,7 +18,7 @@ Spring 暴露给程序员的使用方式是，要么写一个 xml 文件、要�
 
 
 
-### ApplicationContext 和 BeanFactory 的区别和作用：
+### ApplicationContext 与 BeanFactory 的区别与作用：
 
 1. ApplicationContext 实现了 BeanFactory 接口，所以是 BeanFactory；
 2. AnnotationConfigApplicationContext 组合了 DefaultListableBeanFactory，在 AnnotationConfigApplicationContext 执行构造方法时，先通过其父类 GenericApplicationContext 的构造方法创建了 DefaultListableBeanFactory，DefaultListableBeanFactory 及其父类创初始化了用于保存 Bean 定义信息的集合、保存实例的各种池、Bean 定义信息的扫描器和读取器、底层的后置处理器等，然后 AnnotationConfigApplicationContext 再创建 BeanDefinition 的扫描器和读取器，并注册主配置类，最后调用 refresh() 方法刷新容器；
