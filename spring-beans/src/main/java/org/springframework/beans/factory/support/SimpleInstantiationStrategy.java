@@ -151,6 +151,11 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 
 			Method priorInvokedFactoryMethod = currentlyInvokedFactoryMethod.get();
 			try {
+				/**
+				 * todo：
+				 * 将当前正在调用的工厂方法保存在 ThreadLocal 中
+				 * 例如 @Bean 标注的组件的方法可视为工厂方法
+				 */
 				currentlyInvokedFactoryMethod.set(factoryMethod);
 				Object result = factoryMethod.invoke(factoryBean, args);
 				if (result == null) {

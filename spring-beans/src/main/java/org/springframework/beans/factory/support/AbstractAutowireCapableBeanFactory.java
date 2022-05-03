@@ -1291,6 +1291,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		/**
 		 * 如果属性 "factory-mothod" 不为空，则通过配置好的工厂方法来实例化当前 bean
 		 * @Bean 标注的组件，可能会调用此方法创建出来
+		 * todo：@Bean 标注的组件类似于用一个工厂方法来创建对象
 		 */
 		if (mbd.getFactoryMethodName() != null) {
 			return instantiateUsingFactoryMethod(beanName, mbd, args);

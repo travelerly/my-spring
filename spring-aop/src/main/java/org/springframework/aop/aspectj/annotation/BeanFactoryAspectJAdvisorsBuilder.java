@@ -83,7 +83,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 	public List<Advisor> buildAspectJAdvisors() {
 		// 获取所有标注了注解 @Aspect 的切面的名字
 		List<String> aspectNames = this.aspectBeanNames;
-		// 双检查锁的写法
+		// DCL：双检查锁的写法(双端检锁)
 		if (aspectNames == null) {
 			synchronized (this) {
 				aspectNames = this.aspectBeanNames;
