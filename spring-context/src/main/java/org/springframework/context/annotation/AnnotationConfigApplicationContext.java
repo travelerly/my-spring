@@ -66,10 +66,19 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 */
 	public AnnotationConfigApplicationContext() {
 		StartupStep createAnnotatedBeanDefReader = this.getApplicationStartup().start("spring.context.annotated-bean-reader.create");
-		// 创建一个（注解版的）BeanDefinition 读取器。（加载了底层功能组件的后置处理器的 BeanDefinition）
+		/**
+		 * 创建一个（注解版的）BeanDefinition 读取器
+		 * 加载了底层功能组件的后置处理器的 BeanDefinition
+		 */
 		this.reader = new AnnotatedBeanDefinitionReader(this);
 		createAnnotatedBeanDefReader.end();
-		// 创建一个类路径下的扫描器。（扫描需要导入的所有 Bean 信息并准备了一些环境变量等信息）
+		/**
+		 * 创建一个类路径下的扫描器，可以用来扫描包或者类，继而转换为 BeanDefinition
+		 * Spring 默认的扫描包所使用的扫描器，并不是这个 scanner 对象，
+		 * 而是在执行后置处理器 ConfigurationClassPostProcessor 去扫描包时会新创建一个 ClassPathBeanDefinitionScanner 对象
+		 * 这里的 scanner 仅仅是为了程序员可以手动调用 AnnotationConfigApplicationContext#scanner() 方法，
+		 * 以实现在没有指定配置类的时候，能手动扫描包
+		 */
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
 

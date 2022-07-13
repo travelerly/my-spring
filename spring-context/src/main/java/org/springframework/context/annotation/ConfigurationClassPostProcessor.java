@@ -88,6 +88,12 @@ import org.springframework.util.ClassUtils;
  * @author Sam Brannen
  * @since 3.0
  */
+
+/**
+ * 该类会解析标注了注解 @Configuration 的配置类，
+ * 还会解析标注了注解 @ComponentScan、@ComponentScans 注解扫描的包，
+ * 以及解析 @Import 等注解
+ */
 public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPostProcessor,
 		PriorityOrdered, ResourceLoaderAware, ApplicationStartupAware, BeanClassLoaderAware, EnvironmentAware {
 

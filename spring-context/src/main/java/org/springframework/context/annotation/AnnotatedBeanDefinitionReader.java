@@ -83,12 +83,18 @@ public class AnnotatedBeanDefinitionReader {
 	public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry, Environment environment) {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 		Assert.notNull(environment, "Environment must not be null");
-		// 初始化成员变量 registry
+		/**
+		 * 初始化成员变量 registry
+		 */
 		this.registry = registry;
+		/**
+		 * 用户处理条件注解 @Conditional
+		 */
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
 		/**
 		 * 注册一些和注解相关的后置处理器的 BeanDefinition
-		 * 配置类后置处理器、自动装配功能后置处理器、JSR-250 注解支持的后置处理器、JPA 功能支持的后置处理器、事件方法功能的后置处理器、事件工厂功能的后置处理器的定义信息
+		 * 配置类后置处理器、自动装配功能后置处理器、JSR-250 注解支持的后置处理器、JPA 功能支持的后置处理器、
+		 * 事件方法功能的后置处理器、事件工厂功能的后置处理器的定义信息
 		 */
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 	}
@@ -254,18 +260,24 @@ public class AnnotatedBeanDefinitionReader {
 	private <T> void doRegisterBean(Class<T> beanClass, @Nullable String name,
 			@Nullable Class<? extends Annotation>[] qualifiers, @Nullable Supplier<T> supplier,
 			@Nullable BeanDefinitionCustomizer[] customizers) {
-		// 将主配置类封装成 BeanDefinition
+		// 将主配置类封解析成 BeanDefinition，即将添加了注解 @Configuration 的类，解析成 BeanDefinition
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass);
+
+		// 判断是否需要跳过注解，Spring 中有一个 @Condition 注解，当条件不满足时，这个 bean 就不会被解析
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
 			return;
 		}
 
 		abd.setInstanceSupplier(supplier);
+		// 解析 bean 的作用域，默认为单例
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
 		abd.setScope(scopeMetadata.getScopeName());
-		// 生成置类名称
+		// 生成配置类名称
 		String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
-		// 处理常规的注解定义信息 @Lazy、@Primary、@Description、@Role、@DependsOn
+		/**
+		 * 解析常规通用注解，并填充到 AnnotatedGenericBeanDefinition 中
+		 * 处理常规的注解定义信息 @Lazy、@Primary、@Description、@Role、@DependsOn
+		 */
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
 		if (qualifiers != null) {
 			for (Class<? extends Annotation> qualifier : qualifiers) {
@@ -288,7 +300,13 @@ public class AnnotatedBeanDefinitionReader {
 
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
-		// 注册主配置类的定义信息。
+		/**
+		 * 注册主配置类的定义信息
+		 * 调用 DefaultListableBeanFactory#registerBeanDefinition() 方法进行注册
+		 * DefaultListableBeanFactory 维护着一系列信息，比如 beanDefinitionNames、beanDefinitionMap
+		 * beanDefinitionNames 是一个 List<String>，用来保护 beanName
+		 * beanDefinitionMap 是一个 map，用来保护 beanName 和 BeanDefinition
+		 */
 		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);
 	}
 
