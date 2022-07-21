@@ -72,7 +72,12 @@ final class PostProcessorRegistrationDelegate {
 		// to ensure that your proposal does not result in a breaking change:
 		// https://github.com/spring-projects/spring-framework/issues?q=PostProcessorRegistrationDelegate+is%3Aclosed+label%3A%22status%3A+declined%22
 
-		// Invoke BeanDefinitionRegistryPostProcessors first, if any.
+		// ********************* 调用 BeanDefinitionRegistryPostProcessor 的后置处理器  Begin *********************
+
+		/**
+		 * 存储已处理的后置处理器
+		 * Invoke BeanDefinitionRegistryPostProcessors first, if any.
+		 */
 		Set<String> processedBeans = new HashSet<>();
 
 		// 判断 BeanFactory 是否是 BeanDefinitionRegistry 接口的实现类
@@ -80,14 +85,15 @@ final class PostProcessorRegistrationDelegate {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
 			// 存储普通的 BeanFactoryPostProcessor 工厂后置处理器
 			List<BeanFactoryPostProcessor> regularPostProcessors = new ArrayList<>();
-			// 存储 BeanDefinitionRegistryPostProcessor 类型的 BeanFactoryPostProcessor 工厂后置处理器
+			// 存储 BeanDefinitionRegistryPostProcessor 类型的 bean 工厂后置处理器
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
 
-			// 先拿到底层默认的所有的工厂后置处理器 beanFactoryPostProcessor 进行遍历（默认为空）
+			// 先拿到底层默认的所有的工厂后置处理器 beanFactoryPostProcessor 进行遍历（*****默认为空*****）
 			for (BeanFactoryPostProcessor postProcessor : beanFactoryPostProcessors) {
 				if (postProcessor instanceof BeanDefinitionRegistryPostProcessor) {
-					// 处理 BeanDefinitionRegistryPostProcessor 类型的工厂后置处理器
-					// 后置处理器类型转换
+					/**
+					 * 后置处理器类型转换，处理 BeanDefinitionRegistryPostProcessor 类型的工厂后置处理器
+					 */
 					BeanDefinitionRegistryPostProcessor registryProcessor =
 							(BeanDefinitionRegistryPostProcessor) postProcessor;
 					// 首先执行 BeanDefinitionRegistryPostProcessor 中的 postProcessBeanDefinitionRegistry()
@@ -109,9 +115,8 @@ final class PostProcessorRegistrationDelegate {
 			List<BeanDefinitionRegistryPostProcessor> currentRegistryProcessors = new ArrayList<>();
 
 			/**
-			 * 首先；从工厂中获取所有的既实现了优先级（PriorityOrdered）接口，又实现了 BeanDefinitionRegistryPostProcessor 接口的实现类的名字
-			 * 例如 ConfigurationClassPostProcessor
-			 * First, invoke the BeanDefinitionRegistryPostProcessors that implement PriorityOrdered.
+			 * 首先；从容器中获取所有的既实现了优先级（PriorityOrdered）接口，又实现了 BeanDefinitionRegistryPostProcessor 接口的实现类的名字
+			 * 例如：internalConfigurationAnnotationProcessor，类型是 ConfigurationClassPostProcessor
 			 */
 			String[] postProcessorNames =
 					beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
@@ -119,6 +124,7 @@ final class PostProcessorRegistrationDelegate {
 				if (beanFactory.isTypeMatch(ppName, PriorityOrdered.class)) {
 					// 从容器中获得这个后置处理器「getBean 整个创建过程」，并放入这个集合中
 					currentRegistryProcessors.add(beanFactory.getBean(ppName, BeanDefinitionRegistryPostProcessor.class));
+					// 同时也加入到  processedBeans 集合中
 					processedBeans.add(ppName);
 				}
 			}
@@ -130,7 +136,8 @@ final class PostProcessorRegistrationDelegate {
 
 			/**
 			 * 执行 BeanDefinitionRegistryPostProcessor 中的 postProcessBeanDefinitionRegistry() 方法
-			 * 即执行 BeanDefinitionRegistry 的后置处理功能。配置类的后置处理器 ConfigurationClassPostProcessor，会在此解析配置类
+			 * 即执行 BeanDefinitionRegistry 的后置处理功能
+			 * 典型的就是配置类的后置处理器 ConfigurationClassPostProcessor，会在此解析配置类，进行 bean 定义的加载、包扫描、@Import 等等操作
 			 */
 			invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry, beanFactory.getApplicationStartup());
 			// 执行完成后，清空集合，准备下一轮
@@ -194,7 +201,7 @@ final class PostProcessorRegistrationDelegate {
 			/**
 			 * 统一调用 BeanDefinitionRegistryPostProcessor 类型的工厂后置处理器的 postProcessBeanFactory 方法
 			 * registryProcessors 中存储 BeanDefinitionRegistryPostProcessor 类型的 BeanFactoryPostProcessor 工厂后置处理器
-			 * Now, invoke the postProcessBeanFactory callback of all processors handled so far.
+			 * 配置类的后置处理器 ConfigurationClassPostProcessor 会再次执行后置处理方法，主要是为配置类创建 cglib 动态代理
 			 */
 			invokeBeanFactoryPostProcessors(registryProcessors, beanFactory);
 
@@ -215,10 +222,14 @@ final class PostProcessorRegistrationDelegate {
 			invokeBeanFactoryPostProcessors(beanFactoryPostProcessors, beanFactory);
 		}
 
+		// ********************* 调用 BeanDefinitionRegistryPostProcessor 的后置处理器  End *********************
+
 		/**
 		 * 以上环节，参数 beanFactoryPostProcessors，以及工厂中所有类型为 BeanDefinitionRegistryPostProcessor 的 bean 就已经全部都处理完成了。
 		 * 接下来处理工厂中只实现了接口 BeanFactoryPostProcessor 的 bean
 		 */
+
+		// ********************* 调用 BeanFactoryPostProcessor 的后置处理器  Begin *********************
 
 		// Do not initialize FactoryBeans here: We need to leave all regular beans
 		// uninitialized to let the bean factory post-processors apply to them!
@@ -256,7 +267,6 @@ final class PostProcessorRegistrationDelegate {
 
 		/**
 		 * 利用优先级排序（实现了 PriorityOrdered 接口）
-		 * First, invoke the BeanFactoryPostProcessors that implement PriorityOrdered.
 		 */
 		sortPostProcessors(priorityOrderedPostProcessors, beanFactory);
 		// 执行工厂后置处理器中的 postProcessBeanFactory 方法

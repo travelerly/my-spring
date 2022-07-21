@@ -78,6 +78,7 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 		// 找到这个类的所有的增强器 Advisor，例如切面类中的各个通知方法
 		List<Advisor> advisors = findEligibleAdvisors(beanClass, beanName);
 		if (advisors.isEmpty()) {
+			// 如果没找到增强器 Advisor，则不创建代理
 			return DO_NOT_PROXY;
 		}
 		return advisors.toArray();

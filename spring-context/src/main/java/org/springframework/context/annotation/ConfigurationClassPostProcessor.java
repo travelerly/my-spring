@@ -283,7 +283,10 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			processConfigBeanDefinitions((BeanDefinitionRegistry) beanFactory);
 		}
 
-		// 对容器中的配置类进行增强处理(为配置类创建 cglib 动态代理类)
+		/**
+		 * 对容器中的配置类进行增强处理(为配置类创建 cglib 动态代理类)
+		 * 使用 cglib 对配置类进行动态代理，因为 @Bean 方法会进行创建 Bean 实例
+		 */
 		enhanceConfigurationClasses(beanFactory);
 		// 注册 bean 后置处理器 ImportAwareBeanPostProcessor
 		beanFactory.addBeanPostProcessor(new ImportAwareBeanPostProcessor(beanFactory));
@@ -308,6 +311,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			BeanDefinition beanDef = registry.getBeanDefinition(beanName);
 
 			/**
+			 * 判断当前遍历到的配置类对象是否被解析过
 			 * 判断当前 BeanDefinition 是否存在属性名称为 ConfigurationClassPostProcessor.configurationClass 的值
 			 * 如果不存在，意味着配置类的 BeanDefinition 并没有被处理过。
 			 * 第一次执行该方法时，默认不存在。
@@ -319,9 +323,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			}
 
 			/**
-			 * 检查给定的 Bean 定义是否为配置类。
-			 * 判断当前 BeanDefinition 是否满足配置类的候选条件
-			 * 就是判断是否属于添加了注解 @Configuration 的注解配置类
+			 * 判断当前遍历到的配置类是否为标注了注解 @Configuration 的(完整)配置类
 			 */
 			else if (ConfigurationClassUtils.checkConfigurationClassCandidate(beanDef, this.metadataReaderFactory)) {
 				/**
@@ -381,7 +383,10 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		do {
 			StartupStep processConfig = this.applicationStartup.start("spring.context.config-classes.parse");
 
-			// 解析配置类，所有需要扫描进来的组件的 BeanDefinition 都已经准备好了。「例如标注了 @Component 注解的类信息会被注册进来」
+			/**
+			 * 解析配置类
+			 * 所有需要扫描进来的组件的 BeanDefinition 都已经准备好了，例如标注了 @Component 注解的类信息会被注册进来
+			 */
 			parser.parse(candidates);
 			parser.validate();
 
@@ -511,6 +516,14 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 					}
 				}
 			}
+
+			/**
+			 * 只有"full"版配置类才会创建 cglib 动态代理
+			 * 虽然在指定配置的时候，可以不标注注解 @Configuration，但其与标注了注解 @Configuration 的区别在于：
+			 * 配置类中一个 @Bean 的使用方法时引用另一个 Bean 的时候，
+			 * 1.如果没有标注注解 @Configuration，就会重复加载 Bean
+			 * 2.如果标注了注解 @Configuration，会在这里创建 cglib 代理，当调用 @Bean 方法时会先检测容器中是否存在这个 Bean，就不会重复加载 Bean
+			 */
 			if (ConfigurationClassUtils.CONFIGURATION_CLASS_FULL.equals(configClassAttr)) {
 				// 组件定义信息必须是 AbstractBeanDefinition 类型，才能对其进行增强
 				if (!(beanDef instanceof AbstractBeanDefinition)) {
@@ -543,7 +556,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			// Set enhanced subclass of the user-specified bean class
 			Class<?> configClass = beanDef.getBeanClass();
 
-			// 对组件进行增强，即对这个组件进行 cglib 的代理
+			// 对配置类进行动态代理增强，即对这个组件进行 cglib 的动态代理
 			Class<?> enhancedClass = enhancer.enhance(configClass, this.beanClassLoader);
 
 			if (configClass != enhancedClass) {
@@ -551,7 +564,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 					logger.trace(String.format("Replacing bean definition '%s' existing class '%s' with " +
 							"enhanced class '%s'", entry.getKey(), configClass.getName(), enhancedClass.getName()));
 				}
-				// 将代理类重新设置到该组件的定义信息中
+				// 修改配置类的 bean 定义信息的 Class 属性，在创建配置类实例的时候会创建 cglib 的动态代理对象
 				beanDef.setBeanClass(enhancedClass);
 			}
 		}

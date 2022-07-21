@@ -23,8 +23,8 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 public class AnnotationDemo {
 
 	public static void main(String[] args) {
-		/*aopTest();*/
-		testBean();
+		aopTest();
+		/*testBean();*/
 		/*testFactoryBean();*/
 		/*testCycle();*/
 		/*listenerTest();*/
@@ -48,7 +48,7 @@ public class AnnotationDemo {
 	 */
 	private static void aopTest() {
 		/**
-		 * AopOpenConfig 开启基于注解的 aop 功能
+		 * @EnableAspectJAutoProxy 开启基于注解的 aop 功能
 		 * LogAspect 是普通切面类
 		 * CycleAspect 是验证三级缓存解决循环引用的切面类
 		 */

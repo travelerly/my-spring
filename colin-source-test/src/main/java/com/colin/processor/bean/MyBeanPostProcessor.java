@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 /**
  *
- * Bean组件的后置增强处理器
+ * Bean 组件的后置增强处理器
  *
  * @author colin
  * @create 2021-03-17 14:20
@@ -18,13 +18,14 @@ public class MyBeanPostProcessor implements BeanPostProcessor {
 		System.out.println("====MyBeanPostProcessor=====");
 	}
 
+	// 初始化之后进行增强
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		System.out.println("MyBeanPostProcessor...postProcessAfterInitialization..."+bean+"==>"+beanName);
 		return bean;
 	}
 
-	// 能改变之前创建的实例对象
+	// 初始化之前进行增强。能改变之前创建的实例对象
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		System.out.println("MyBeanPostProcessor...postProcessBeforeInitialization..."+bean+"==>"+beanName);

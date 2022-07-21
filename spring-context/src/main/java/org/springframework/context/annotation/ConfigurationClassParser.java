@@ -211,6 +211,7 @@ class ConfigurationClassParser {
 	}
 	// 解析配置类（注解类型）
 	protected final void parse(AnnotationMetadata metadata, String beanName) throws IOException {
+		// 第一步：将配置类源信息和 beanName 包装成一个 ConfigurationClass 对象
 		processConfigurationClass(new ConfigurationClass(metadata, beanName), DEFAULT_EXCLUSION_FILTER);
 	}
 
@@ -255,7 +256,10 @@ class ConfigurationClassParser {
 		// Recursively process the configuration class and its superclass hierarchy.
 		SourceClass sourceClass = asSourceClass(configClass, filter);
 		do {
-			// 解析配置类中的所有标注了 @Component、@ComponentScans、@ImportResource、@PropertySources、@Bean、@Import 等注解的的配置信息
+			/**
+			 * 解析配置类
+			 * 解析所有标注了 @Component、@ComponentScans、@ImportResource、@PropertySources、@Bean、@Import 等注解的的配置信息
+			 */
 			sourceClass = doProcessConfigurationClass(configClass, sourceClass, filter);
 		}
 		while (sourceClass != null);
@@ -301,7 +305,10 @@ class ConfigurationClassParser {
 		if (!componentScans.isEmpty() &&
 				!this.conditionEvaluator.shouldSkip(sourceClass.getMetadata(), ConfigurationPhase.REGISTER_BEAN)) {
 			for (AnnotationAttributes componentScan : componentScans) {
-				// 使用 Scanner 把 ComponentScans 指定的包下的所有组件都扫描进来。The config class is annotated with @ComponentScan -> perform the scan immediately
+				/**
+				 * 使用 Scanner 把 ComponentScans 指定的包下的所有组件都扫描进来。
+				 * The config class is annotated with @ComponentScan -> perform the scan immediately
+				 */
 				Set<BeanDefinitionHolder> scannedBeanDefinitions =
 						this.componentScanParser.parse(componentScan, sourceClass.getMetadata().getClassName());
 				// Check the set of scanned definitions for any further config classes and parse recursively if needed

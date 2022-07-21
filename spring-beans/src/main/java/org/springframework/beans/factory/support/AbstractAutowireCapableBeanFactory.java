@@ -1246,7 +1246,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	@Nullable
 	protected Object applyBeanPostProcessorsBeforeInstantiation(Class<?> beanClass, String beanName) {
 		for (InstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().instantiationAware) {
-			// 执行后置处理器的前置处理方法
+			// 执行后置处理器的前置处理方法。（AnnotationAwareAspectJAutoProxyCreator extend AbstractAutoProxyCreator 介入，但未做处理）
 			Object result = bp.postProcessBeforeInstantiation(beanClass, beanName);
 			if (result != null) {
 				return result;
@@ -1562,6 +1562,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				/**
 				 * 处理属性的后置处理器开始工作，将注解元信息封装成键值对
 				 * 例如自动装配功能再此执行 AutowiredAnnotationBeanPostProcessor 处理 @Autowired、@Value 注解标注的元信息
+				 * @Autowired 会在此进行 DI 依赖注入
 				 */
 				PropertyValues pvsToUse = bp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
 				if (pvsToUse == null) {

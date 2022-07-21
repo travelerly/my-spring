@@ -106,6 +106,14 @@ Spring 容器启动时，先加载一些底层的后置处理器，例如 Config
 
 ![](src/docs/spring/容器刷新完整流程.jpg)
 
+
+
+### 后置处理器
+
+
+
+
+
 ---
 
 ## Spring 监听器原理
@@ -219,6 +227,26 @@ earlyProxyReferences 其实就是用于记录哪些 Bean 被执行过 AOP，防�
 ---
 
 ## AOP
+
+### 开启 AOP
+
+使用注解 @EnableAspectJAutoProxy 开启基于注解的 AOP 功能。@EnableAspectJAutoProxy 会 @Import(AspectJAutoProxyRegistrar.class)，而 AspectJAutoProxyRegistrar 会注册一个 AnnotationAwareAspectJAutoProxyCreator，其又实现了 InstantiationAwareBeanPostProcessor 接口，是一个后置处理器，可以在 bean 实例化之前介入，即利用 postProcessBeforeInstantiation() 方法来对 bean 进行增强。
+
+AnnotationAwareAspectJAutoProxyCreator 会利用 postProcessBeforeInstantiation 方法将容器中所有标注了 @Aspect、@Before、@After、@AfterThrowing 等注解解析成 Advisor，Advisor 是一个包含了 Advise 和 pointcut 的增强器。即 Spring 容器在加载配置文件时(一般情况 @EnableAspectJAutoProxy  注解添加在配置文件上)，AnnotationAwareAspectJAutoProxyCreator 会将每一个通知方法都解析成一个 Advisor。
+
+
+
+### 创建动态代理
+
+在创建 bean 时，Spring 会为 AOP 的目标类创建动态代理对象。Spring 会在目标类初始化以后，利用后置处理器执行 applyBeanPostProcessorsAfterInitialization() 方法，来对目标类进行增强，即创建动态代理对象。在创建动态代理时，会先找到容器中所有的增强器，即 Advisor，与当前目标类进行匹配，将匹配到的增强器进行排序，然后设置到代理工厂中，由代理工厂创建出代理对象。
+
+代理工厂会根据目标类是否实现了接口，来判断使用 Cglib 动态代理还是使用 JDK 动态代理。
+
+
+
+### 调用代理
+
+调用目标方法时，跳转至代理的回调方法，例如：CglibAopProxy#intercept()，使用代理工厂获取容器中所有的增强器 Advisor，遍历这些 Advisor，与当前目标方法进行匹配，生成增强器链，生成的过程中，将增强器 Advisor 转换成拦截器 Interceptor 类型，最终返回的是拦截器类型的集合，即拦截器链，并缓存到 methodCache 中，将拦截器链封装到 CglibMethodInvocation 中，然后执行 proceed() 方法，执行拦截器链。
 
 
 
