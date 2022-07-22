@@ -230,7 +230,7 @@ earlyProxyReferences 其实就是用于记录哪些 Bean 被执行过 AOP，防�
 
 ### 开启 AOP
 
-使用注解 @EnableAspectJAutoProxy 开启基于注解的 AOP 功能。@EnableAspectJAutoProxy 会 @Import(AspectJAutoProxyRegistrar.class)，而 AspectJAutoProxyRegistrar 会注册一个 AnnotationAwareAspectJAutoProxyCreator，其又实现了 InstantiationAwareBeanPostProcessor 接口，是一个后置处理器，可以在 bean 实例化之前介入，即利用 postProcessBeforeInstantiation() 方法来对 bean 进行增强。
+使用注解 @EnableAspectJAutoProxy 开启基于注解的 AOP 功能。@EnableAspectJAutoProxy 会 @Import(AspectJAutoProxyRegistrar.class)，Spring 刷新容器时，会对工厂进行增强，由配置文件解析器对所有配置文件进行解析，就会解析到配置类的 @Import 注解，就会导入 AspectJAutoProxyRegistrar，而 AspectJAutoProxyRegistrar 会注册一个 AnnotationAwareAspectJAutoProxyCreator，其又实现了 InstantiationAwareBeanPostProcessor 接口，是一个后置处理器，可以在 bean 实例化之前介入，即利用 postProcessBeforeInstantiation() 方法来对 bean 进行增强。
 
 AnnotationAwareAspectJAutoProxyCreator 会利用 postProcessBeforeInstantiation 方法将容器中所有标注了 @Aspect、@Before、@After、@AfterThrowing 等注解解析成 Advisor，Advisor 是一个包含了 Advise 和 pointcut 的增强器。即 Spring 容器在加载配置文件时(一般情况 @EnableAspectJAutoProxy  注解添加在配置文件上)，AnnotationAwareAspectJAutoProxyCreator 会将每一个通知方法都解析成一个 Advisor。
 

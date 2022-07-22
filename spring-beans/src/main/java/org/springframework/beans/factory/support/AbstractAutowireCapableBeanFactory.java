@@ -1246,7 +1246,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	@Nullable
 	protected Object applyBeanPostProcessorsBeforeInstantiation(Class<?> beanClass, String beanName) {
 		for (InstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().instantiationAware) {
-			// 执行后置处理器的前置处理方法。（AnnotationAwareAspectJAutoProxyCreator extend AbstractAutoProxyCreator 介入，但未做处理）
+			// 执行后置处理器的前置处理方法
 			Object result = bp.postProcessBeforeInstantiation(beanClass, beanName);
 			if (result != null) {
 				return result;
