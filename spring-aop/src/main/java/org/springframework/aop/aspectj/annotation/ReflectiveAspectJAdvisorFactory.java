@@ -69,6 +69,7 @@ import org.springframework.util.comparator.InstanceComparator;
  * @since 2.0
  */
 @SuppressWarnings("serial")
+// (利用反射)创建增强器的工厂
 public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFactory implements Serializable {
 
 	/**
@@ -123,21 +124,34 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 	}
 
 
-	// 找到切面中定义的所有的增强器
+	/**
+	 * 找到切面中定义的所有的增强器
+	 * @param aspectInstanceFactory the aspect instance factory
+	 * (not the aspect instance itself in order to avoid eager instantiation)
+	 * @return
+	 */
 	@Override
 	public List<Advisor> getAdvisors(MetadataAwareAspectInstanceFactory aspectInstanceFactory) {
+		// 获取标记的 @Aspect 注解的类
 		Class<?> aspectClass = aspectInstanceFactory.getAspectMetadata().getAspectClass();
+		// 获取切面类的名称
 		String aspectName = aspectInstanceFactory.getAspectMetadata().getAspectName();
+		// 校验切面类
 		validate(aspectClass);
 
 		// We need to wrap the MetadataAwareAspectInstanceFactory with a decorator
-		// so that it will only instantiate once.
+		// so that it will only instantiate once.包装一下
 		MetadataAwareAspectInstanceFactory lazySingletonAspectInstanceFactory =
 				new LazySingletonAspectInstanceFactoryDecorator(aspectInstanceFactory);
 
 		// 准备要搜集所有增强器的集合；getAdvisorMethods(aspectClass) 找到当前类中的所有方法，包括继承自父类的方法
 		List<Advisor> advisors = new ArrayList<>();
-		// getAdvisorMethods()：获取切面类中声明的方法，就会返回标注了注解 @Before、@AfterReturning、@After、@AfterThrowing 的方法
+
+		/**
+		 * getAdvisorMethods()：获取切面类中声明的所有方法，
+		 * 就会返回标注了注解 @Before、@AfterReturning、@After、@AfterThrowing 的方法，
+		 * 但不会解析标注了注解 @pointCut 的方法
+		 */
 		for (Method method : getAdvisorMethods(aspectClass)) {
 			// Prior to Spring Framework 5.2.7, advisors.size() was supplied as the declarationOrderInAspect
 			// to getAdvisor(...) to represent the "current position" in the declared methods list.
@@ -148,7 +162,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 			// Specifically, a value of 0 aligns with the default value used in
 			// AspectJPrecedenceComparator.getAspectDeclarationOrder(Advisor).
 
-			// 遍历所有方法，如果当前方法是通知方法，就被封装为增强器「Advisor，就是类 InstantiationModelAwarePointcutAdvisorImpl 的实例」。
+			// 遍历所有方法，如果当前方法是通知方法，就被封装为增强器「Advisor，就是 InstantiationModelAwarePointcutAdvisorImpl 的实例」。
 			Advisor advisor = getAdvisor(method, lazySingletonAspectInstanceFactory, 0, aspectName);
 			if (advisor != null) {
 				advisors.add(advisor);
@@ -218,7 +232,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 			int declarationOrderInAspect, String aspectName) {
 
 		validate(aspectInstanceFactory.getAspectMetadata().getAspectClass());
-		// 获取切入点表达式
+		// 获取当前通知的切入点表达式
 		AspectJExpressionPointcut expressionPointcut = getPointcut(
 				candidateAdviceMethod, aspectInstanceFactory.getAspectMetadata().getAspectClass());
 		if (expressionPointcut == null) {
@@ -236,10 +250,11 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 	// 获取切入点表达式
 	@Nullable
 	private AspectJExpressionPointcut getPointcut(Method candidateAdviceMethod, Class<?> candidateAspectClass) {
-		// 从方法上找到 @AspectJ 注解
+		// 从方法上找到 AspectJ 的注解，@Pointcut, @Around, @Before, @After, @AfterReturning, @AfterThrowing
 		AspectJAnnotation<?> aspectJAnnotation =
 				AbstractAspectJAdvisorFactory.findAspectJAnnotationOnMethod(candidateAdviceMethod);
 		if (aspectJAnnotation == null) {
+			// 忽略掉没有的注解
 			return null;
 		}
 

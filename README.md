@@ -230,17 +230,24 @@ earlyProxyReferences 其实就是用于记录哪些 Bean 被执行过 AOP，防�
 
 ### 开启 AOP
 
-使用注解 @EnableAspectJAutoProxy 开启基于注解的 AOP 功能。@EnableAspectJAutoProxy 会 @Import(AspectJAutoProxyRegistrar.class)，Spring 刷新容器时，会对工厂进行增强，由配置文件解析器对所有配置文件进行解析，就会解析到配置类的 @Import 注解，就会导入 AspectJAutoProxyRegistrar，而 AspectJAutoProxyRegistrar 会注册一个 AnnotationAwareAspectJAutoProxyCreator，其又实现了 InstantiationAwareBeanPostProcessor 接口，是一个后置处理器，可以在 bean 实例化之前介入，即利用 postProcessBeforeInstantiation() 方法来对 bean 进行增强。
+使用注解 @EnableAspectJAutoProxy 开启基于注解的 AOP 功能，@EnableAspectJAutoProxy 会给容器中导入一个组件 AspectJAutoProxyRegistrar。
+Spring 容器刷新执行 invokeBeanFactoryPostProcessors() 方法时，对工厂进行增强，由配置文件解析器 ConfigurationClassPostProcessor 解析 @Import 注解，将组件 AspectJAutoProxyRegistrar 导入到容器中，会为容器中注册了 AnnotationAwareAspectJAutoProxyCreator 的 BeanDefinition。这是一个 bean 的后置处理器，会干预到每个组件的创建环节。
 
-AnnotationAwareAspectJAutoProxyCreator 会利用 postProcessBeforeInstantiation 方法将容器中所有标注了 @Aspect、@Before、@After、@AfterThrowing 等注解解析成 Advisor，Advisor 是一个包含了 Advise 和 pointcut 的增强器。即 Spring 容器在加载配置文件时(一般情况 @EnableAspectJAutoProxy  注解添加在配置文件上)，AnnotationAwareAspectJAutoProxyCreator 会将每一个通知方法都解析成一个 Advisor。
+Spring 容器刷新执行 registerBeanPostProcessors() 方法时，注册所有的 bean 的后置处理器，就会为 AnnotationAwareAspectJAutoProxyCreator 创建对象，并在其初始化期间，为其属性中创建并保存了用于利用反射创建增强器的工厂--ReflectiveAspectJAdvisorFactory，同时为其父类属性中创建并保存了 BeanFactoryAspectJAdvisorsBuilderAdapter。由于 AnnotationAwareAspectJAutoProxyCreator 是一个 bean 的后置处理器，就会介入到 bean 的创建过程中。
+
+AnnotationAwareAspectJAutoProxyCreator 是一个 bean 的后置处理器，会干预到每个组件的创建环节。 会利用 postProcessBeforeInstantiation 方法将容器中所有标注了 @Aspect、@Before、@After、@AfterThrowing 等注解解析成 Advisor，Advisor 是一个包含了 Advise 和 pointcut 的增强器。即 Spring 容器在加载配置文件时(一般情况 @EnableAspectJAutoProxy  注解添加在配置文件上)，AnnotationAwareAspectJAutoProxyCreator 会将每一个通知方法都解析成一个 Advisor。
+
+
+
+### AOP 增强器的创建
+
+Spring 容器刷新执行 finishBeanFactoryInitialization() 方法时，初始化所有非懒加载的单例 bean，在实例化 bean 之前，后置处理器就会介入，即 AnnotationAwareAspectJAutoProxyCreator 会在 bean 实例化之前执行 postProcessBeforeInstantiation() 方法，会为容器中所有的切面中所有的通知方法创建增强器，即筛所有组件中标注了 @Aspect 注解的切面，为其中的所有通知方法生成增强器 Advisor，排序后存入缓存中，一个增强器 Advisor 即是一个 InstantiationModelAwarePointcutAdvisorImpl 类型的实例对象，其封装了增强方法(通知方法)和切入点等关键信息。
 
 
 
 ### 创建动态代理
 
-在创建 bean 时，Spring 会为 AOP 的目标类创建动态代理对象。Spring 会在目标类初始化以后，利用后置处理器执行 applyBeanPostProcessorsAfterInitialization() 方法，来对目标类进行增强，即创建动态代理对象。在创建动态代理时，会先找到容器中所有的增强器，即 Advisor，与当前目标类进行匹配，将匹配到的增强器进行排序，然后设置到代理工厂中，由代理工厂创建出代理对象。
-
-代理工厂会根据目标类是否实现了接口，来判断使用 Cglib 动态代理还是使用 JDK 动态代理。
+在 bean 的初始化之后，AnnotationAwareAspectJAutoProxyCreator 会再次介入，执行 postProcessAfterInitialization() 方法，判断是否有切面的通知方法切入当前 bean 对象，即当前 bean 对象是切面的目标类，则会为当前 bean 创建动态代理，会根据 bean 是否实现了接口，来区分是使用 JDK 动态代理还是 Cglib 动态代理，代理对象创建完成保存进 ioc 容器。
 
 
 
@@ -281,6 +288,8 @@ try {
 
 
 ### AOP增强流程
+
+图片部分内容有误，待调整
 
 ![](src/docs/spring/AOP增强流程.jpg)
 

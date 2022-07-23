@@ -80,7 +80,7 @@ public class AnnotationAwareAspectJAutoProxyCreator extends AspectJAwareAdvisorA
 	protected void initBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 		super.initBeanFactory(beanFactory);
 		if (this.aspectJAdvisorFactory == null) {
-			// 准备 AnnotationAwareAspectJAutoProxyCreator 的属性 AspectJAdvisorFactory 值
+			// 准备 AnnotationAwareAspectJAutoProxyCreator 的属性 AspectJAdvisorFactory 值，创建增强器的工厂
 			this.aspectJAdvisorFactory = new ReflectiveAspectJAdvisorFactory(beanFactory);
 		}
 		this.aspectJAdvisorsBuilder =

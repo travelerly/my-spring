@@ -520,7 +520,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		try {
 			/**
 			 * 创建对象之前留给我们一个机会，可以通过 BeanPostProcessors 创建并返回组件的代理对象。
-			 * AOP 的后置处理器没有利用这次机会
+			 * 容器启动，创建第一个对象时，AnnotationAwareAspectJAutoProxyCreator 就会介入，
+			 * 为 AOP 的所有切面生产所有的增强器并缓存起来
 			 * Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
 			 */
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
@@ -1996,7 +1997,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					((BeanClassLoaderAware) bean).setBeanClassLoader(bcl);
 				}
 			}
-			if (bean instanceof BeanFactoryAware) {
+			if (bean instanceof BeanFactoryAware) { //
 				((BeanFactoryAware) bean).setBeanFactory(AbstractAutowireCapableBeanFactory.this);
 			}
 		}

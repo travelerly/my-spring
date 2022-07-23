@@ -301,8 +301,8 @@ final class PostProcessorRegistrationDelegate {
 	}
 
 	/**
-	 *
-	 * 获取所有的后置处理器，并按照以下几种方式分类，并重进行新排序和注册进工厂；最后将 ApplicationListenerDetector 放到后置处理器容器的最后一位。
+	 * 注册所有的后置处理器，并按照以下几种方式分类，并重进行新排序和注册进工厂；
+	 * 最后将 ApplicationListenerDetector 放到后置处理器容器的最后一位。
 	 * 1.实现了优先级接口(PriorityOrdered)的后置处理器
 	 * 2.实现了排序接口(Ordered)的后置处理器
 	 * 3.没有实现以上两种接口的后置处理器
@@ -353,11 +353,12 @@ final class PostProcessorRegistrationDelegate {
 
 		// 遍历所有 bean 后置处理器的名称
 		for (String ppName : postProcessorNames) {
-			// 根据后置处理器名字，分类型进行拆分集合。
+			// 根据后置处理器名字，分类型进行拆分集合。（匹配实现了优先级接口的后置处理器）
 			if (beanFactory.isTypeMatch(ppName, PriorityOrdered.class)) {
 				/**
 				 * 调用 getBean 流程创建 bean 的后置处理器
-				 * 从容器中获取实现了优先级接口的后置处理器对象。例如：AutowiredAnnotationBeanPostProcessor
+				 * 从容器中获取实现了优先级接口的后置处理器对象。
+				 * 例如：AutowiredAnnotationBeanPostProcessor
 				 */
 				BeanPostProcessor pp = beanFactory.getBean(ppName, BeanPostProcessor.class);
 				// 添加到优先级接口集合
@@ -370,10 +371,11 @@ final class PostProcessorRegistrationDelegate {
 					internalPostProcessors.add(pp);
 				}
 			}
+			// 匹配实现了排序接口的后置处理器
 			else if (beanFactory.isTypeMatch(ppName, Ordered.class)) {
 				/**
 				 * 筛选出所有实现了排序接口(Ordered)的后置处理器名称
-				 * 例如：internaLAutoProxyCreator，即创建 AOP 代理的入口 AnnotationAwareAspectJAutoProxyCreator
+				 * 例如：internalAutoProxyCreator，即创建 AOP 代理的入口 AnnotationAwareAspectJAutoProxyCreator
 				 */
 				orderedPostProcessorNames.add(ppName);
 			}
@@ -392,14 +394,15 @@ final class PostProcessorRegistrationDelegate {
 		registerBeanPostProcessors(beanFactory, priorityOrderedPostProcessors);
 
 		/**
-		 * 获取所有实现了排序接口(Ordered)的后置处理器，例如 AOP 功能导入的 AnnotationAwareAspectJAutoProxyCreator。
+		 * 获取所有实现了排序接口(Ordered)的后置处理器，例如 AOP 代理功能入口的 AnnotationAwareAspectJAutoProxyCreator。
 		 * Next, register the BeanPostProcessors that implement Ordered.
 		 */
 		List<BeanPostProcessor> orderedPostProcessors = new ArrayList<>(orderedPostProcessorNames.size());
 		for (String ppName : orderedPostProcessorNames) {
 			/**
 			 * 调用 getBean 流程创建 bean 的后置处理器
-			 * 从容器中获取实现了 Ordered 接口的后置处理器对象。例如 AOP 功能导入的 AnnotationAwareAspectJAutoProxyCreator
+			 * 从容器中获取实现了 Ordered 接口的后置处理器对象
+			 * 例如 AOP 功能导入的 AnnotationAwareAspectJAutoProxyCreator
 			 */
 			BeanPostProcessor pp = beanFactory.getBean(ppName, BeanPostProcessor.class);
 			orderedPostProcessors.add(pp);

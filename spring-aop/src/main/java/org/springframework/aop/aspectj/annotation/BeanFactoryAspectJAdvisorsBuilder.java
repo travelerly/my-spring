@@ -74,6 +74,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 
 
 	/**
+	 * 去容器中获取到所有的切面信息保存到缓存中
 	 * Look for AspectJ-annotated aspect beans in the current bean factory,
 	 * and return to a list of Spring AOP Advisors representing them.
 	 * <p>Creates a Spring Advisor for each AspectJ advice method.
@@ -90,7 +91,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 				if (aspectNames == null) {
 					List<Advisor> advisors = new ArrayList<>();
 					aspectNames = new ArrayList<>();
-					// 获取容器中所有切面切入的对应的 bean 的名称
+					// 获取容器中所有组件的名字
 					String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 							this.beanFactory, Object.class, true, false);
 					// 拿到容器中所有的组件，挨个遍历判断
@@ -100,21 +101,23 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 						}
 						// We must be careful not to instantiate beans eagerly as in this case they
 						// would be cached by the Spring container but would not have been weaved.
-						// 获取 bean 对应的类型
+						// 获取 bean 对应的 class 对象
 						Class<?> beanType = this.beanFactory.getType(beanName, false);
 						if (beanType == null) {
 							continue;
 						}
 
+						// 根据 class 对象判断是否为切面
 						if (this.advisorFactory.isAspect(beanType)) {
 							// 每一个组件先判断是否是切面，如果是切面，则放入集合 aspectNames 中
 							aspectNames.add(beanName);
+							// 将 beanName 和 class 对象构建成为一个切面元数据对象 AspectMetadata
 							AspectMetadata amd = new AspectMetadata(beanType, beanName);
 							if (amd.getAjType().getPerClause().getKind() == PerClauseKind.SINGLETON) {
 								MetadataAwareAspectInstanceFactory factory =
 										new BeanFactoryAspectInstanceFactory(this.beanFactory, beanName);
 
-								// 利用增强器工厂，获取所有的增强器
+								// 利用增强器工厂，获取切面中定义的所有的增强器(通知对象)
 								List<Advisor> classAdvisors = this.advisorFactory.getAdvisors(factory);
 								if (this.beanFactory.isSingleton(beanName)) {
 									// 缓存单实例的切面及其增强器（通知方法）

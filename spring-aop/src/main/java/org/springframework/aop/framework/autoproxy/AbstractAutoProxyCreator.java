@@ -267,7 +267,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 				return null;
 			}
 
-			// 判断是否是切面或者是否需要跳过
+			// 判断是否是切面或者是否需要跳过。shouldSkip():此方法中会为所有切面创建所有的增强器，并缓存起来
 			if (isInfrastructureClass(beanClass) || shouldSkip(beanClass, beanName)) {
 				/**
 				 * 注意看重写方法

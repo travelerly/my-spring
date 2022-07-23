@@ -10,7 +10,6 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
  */
 @EnableAspectJAutoProxy // 开启基于注解的 aop 功能
 @ComponentScan("com.colin")
-//@ComponentScan("com.colin.bean")
 @Configuration
 public class MyConfig {
 

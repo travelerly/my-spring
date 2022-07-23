@@ -131,9 +131,10 @@ public abstract class AopConfigUtils {
 			}
 			return null;
 		}
+
 		/**
-		 * 为 AnnotationAwareAspectJAutoProxyCreator 构建 beanDefinition
-		 * cls 其实就代表 AnnotationAwareAspectJAutoProxyCreator 的 Class 对象
+		 * 构建 AnnotationAwareAspectJAutoProxyCreator 的 beanDefinition
+		 * 参数 cls 其实就代表 AnnotationAwareAspectJAutoProxyCreator 的 Class 对象
 		 */
 		RootBeanDefinition beanDefinition = new RootBeanDefinition(cls);
 		beanDefinition.setSource(source);
