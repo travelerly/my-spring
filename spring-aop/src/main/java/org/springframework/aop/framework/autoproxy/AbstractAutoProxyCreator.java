@@ -246,7 +246,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	}
 
 	/**
-	 * 解析当前 bean 的切面
+	 * 实例化之前执行后置处理，解析当前 bean 的切面
 	 * @param beanClass the class of the bean to be instantiated
 	 * @param beanName the name of the bean
 	 * @return
@@ -267,14 +267,19 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 				return null;
 			}
 
-			// 判断是否是切面或者是否需要跳过。shouldSkip():此方法中会为所有切面创建所有的增强器，并缓存起来
+			/**
+			 * 判断是否是切面或者是否需要跳过，默认 false
+			 * shouldSkip():此方法中会为所有切面创建所有的增强器，并缓存起来
+			 */
 			if (isInfrastructureClass(beanClass) || shouldSkip(beanClass, beanName)) {
 				/**
-				 * 注意看重写方法
-				 * 判断是否为基础 bean 组件，即是否为切面类、通知、切点等
-				 * 所有增强了的组件会被缓存在 advisedBeans 中
-				 * 如果是需要增强的的 Bean，应该放入缓存中
-				 * 例如 AOP 中的切面类会被拦截
+				 * isInfrastructureClass(beanClass):
+				 * 判断是否为基础 bean 组件，即 bean 的 class 是 Advice、Pointcut、Advisor、AopInfrastructureBean 类型，
+				 * 则将其缓存进 advisedBeans 中
+				 *
+				 * shouldSkip():
+				 * 判断当前 bean 是否需要跳过，其中切面类会返 true，即切面类会缓存进 advisedBeans 中
+				 * shouldSkip() 方法会将切面类中的通知方法创建成增强器 Advisor，并保存进缓存中，以后使用增强器时，直接从缓存中获取
 				 */
 				this.advisedBeans.put(cacheKey, Boolean.FALSE);
 				return null;
@@ -421,6 +426,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	}
 
 	/**
+	 * 判断是否需要跳过当前类
 	 * Subclasses should override this method to return {@code true} if the
 	 * given bean should not be considered for auto-proxying by this post-processor.
 	 * <p>Sometimes we need to be able to avoid this happening, e.g. if it will lead to
@@ -431,7 +437,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * @param beanName the name of the bean
 	 * @return whether to skip the given bean
 	 * @see org.springframework.beans.factory.config.AutowireCapableBeanFactory#ORIGINAL_INSTANCE_SUFFIX
-	 */ // 判断是否需要跳过当前类
+	 */
 	protected boolean shouldSkip(Class<?> beanClass, String beanName) {
 		return AutoProxyUtils.isOriginalInstance(beanName, beanClass);
 	}

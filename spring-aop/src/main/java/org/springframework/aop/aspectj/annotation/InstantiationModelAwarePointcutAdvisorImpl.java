@@ -83,16 +83,26 @@ final class InstantiationModelAwarePointcutAdvisorImpl
 	public InstantiationModelAwarePointcutAdvisorImpl(AspectJExpressionPointcut declaredPointcut,
 			Method aspectJAdviceMethod, AspectJAdvisorFactory aspectJAdvisorFactory,
 			MetadataAwareAspectInstanceFactory aspectInstanceFactory, int declarationOrder, String aspectName) {
+
 		// 当前的切点
 		this.declaredPointcut = declaredPointcut;
-		this.declaringClass = aspectJAdviceMethod.getDeclaringClass();// 切面的 class 对象
-		this.methodName = aspectJAdviceMethod.getName();// 切面方法的名称
-		this.parameterTypes = aspectJAdviceMethod.getParameterTypes();// 切面方法的参数类型
-		this.aspectJAdviceMethod = aspectJAdviceMethod;// 切面方法对象
-		this.aspectJAdvisorFactory = aspectJAdvisorFactory;// aspect 的通知工厂
-		this.aspectInstanceFactory = aspectInstanceFactory;// aspect 的实例工厂
-		this.declarationOrder = declarationOrder;// 切面的顺序
-		this.aspectName = aspectName;// 切面的名称
+		// 切面的 class 对象
+		this.declaringClass = aspectJAdviceMethod.getDeclaringClass();
+		// 切面方法的名称
+		this.methodName = aspectJAdviceMethod.getName();
+		// 切面方法的参数类型
+		this.parameterTypes = aspectJAdviceMethod.getParameterTypes();
+		// 切面方法对象
+		this.aspectJAdviceMethod = aspectJAdviceMethod;
+		// aspect 的通知工厂
+		this.aspectJAdvisorFactory = aspectJAdvisorFactory;
+		// aspect 的实例工厂
+		this.aspectInstanceFactory = aspectInstanceFactory;
+		// 切面的顺序
+		this.declarationOrder = declarationOrder;
+		// 切面的名称
+		this.aspectName = aspectName;
+
 		// 判断当前的切面对象是否需要延时加载
 		if (aspectInstanceFactory.getAspectMetadata().isLazilyInstantiated()) {
 			// Static part of the pointcut is a lazy type.

@@ -89,8 +89,11 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 			synchronized (this) {
 				aspectNames = this.aspectBeanNames;
 				if (aspectNames == null) {
+
+					// 用于保存创建的增强器的集合
 					List<Advisor> advisors = new ArrayList<>();
 					aspectNames = new ArrayList<>();
+
 					// 获取容器中所有组件的名字
 					String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 							this.beanFactory, Object.class, true, false);
@@ -147,6 +150,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 
 					// 设置处理过切面类的 beanName 数组，以便下一次直接从缓存中获取
 					this.aspectBeanNames = aspectNames;
+					// 返回创建好的增强器集合
 					return advisors;
 				}
 			}

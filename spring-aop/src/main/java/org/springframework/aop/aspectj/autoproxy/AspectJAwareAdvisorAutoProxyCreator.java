@@ -95,13 +95,27 @@ public class AspectJAwareAdvisorAutoProxyCreator extends AbstractAdvisorAutoProx
 		AspectJProxyUtils.makeAdvisorChainAspectJCapableIfNecessary(candidateAdvisors);
 	}
 
-	// 是否需要跳过。判断这个 bean 是否需要被增强，只需要找到它的所有增强器
+	/**
+	 * 是否需要跳过
+	 * 判断这个 bean 是否需要被增强，只需要找到它的所有增强器
+	 *
+	 * @param beanClass the class of the bean
+	 * @param beanName the name of the bean
+	 * @return
+	 */
 	@Override
 	protected boolean shouldSkip(Class<?> beanClass, String beanName) {
-		// TODO: Consider optimization by caching the list of the aspect names
-		// 找到候选的增强器，即为所有标注了注解 @Aspect 的切面类构建增强器。遍历容器中所有组件来筛选切面，继而为其构建增强器
+		/**
+		 * 找到候选的增强器，即为所有标注了注解 @Aspect 的切面类构建增强器。
+		 * 遍历容器中所有组件来筛选切面，继而为其构建增强器
+		 * 构建好的增强器保存在缓存 advisorsCache 中，使用时直接到缓存中获取
+		 * TODO: Consider optimization by caching the list of the aspect names
+		 */
 		List<Advisor> candidateAdvisors = findCandidateAdvisors();
+
+		// 遍历增强器集合
 		for (Advisor advisor : candidateAdvisors) {
+			// 判断当前遍历到的增强器所在的前面类名称是都与 beanName 相同，若相同，则说明当前 bean 为切面类，则跳过
 			if (advisor instanceof AspectJPointcutAdvisor &&
 					((AspectJPointcutAdvisor) advisor).getAspectName().equals(beanName)) {
 				return true;

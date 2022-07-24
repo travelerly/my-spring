@@ -149,8 +149,8 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 
 		/**
 		 * getAdvisorMethods()：获取切面类中声明的所有方法，
-		 * 就会返回标注了注解 @Before、@AfterReturning、@After、@AfterThrowing 的方法，
-		 * 但不会解析标注了注解 @pointCut 的方法
+		 * 就会返回标注了 @Before、@AfterReturning、@After、@AfterThrowing 注解的方法，也包含 hashCode()、equals()、toString() 等方法
+		 * 但不会解析标注了注解 @PointCut 的方法
 		 */
 		for (Method method : getAdvisorMethods(aspectClass)) {
 			// Prior to Spring Framework 5.2.7, advisors.size() was supplied as the declarationOrderInAspect
@@ -162,7 +162,10 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 			// Specifically, a value of 0 aligns with the default value used in
 			// AspectJPrecedenceComparator.getAspectDeclarationOrder(Advisor).
 
-			// 遍历所有方法，如果当前方法是通知方法，就被封装为增强器「Advisor，就是 InstantiationModelAwarePointcutAdvisorImpl 的实例」。
+			/**
+			 * 遍历所有方法，如果当前方法是通知方法，就被封装为增强器 Advisor，
+			 * Advisor 就是 InstantiationModelAwarePointcutAdvisorImpl 的实例
+			 */
 			Advisor advisor = getAdvisor(method, lazySingletonAspectInstanceFactory, 0, aspectName);
 			if (advisor != null) {
 				advisors.add(advisor);

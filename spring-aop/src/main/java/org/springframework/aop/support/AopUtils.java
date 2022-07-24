@@ -319,7 +319,7 @@ public abstract class AopUtils {
 			return candidateAdvisors;
 		}
 		List<Advisor> eligibleAdvisors = new ArrayList<>();
-		// 目前使用的增强器类型是 PointcutAdvisor，所以不会运行此处逻辑
+		// 遍历增强器进行筛选
 		for (Advisor candidate : candidateAdvisors) {
 			/**
 			 * 一般我们使用的注解 @Point 的方式定义切入点的话，增强器 Advisor 会通过实现 InstantiationModelAwarePointcutAdvisorImpl 来进行构建
