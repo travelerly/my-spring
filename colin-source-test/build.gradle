@@ -13,13 +13,18 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 
-    // 引入spring核心容器
+    // 引入 spring 核心容器
     compile(project(":spring-context"))
-    // 引入aop和切面模块
+    // 引入 aop 和切面模块
     compile(project(":spring-aspects"))
+    // 引入 spring-jdbc 模块，继而就引入了事务模块
+    compile(project(":spring-jdbc"))
 
-    // 引入 spring-jdbc
-    // compile(project(":spring-jdbc"))
+    // https://mvnrepository.com/artifact/mysql/mysql-connector-java
+    implementation group: 'mysql', name: 'mysql-connector-java', version: '5.1.49'
+
+    // https://mvnrepository.com/artifact/com.alibaba/druid
+    implementation group: 'com.alibaba', name: 'druid', version: '1.2.8'
 }
 
 test {

@@ -336,8 +336,15 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	protected Object invokeWithinTransaction(Method method, @Nullable Class<?> targetClass,
 			final InvocationCallback invocation) throws Throwable {
 
-		// If the transaction attribute is null, the method is non-transactional.
+		/**
+		 * 获取事务属性源对象，其是在配置类中添加的，在创建代理进行匹配的时候用到了(将解析的事务属性赋值进去了)
+		 * If the transaction attribute is null, the method is non-transactional.
+		 */
 		TransactionAttributeSource tas = getTransactionAttributeSource();
+		/**
+		 * 获取解析收的事务属性
+		 * 创建代理的时候调用了 getTransactionAttribute() 方法，这里是从缓存中获取
+		 */
 		final TransactionAttribute txAttr = (tas != null ? tas.getTransactionAttribute(method, targetClass) : null);
 		final TransactionManager tm = determineTransactionManager(txAttr);
 
@@ -374,9 +381,12 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			return result;
 		}
 
+		// 获取配置的事务管理器对象
 		PlatformTransactionManager ptm = asPlatformTransactionManager(tm);
+		// 从 tx 属性对象中获取出标注了 @Transactional 注解的方法的描述符
 		final String joinpointIdentification = methodIdentification(method, targetClass, txAttr);
 
+		// 处理声明式事务
 		if (txAttr == null || !(ptm instanceof CallbackPreferringPlatformTransactionManager)) {
 			/**
 			 * 创建并开启事务
@@ -387,7 +397,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			Object retVal;
 			try {
 				/**
-				 * 调用目标方法
+				 * 调用目标方法，调用钩子函数进行回调目标方法
 				 * todo 验证：执行拦截器链，即环绕通知
 				 * This is an around advice: Invoke the next interceptor in the chain.
 				 * This will normally result in a target object being invoked.
@@ -396,13 +406,14 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			}
 			catch (Throwable ex) {
 				/**
-				 * 回滚事务
+				 * 抛出异常，进行回滚事务
 				 * target invocation exception
 				 */
 				completeTransactionAfterThrowing(txInfo, ex);
 				throw ex;
 			}
 			finally {
+				// 清空线程变量中 transactionInfo 的值
 				cleanupTransactionInfo(txInfo);
 			}
 
@@ -419,6 +430,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			return retVal;
 		}
 
+		// 编程实事务
 		else {
 			Object result;
 			final ThrowableHolder throwableHolder = new ThrowableHolder();

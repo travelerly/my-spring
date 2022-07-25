@@ -38,6 +38,10 @@ import org.springframework.util.ClassUtils;
 public class TransactionManagementConfigurationSelector extends AdviceModeImportSelector<EnableTransactionManagement> {
 
 	/**
+	 * TransactionManagementConfigurationSelector 实现了 AdviceModeImportSelector 接口，继而实现了 ImportSelector 接口
+	 * 容器刷新加载 bean 定义信息时，会回调 selectImports 方法，
+	 * 会为容器中注册两个组件：AutoProxyRegistrar 和 ProxyTransactionManagementConfiguration
+	 *
 	 * Returns {@link ProxyTransactionManagementConfiguration} or
 	 * {@code AspectJ(Jta)TransactionManagementConfiguration} for {@code PROXY}
 	 * and {@code ASPECTJ} values of {@link EnableTransactionManagement#mode()},
