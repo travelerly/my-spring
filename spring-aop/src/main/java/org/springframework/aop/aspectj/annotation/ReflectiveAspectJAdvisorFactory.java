@@ -282,7 +282,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 		Class<?> candidateAspectClass = aspectInstanceFactory.getAspectMetadata().getAspectClass();
 		validate(candidateAspectClass);
 
-		// 找到切面中增强方法上面的 @AspectJ 注解
+		// 找到切面中增强方法上面的 AspectJ 的注解，即通知方法的注解，例如：@Before、@After ……
 		AspectJAnnotation<?> aspectJAnnotation =
 				AbstractAspectJAdvisorFactory.findAspectJAnnotationOnMethod(candidateAdviceMethod);
 		if (aspectJAnnotation == null) {
@@ -304,7 +304,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 		AbstractAspectJAdvice springAdvice;
 
 		/**
-		 * 不同的 @AspectJ 注解类型构建不同的 Advice 实例
+		 * 不同的通知方法的注解类型构建不同的 Advice 实例
 		 * 主要就是将切面中定义的增强方法 candidateAdviceMethod 通过构造方法注入到 Advice 实例中，后续使用反射调用增强方法时会用到
 		 */
 		switch (aspectJAnnotation.getAnnotationType()) {
@@ -314,20 +314,22 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 				}
 				return null;
 			case AtAround:
-				// 构建出 AspectJAroundAdvice 类型的 Advice，拥有 invoke() 方法
+				// 环绕通知，构建出 AspectJAroundAdvice 类型的 Advice，拥有 invoke() 方法
 				springAdvice = new AspectJAroundAdvice(
 						candidateAdviceMethod, expressionPointcut, aspectInstanceFactory);
 				break;
 			case AtBefore:
+				// 前置通知，构建出 AspectJMethodBeforeAdvice 类型的 Advice
 				springAdvice = new AspectJMethodBeforeAdvice(
 						candidateAdviceMethod, expressionPointcut, aspectInstanceFactory);
 				break;
 			case AtAfter:
+				// 后置通知，构建出 AspectJAfterAdvice 类型的 Advice
 				springAdvice = new AspectJAfterAdvice(
 						candidateAdviceMethod, expressionPointcut, aspectInstanceFactory);
 				break;
 			case AtAfterReturning:
-				// 构建出 AspectJAfterReturningAdvice 类型的 Advice
+				// 返回通知，构建出 AspectJAfterReturningAdvice 类型的 Advice
 				springAdvice = new AspectJAfterReturningAdvice(
 						candidateAdviceMethod, expressionPointcut, aspectInstanceFactory);
 				AfterReturning afterReturningAnnotation = (AfterReturning) aspectJAnnotation.getAnnotation();
@@ -336,6 +338,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 				}
 				break;
 			case AtAfterThrowing:
+				// 异常通知，构建出 AspectJAfterThrowingAdvice 类型的 Advice
 				springAdvice = new AspectJAfterThrowingAdvice(
 						candidateAdviceMethod, expressionPointcut, aspectInstanceFactory);
 				AfterThrowing afterThrowingAnnotation = (AfterThrowing) aspectJAnnotation.getAnnotation();

@@ -101,10 +101,14 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 
 		// 判断增强器能否应用到当前 bean，找到与之匹配的增强器
 		List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
+		// 为增强器链中添加了 ExposeInvocationInterceptor「拦截器」
 		extendAdvisors(eligibleAdvisors);
 
 		if (!eligibleAdvisors.isEmpty()) {
-			// 给增强器排序（若多个切面类同时作用，增强器需按顺序执行，切面类可通过实现 Order 接口来实现优先级设定，数值越小，优先级越高）
+			/**
+			 * 给增强器排序
+			 * 若多个切面类同时作用，增强器需按顺序执行，切面类可通过实现 Order 接口来实现优先级设定，数值越小，优先级越高
+			 */
 			eligibleAdvisors = sortAdvisors(eligibleAdvisors);
 		}
 		return eligibleAdvisors;

@@ -98,7 +98,8 @@ public class AnnotationAwareAspectJAutoProxyCreator extends AspectJAwareAdvisorA
 		if (this.aspectJAdvisorsBuilder != null) {
 			/**
 			 * 为标注注解 @Aspect 的切面类中的通知方法构建增强器
-			 * 增强器缓存进 advisorsCache 中，使用时直接到缓存中获取。aspectJAdvisorsBuilder.buildAspectJAdvisors()
+			 * 增强器缓存进 advisorsCache 中，使用时直接到缓存中获取
+			 * aspectJAdvisorsBuilder.buildAspectJAdvisors()：构建增强器
 			 */
 			advisors.addAll(this.aspectJAdvisorsBuilder.buildAspectJAdvisors());
 		}

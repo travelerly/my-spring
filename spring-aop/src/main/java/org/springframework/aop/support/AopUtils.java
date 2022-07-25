@@ -250,11 +250,11 @@ public abstract class AopUtils {
 
 		// 遍历处理目标类及目标类的接口
 		for (Class<?> clazz : classes) {
-			// 获取目标类中的方法
+			// 获取目标类及接口中的所有方法
 			Method[] methods = ReflectionUtils.getAllDeclaredMethods(clazz);
-			// 遍历处理目标类和目标接口的方法
+			// 遍历这些方法
 			for (Method method : methods) {
-				// 目标类中只要有一个方法被匹配到，那么就直接返回 true，即说明此类需要被代理
+				// 目标类和接口中只要有一个方法被匹配到，那么就直接返回 true，即说明此类需要被代理
 				if (introductionAwareMethodMatcher != null ?
 						introductionAwareMethodMatcher.matches(method, targetClass, hasIntroductions) :
 						methodMatcher.matches(method, targetClass)) {
@@ -290,7 +290,7 @@ public abstract class AopUtils {
 	 */
 	public static boolean canApply(Advisor advisor, Class<?> targetClass, boolean hasIntroductions) {
 
-		// 如果是引介增强，即 IntroductionAdvisor 类型的增强器，那么就对类级别进行匹配
+		// 如果是 IntroductionAdvisor 类型的增强器，那么就对类级别进行匹配
 		if (advisor instanceof IntroductionAdvisor) {
 			return ((IntroductionAdvisor) advisor).getClassFilter().matches(targetClass);
 		}
@@ -319,7 +319,7 @@ public abstract class AopUtils {
 			return candidateAdvisors;
 		}
 		List<Advisor> eligibleAdvisors = new ArrayList<>();
-		// 遍历增强器进行筛选
+		// 遍历增强器进行筛选，针对 @Point
 		for (Advisor candidate : candidateAdvisors) {
 			/**
 			 * 一般我们使用的注解 @Point 的方式定义切入点的话，增强器 Advisor 会通过实现 InstantiationModelAwarePointcutAdvisorImpl 来进行构建
@@ -331,18 +331,19 @@ public abstract class AopUtils {
 			}
 		}
 		boolean hasIntroductions = !eligibleAdvisors.isEmpty();
+		// 再次遍历增强器进行筛选，针对 @Before、@After、@AfterReturning、@AfterThrowing …… 这些注解
 		for (Advisor candidate : candidateAdvisors) {
 			if (candidate instanceof IntroductionAdvisor) {
 				// already processed
 				continue;
 			}
 
-			// 处理普通增强，找到与当前 bean 相匹配的增强
+			// 处理普通增强，找到与当前 bean 相匹配的增强，普通增强是指 @Before、@After、@AfterReturning、@AfterThrowing ……
 			if (canApply(candidate, clazz, hasIntroductions)) {
 				eligibleAdvisors.add(candidate);
 			}
 		}
-		// 返回合格的增强器集合，「即切面类中的各个通知增强」
+		// 返回合格的增强器集合，即切面类中的各个通知增强
 		return eligibleAdvisors;
 	}
 

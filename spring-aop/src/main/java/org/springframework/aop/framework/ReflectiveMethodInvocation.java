@@ -194,7 +194,7 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 			// It's an interceptor, so we just invoke it: The pointcut will have
 			// been evaluated statically before this object was constructed.
 			/**
-			 * 核心，执行普通拦截器。this 封装了所有信息的 CglibAopProxy 对象 mi，使用 ThreadLocal保存 mi
+			 * 核心，执行普通拦截器。this 封装了所有信息的 CglibAopProxy 对象 mi，使用 ThreadLocal 保存 mi
 			 * 将 invoke() 方法的入参 mi，就是 ReflectiveMethodInvocation 实例，其中是包含了拦截器链
 			 * 将 mi 变量放入了 ThreadLocal 中，其实是将拦截器链放入到 ThreadLocal 中，这样同一个线程，就可以通过 ThreadLocal 来共享拦截器链了
 			 *

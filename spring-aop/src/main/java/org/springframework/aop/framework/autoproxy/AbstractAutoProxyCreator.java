@@ -329,6 +329,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 				return wrapIfNecessary(bean, beanName, cacheKey);
 			}
 		}
+
 		// 至此，说明当前 bean 已经被执行过 AOP 代理，直接返回
 		return bean;
 	}
