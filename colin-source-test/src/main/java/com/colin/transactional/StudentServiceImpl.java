@@ -11,7 +11,7 @@ import java.util.ArrayList;
  * @author colin
  * @create 2022-07-25 19:04
  */
-@Component
+//@Component
 public class StudentServiceImpl implements StudentService {
 
     @Autowired

@@ -25,13 +25,13 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 public class AnnotationDemo {
 
 	public static void main(String[] args) {
-		/*aopTest();*/
+		aopTest();
 		/*testBean();*/
 		/*testFactoryBean();*/
 		/*testCycle();*/
 		/*listenerTest();*/
 		/*testCycleAop();*/
-		testTransactional();
+		/*testTransactional();*/
 
 	}
 
