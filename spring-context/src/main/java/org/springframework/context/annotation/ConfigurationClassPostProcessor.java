@@ -348,8 +348,10 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			return Integer.compare(i1, i2);
 		});
 
-		// Detect any custom bean name generation strategy supplied through the enclosing application context
-		// 检测容器中是否注册了自定义的 bean 名称生成策略组件
+		/**
+		 * 检测容器中是否注册了自定义的 bean 名称生成策略组件
+		 * Detect any custom bean name generation strategy supplied through the enclosing application context
+		 */
 		SingletonBeanRegistry sbr = null;
 		if (registry instanceof SingletonBeanRegistry) {
 			sbr = (SingletonBeanRegistry) registry;
@@ -358,7 +360,9 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 				BeanNameGenerator generator = (BeanNameGenerator) sbr.getSingleton(
 						AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR);
 				if (generator != null) {
+					// 设置由 @ComponentScan 注解导入进来的 bean 的名称生成器(默认首字母小写)，也可以自定义
 					this.componentScanBeanNameGenerator = generator;
+					// 设置由 @Import 注解导入进来的 bean 的名称生成器(首字母小写)，也可以自定义
 					this.importBeanNameGenerator = generator;
 				}
 			}
@@ -369,14 +373,18 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			this.environment = new StandardEnvironment();
 		}
 
-		// ConfigurationClassParser：标注了注解 @Configuration 的配置类的解析器。 Parse each @Configuration class
+		/**
+		 * 创建一个配置类解析器对象
+		 * ConfigurationClassParser：标注了注解 @Configuration 的配置类的解析器。
+		 * Parse each @Configuration class
+		 */
 		ConfigurationClassParser parser = new ConfigurationClassParser(
 				this.metadataReaderFactory, this.problemReporter, this.environment,
 				this.resourceLoader, this.componentScanBeanNameGenerator, registry);
 
 		// 存放符合候选条件的 BeanDefinitionHolder
 		Set<BeanDefinitionHolder> candidates = new LinkedHashSet<>(configCandidates);
-		// 存放已经解析完毕的 ConfigurationClass(BeanDefinitionHolder 解析完毕后，会封装在 ConfigurationClass 中)
+		// 存放已经解析完毕的配置类(BeanDefinitionHolder 解析完毕后，会封装在 ConfigurationClass 中)
 		Set<ConfigurationClass> alreadyParsed = new HashSet<>(configCandidates.size());
 
 		// 循环处理配置类的定义信息
@@ -385,7 +393,6 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 
 			/**
 			 * 解析配置类
-			 * 所有需要扫描进来的组件的 BeanDefinition 都已经准备好了，例如标注了 @Component 注解的类信息会被注册进来
 			 */
 			parser.parse(candidates);
 			parser.validate();
@@ -406,8 +413,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			}
 
 			/**
-			 * 加载配置类信息，重新封装成 BeanDefinition，
-			 * 主要就是配置类中，标注了注解 @Bean 的方法需要注册新的 BeanDefinition
+			 * 此处才把 @Bean 的方法和 @Import 导入的组件注册到 BeanDefinitionMap 中
 			 */
 			this.reader.loadBeanDefinitions(configClasses);
 			// 将解析完毕的 configClasses 添加到集合 alreadyParsed 中

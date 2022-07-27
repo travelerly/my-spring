@@ -342,7 +342,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		 */
 		TransactionAttributeSource tas = getTransactionAttributeSource();
 		/**
-		 * 获取解析收的事务属性
+		 * 获取解析后的事务属性源信息
 		 * 创建代理的时候调用了 getTransactionAttribute() 方法，这里是从缓存中获取
 		 */
 		final TransactionAttribute txAttr = (tas != null ? tas.getTransactionAttribute(method, targetClass) : null);
@@ -383,13 +383,13 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 
 		// 获取配置的事务管理器对象
 		PlatformTransactionManager ptm = asPlatformTransactionManager(tm);
-		// 从 tx 属性对象中获取出标注了 @Transactional 注解的方法的描述符
+		// 从事务属性对象中获取出标注了 @Transactional 注解的方法的描述符（全类名 + 方法名）
 		final String joinpointIdentification = methodIdentification(method, targetClass, txAttr);
 
 		// 处理声明式事务
 		if (txAttr == null || !(ptm instanceof CallbackPreferringPlatformTransactionManager)) {
 			/**
-			 * 创建并开启事务
+			 * 创建并开启事务。根据事务的传播行为，判断是否需要开启事务以及处理嵌套事务
 			 * Standard transaction demarcation with getTransaction and commit/rollback calls.
 			 */
 			TransactionInfo txInfo = createTransactionIfNecessary(ptm, txAttr, joinpointIdentification);
@@ -602,7 +602,10 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	protected TransactionInfo createTransactionIfNecessary(@Nullable PlatformTransactionManager tm,
 			@Nullable TransactionAttribute txAttr, final String joinpointIdentification) {
 
-		// If no name specified, apply method identification as transaction name.
+		/**
+		 * 如果没有定义名字，把连接点的 ID 定义成事务的名称
+		 * If no name specified, apply method identification as transaction name.
+		 */
 		if (txAttr != null && txAttr.getName() == null) {
 			txAttr = new DelegatingTransactionAttribute(txAttr) {
 				@Override
@@ -615,7 +618,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		TransactionStatus status = null;
 		if (txAttr != null) {
 			if (tm != null) {
-				// 开启事务核心逻辑
+				// 开启事务核心逻辑：获取一个事务状态
 				status = tm.getTransaction(txAttr);
 			}
 			else {

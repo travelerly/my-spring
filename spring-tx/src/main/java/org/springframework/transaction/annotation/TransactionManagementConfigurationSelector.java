@@ -49,8 +49,14 @@ public class TransactionManagementConfigurationSelector extends AdviceModeImport
 	 */
 	@Override
 	protected String[] selectImports(AdviceMode adviceMode) {
+		// adviceMode，即 mode 属性，默认就是 PROXY
 		switch (adviceMode) {
 			case PROXY:
+				/**
+				 * 向容器中导入了两个组件：
+				 * 1.AutoProxyRegistrar：会为容器中注册了一个处理事务的后置处理器(InfrastructureAdvisorAutoProxyCreator)，用来解析切面、创建动态代理 ……
+				 * 2.ProxyTransactionManagementConfiguration：会为容器中注册一个实现了 Advisor 的配置类 BeanFactoryTransactionAttributeSourceAdvisor
+				 */
 				return new String[] {AutoProxyRegistrar.class.getName(),
 						ProxyTransactionManagementConfiguration.class.getName()};
 			case ASPECTJ:

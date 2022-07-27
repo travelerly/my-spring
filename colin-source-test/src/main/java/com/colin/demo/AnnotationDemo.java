@@ -25,22 +25,22 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 public class AnnotationDemo {
 
 	public static void main(String[] args) {
-		aopTest();
+		/*aopTest();*/
 		/*testBean();*/
 		/*testFactoryBean();*/
 		/*testCycle();*/
 		/*listenerTest();*/
 		/*testCycleAop();*/
-		/*testTransactional();*/
+		testTransactional();
 
 	}
 
 	private static void testTransactional() {
 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MyConfig.class);
 		// jdk 动态代理
-		StudentService sutdentService = (StudentService) context.getBean("studentServiceImpl");
+		/*StudentService sutdentService = (StudentService) context.getBean("studentServiceImpl");*/
 		// cglib 动态代理
-		/*CglibStudentService sutdentService = (CglibStudentService) context.getBean("cglibStudentService");*/
+		CglibStudentService sutdentService = (CglibStudentService) context.getBean("cglibStudentService");
 
 		// 用于模拟异常：0-异常
 		int exCode = 1;

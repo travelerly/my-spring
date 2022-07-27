@@ -51,7 +51,7 @@ public class SpringTransactionAnnotationParser implements TransactionAnnotationP
 	@Override
 	@Nullable
 	public TransactionAttribute parseTransactionAnnotation(AnnotatedElement element) {
-		// 获取 @Transactional 注解中配置的属性
+		// 获取 @Transactional 注解中配置的属性，然后封装成 AnnotationAttributes
 		AnnotationAttributes attributes = AnnotatedElementUtils.findMergedAnnotationAttributes(
 				element, Transactional.class, false, false);
 		if (attributes != null) {

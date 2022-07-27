@@ -4,6 +4,7 @@ package com.colin.proxy.cglib;
 import org.aopalliance.intercept.MethodInvocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.cglib.core.DebuggingClassWriter;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
@@ -32,6 +33,10 @@ public class CglibDynamicProxy implements MethodInterceptor {
      * @return
      */
     public Object getProxy(){
+
+        // 将生成的代理文件存储到项目根目录
+        System.setProperty(DebuggingClassWriter.DEBUG_LOCATION_PROPERTY,"./colin-source-test/src/main/java/com/colin/proxy/cglib/file");
+
         // 创建字节码增强器，可以为没有实现接口的类创建代理对象
         Enhancer enhancer = new Enhancer();
         // 因为 cglib 的原理是动态生成要代理类的子类，然后子类重写父类方法，所以这里要设置生成代理类的父类类型

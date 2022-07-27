@@ -56,10 +56,17 @@ public abstract class AopConfigUtils {
 	 */
 	private static final List<Class<?>> APC_PRIORITY_LIST = new ArrayList<>(3);
 
+	/**
+	 * 用于判断 AOP 和 TX 注册的后置处理器的优先级列表
+	 * 可见 AOP 的后置处理器的索引要大于 TX 的后置处理器的索引
+	 * 同时开启 AOP 和 TX 的话，AOP 的后置处理器会覆盖 TX 的后置处理器
+	 */
 	static {
 		// Set up the escalation list...
+		// TX 的后置处理器
 		APC_PRIORITY_LIST.add(InfrastructureAdvisorAutoProxyCreator.class);
 		APC_PRIORITY_LIST.add(AspectJAwareAdvisorAutoProxyCreator.class);
+		// AOP 的后置处理器
 		APC_PRIORITY_LIST.add(AnnotationAwareAspectJAutoProxyCreator.class);
 	}
 
@@ -114,18 +121,50 @@ public abstract class AopConfigUtils {
 		}
 	}
 
+	/**
+	 * AOP 和 TX 都会调用此方法，给容器中注册一个 bean 的后置处理器，传参不同：
+	 * AOP：AnnotationAwareAspectJAutoProxyCreator
+	 * TX：InfrastructureAdvisorAutoProxyCreator
+	 *
+	 * @param cls
+	 * @param registry
+	 * @param source
+	 * @return
+	 */
 	@Nullable
 	private static BeanDefinition registerOrEscalateApcAsRequired(
 			Class<?> cls, BeanDefinitionRegistry registry, @Nullable Object source) {
 
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
-		// 判断容器中是否包含组件 internalAutoProxyCreator。
+		/**
+		 * 判断容器中是否包含组件 internalAutoProxyCreator。
+		 * AOP 和 TX 都会为容器中注册名称为 internalAutoProxyCreator 的 bean 的后置处理器的 BeanDefinition
+		 * 容器会根据内部维护的优先级来覆盖 beanClass，即会覆盖 cls
+		 */
 		if (registry.containsBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME)) {
 			BeanDefinition apcDefinition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);
+
+			// 判断当前类的名称和容器中已有类的名称是否相同，若不相同，则继续判断
 			if (!cls.getName().equals(apcDefinition.getBeanClassName())) {
+				// 找到容器中已存在的名称为 internalAutoProxyCreator 的 bean 的优先级
 				int currentPriority = findPriorityForClass(apcDefinition.getBeanClassName());
+				// 找到当前 bean 的优先级
 				int requiredPriority = findPriorityForClass(cls);
+
 				if (currentPriority < requiredPriority) {
+					/**
+					 * 优先级高的会覆盖优先级低的 bean
+					 * AopConfigUtils 中有一个静态列表，根据 bean 在列表中的索引来获取其优先级
+					 *
+					 * static {
+					 * 		APC_PRIORITY_LIST.add(InfrastructureAdvisorAutoProxyCreator.class);
+					 * 		APC_PRIORITY_LIST.add(AspectJAwareAdvisorAutoProxyCreator.class);
+					 * 		APC_PRIORITY_LIST.add(AnnotationAwareAspectJAutoProxyCreator.class);
+					 * }
+					 *
+					 * 根据列表可以得出 AOP 的后置处理器的优先级要高于 TX 的后置处理器的优先级
+					 * 所以，同时开启 AOP 和 TX 的话，AOP 的后置处理器会覆盖 TX 的后置处理器
+					 */
 					apcDefinition.setBeanClassName(cls.getName());
 				}
 			}
@@ -133,16 +172,29 @@ public abstract class AopConfigUtils {
 		}
 
 		/**
-		 * 构建 AnnotationAwareAspectJAutoProxyCreator 的 beanDefinition
-		 * 参数 cls 其实就代表 AnnotationAwareAspectJAutoProxyCreator 的 Class 对象
+		 * AOP 和 TX 都会给容器中注册一个 beanName 为 internalAutoProxyCreator 的后置处理器的 BeanDefinition，但其优先级不同
+		 * 		AOP：cls 为 AnnotationAwareAspectJAutoProxyCreator 的 Class 对象
+		 * 		TX：cls 为 InfrastructureAdvisorAutoProxyCreator 的 Class 对象
 		 */
 		RootBeanDefinition beanDefinition = new RootBeanDefinition(cls);
 		beanDefinition.setSource(source);
 		beanDefinition.getPropertyValues().add("order", Ordered.HIGHEST_PRECEDENCE);
 		beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+
 		/**
-		 * 将 AnnotationAwareAspectJAutoProxyCreator 放入到 beanDefinitionMap 中
-		 * 其中 key 为：org.springframework.aop.config.internalAutoProxyCreator
+		 * AOP 和 TX 都会给容器中注册 beanName 为 internalAutoProxyCreator 的后置处理器的 BeanDefinition
+		 * key：internalAutoProxyCreator
+		 * value：
+		 * 		AOP->AnnotationAwareAspectJAutoProxyCreator
+		 * 		TX->InfrastructureAdvisorAutoProxyCreator
+		 *
+		 * 	InfrastructureAdvisorAutoProxyCreator 和 AnnotationAwareAspectJAutoProxyCreator 都继承了 AbstractAdvisorAutoProxyCreator
+		 * 	InfrastructureAdvisorAutoProxyCreator 重写了 AbstractAdvisorAutoProxyCreator 的 isEligibleAdvisorBean 方法，
+		 *  解析切面时，后置处理器仅对容器内部 bean 其作用
+		 *
+		 *  AnnotationAwareAspectJAutoProxyCreator 没有重写 AbstractAdvisorAutoProxyCreator 的 isEligibleAdvisorBean 方法，
+		 *  默认返回 true，即即系切面时，后置处理器对于自定义 bean 也会起作用
+		 *
 		 */
 		registry.registerBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME, beanDefinition);
 		return beanDefinition;

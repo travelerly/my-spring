@@ -46,12 +46,16 @@ public class ProxyTransactionManagementConfiguration extends AbstractTransaction
 	 * @return
 	 */
 	@Bean(name = TransactionManagementConfigUtils.TRANSACTION_ADVISOR_BEAN_NAME)
-	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+	@Role(BeanDefinition.ROLE_INFRASTRUCTURE) // 角色设置为 2，即角色为内部类
 	public BeanFactoryTransactionAttributeSourceAdvisor transactionAdvisor(
 			TransactionAttributeSource transactionAttributeSource, TransactionInterceptor transactionInterceptor) {
+		// 事务的 Advisor 中内置了 Advice 和
 
+		// 创建 Advisor
 		BeanFactoryTransactionAttributeSourceAdvisor advisor = new BeanFactoryTransactionAttributeSourceAdvisor();
+		// 设置用于解析 @Transactional 注解的事务源对象
 		advisor.setTransactionAttributeSource(transactionAttributeSource);
+		// 设置 Advice 对象
 		advisor.setAdvice(transactionInterceptor);
 		if (this.enableTx != null) {
 			advisor.setOrder(this.enableTx.<Integer>getNumber("order"));
@@ -60,7 +64,7 @@ public class ProxyTransactionManagementConfiguration extends AbstractTransaction
 	}
 
 	/**
-	 * 导入事务属性源对象：用于获取事务属性对象
+	 * 导入的事务属性源对象：用于解析 @Transactional 注解
 	 * @return
 	 */
 	@Bean

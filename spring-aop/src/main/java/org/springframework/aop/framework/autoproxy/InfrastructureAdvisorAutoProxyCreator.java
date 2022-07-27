@@ -42,6 +42,9 @@ public class InfrastructureAdvisorAutoProxyCreator extends AbstractAdvisorAutoPr
 
 	@Override
 	protected boolean isEligibleAdvisorBean(String beanName) {
+		/**
+		 * 若容器中包含了当前 beanName 对应的 BeanDefinition，并且其 role 为内部的，即为内部 bean，事务才会起作用
+		 */
 		return (this.beanFactory != null && this.beanFactory.containsBeanDefinition(beanName) &&
 				this.beanFactory.getBeanDefinition(beanName).getRole() == BeanDefinition.ROLE_INFRASTRUCTURE);
 	}

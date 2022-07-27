@@ -19,9 +19,9 @@ import javax.sql.DataSource;
  * @create 2021-03-17 11:31
  */
 // 开启基于注解的 aop 功能
- @EnableAspectJAutoProxy
+@EnableAspectJAutoProxy(exposeProxy = true)
 // 开启基于注解的事务功能
-//@EnableTransactionManagement
+@EnableTransactionManagement
 @ComponentScan("com.colin")
 @Configuration
 public class MyConfig {
@@ -30,40 +30,40 @@ public class MyConfig {
 		System.out.println("...MyConfig创建了...");
 	}
 
-//	/*@Bean
-//	@Lookup
-//	public DataSource dataSource() {
-//		DruidDataSource dataSource = new DruidDataSource();
-//		dataSource.setUsername("root");
-//		dataSource.setPassword("root1024");
-//		dataSource.setUrl("jdbc:mysql://localhost:3306/spring_jdbc");
-//		dataSource.setDriverClassName("com.mysql.jdbc.Driver");
-//		return dataSource;
-//	}
-//
-//	*//**
-//	 *  配置JdbcTemplate Bean组件
-//	 *     <bean class="org.springframework.jdbc.core.JdbcTemplate" id="jdbcTemplate">
-//	 *         <property name="dataSource" ref="dataSource" ></property>
-//	 *     </bean>
-//	 * @param dataSource
-//	 * @return
-//	 *//*
-//	@Bean
-//	public JdbcTemplate jdbcTemplate(DataSource dataSource) {
-//		return new JdbcTemplate(dataSource);
-//	}
-//
-//	*//**
-//	 *  配置事务管理器
-//	 *     <bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" id="transactionManager">
-//	 *         <property name="dataSource" ref="dataSource"></property>
-//	 *     </bean>
-//	 * @param dataSource
-//	 * @return
-//	 *//*
-//	@Bean
-//	public PlatformTransactionManager transactionManager(DataSource dataSource) {
-//		return new DataSourceTransactionManager(dataSource);
-//	}*/
+	@Bean
+	@Lookup
+	public DataSource dataSource() {
+		DruidDataSource dataSource = new DruidDataSource();
+		dataSource.setUsername("root");
+		dataSource.setPassword("root1024");
+		dataSource.setUrl("jdbc:mysql://localhost:3306/spring_jdbc");
+		dataSource.setDriverClassName("com.mysql.jdbc.Driver");
+		return dataSource;
+	}
+
+	/**
+	 *  配置JdbcTemplate Bean组件
+	 *     <bean class="org.springframework.jdbc.core.JdbcTemplate" id="jdbcTemplate">
+	 *         <property name="dataSource" ref="dataSource" ></property>
+	 *     </bean>
+	 * @param dataSource
+	 * @return
+	 */
+	@Bean
+	public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+		return new JdbcTemplate(dataSource);
+	}
+
+	/**
+	 *  配置事务管理器
+	 *     <bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" id="transactionManager">
+	 *         <property name="dataSource" ref="dataSource"></property>
+	 *     </bean>
+	 * @param dataSource
+	 * @return
+	 */
+	@Bean
+	public PlatformTransactionManager transactionManager(DataSource dataSource) {
+		return new DataSourceTransactionManager(dataSource);
+	}
 }

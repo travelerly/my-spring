@@ -65,22 +65,49 @@ public class BeanFactoryAdvisorRetrievalHelper {
 	 * @see #isEligibleBean
 	 */
 	public List<Advisor> findAdvisorBeans() {
-		// Determine list of advisor bean names, if not cached already.
+		/**
+		 * 探测器字段缓存 cachedAdvisorBeanNames，用来保存 Advisor 的全类名
+		 * 会在创建第一个单实例 bean 中把 Advisor 名称解析出来
+		 */
 		String[] advisorNames = this.cachedAdvisorBeanNames;
 		if (advisorNames == null) {
-			// Do not initialize FactoryBeans here: We need to leave all regular beans
-			// uninitialized to let the auto-proxy creator apply to them!
+			/**
+			 * 从容器中获取到实现了 Advisor 接口的实现类
+			 * 事务注解 @EnableTransactionManagement 导入了一个叫 ProxyTransactionManagementConfiguration 的配置类
+			 * 这个配置类中配置了：
+			 * @Bean(name = TransactionManagementConfigUtils.TRANSACTION_ADVISOR_BEAN_NAME)
+			 * @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+			 * public BeanFactoryTransactionAttributeSourceAdvisor transactionAdvisor() ……
+			 * 把他的名字获取出来保存到本类的属性变量 cachedAdvisorBeanNames 中，即保存到缓存中
+			 *
+			 * Do not initialize FactoryBeans here: We need to leave all regular beans
+			 * uninitialized to let the auto-proxy creator apply to them!
+			 */
 			advisorNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 					this.beanFactory, Advisor.class, true, false);
 			this.cachedAdvisorBeanNames = advisorNames;
 		}
+
+		// 若容器中没有找到，则直接返回一个空集合
 		if (advisorNames.length == 0) {
 			return new ArrayList<>();
 		}
 
 		List<Advisor> advisors = new ArrayList<>();
+		// 遍历找到的容器中配置的 BeanFactoryTransactionAttributeSourceAdvisor
 		for (String name : advisorNames) {
+			/**
+			 * 判断当前 BeanFactoryTransactionAttributeSourceAdvisor 是否符合要求
+			 * isEligibleBean() 为 InfrastructureAdvisorAutoProxyCreator 重写的方法，
+			 * 用于判断，当前 name 对应的 bean 是否为内部 bean，如果是内部 bean 则符合要求，返回 true，
+			 * 即当前的后置处理器是内部 bean，才会被解析为一个 Advisor
+			 *
+			 * 但如果同时开启了 AOP 和 TX，AOP 的后置处理器 会覆盖 TX 的后置处理器，
+			 * 而 AOP 的后置处理器没有从写 isEligibleBean() 方法，因此会返回默认值 true，
+			 * 即默认会将当前 name 对应的后置处理器解析成 Advisor
+			 */
 			if (isEligibleBean(name)) {
+				// 判断当前 BeanFactoryTransactionAttributeSourceAdvisor 是否正在创建中
 				if (this.beanFactory.isCurrentlyInCreation(name)) {
 					if (logger.isTraceEnabled()) {
 						logger.trace("Skipping currently created advisor '" + name + "'");
@@ -88,6 +115,7 @@ public class BeanFactoryAdvisorRetrievalHelper {
 				}
 				else {
 					try {
+						// 调用 getBean 方法创建 BeanFactoryTransactionAttributeSourceAdvisor 的对象
 						advisors.add(this.beanFactory.getBean(name, Advisor.class));
 					}
 					catch (BeanCreationException ex) {

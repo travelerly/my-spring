@@ -344,27 +344,52 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 		// Use defaults if no transaction definition given.
 		TransactionDefinition def = (definition != null ? definition : TransactionDefinition.withDefaults());
 
+		// 尝试获取一个事务对象
 		Object transaction = doGetTransaction();
 		boolean debugEnabled = logger.isDebugEnabled();
 
+		// 判断是否存在了事务，即嵌套事务
 		if (isExistingTransaction(transaction)) {
-			// Existing transaction found -> check propagation behavior to find out how to behave.
+			/**
+			 * 处理嵌套事务
+			 * Existing transaction found -> check propagation behavior to find out how to behave.
+			 */
 			return handleExistingTransaction(def, transaction, debugEnabled);
 		}
 
-		// Check definition settings for new transaction.
+		// 检查事务设置的超时时间
 		if (def.getTimeout() < TransactionDefinition.TIMEOUT_DEFAULT) {
 			throw new InvalidTimeoutException("Invalid transaction timeout", def.getTimeout());
 		}
 
-		// No existing transaction found -> check propagation behavior to find out how to proceed.
+		// 以下判断事务的传播行为
+
+		/**
+		 * 若当前的事务的传播行为是：PROPAGATION_MANDATORY，表示必须运行在事务中，若当前没有事务就会抛出异常
+		 * 由于 isExistingTransaction(transaction) 跳过了这里，说明当前是不存在事务的，那么就会抛出异常
+		 */
 		if (def.getPropagationBehavior() == TransactionDefinition.PROPAGATION_MANDATORY) {
 			throw new IllegalTransactionStateException(
 					"No existing transaction found for transaction marked with propagation 'mandatory'");
 		}
+
+		/**
+		 * 判断事务传播行为是否为以下几种，若是，则开启一个新事务
+		 * PROPAGATION_REQUIRED：当前存在事务就加入到当前的事务，没有就新开一个，默认的事务传播行为
+		 * PROPAGATION_REQUIRES_NEW：新开一个事务，若当前存在事务就挂起当前事务
+		 * PROPAGATION_NESTED: 如果当前正有一个事务在运行中，则该方法应该运行在一个嵌套的事务中，
+		 * 					   被嵌套的事务可以独立封装事务进行提交或回滚(保存点)；
+		 * 					   如果封装事务不存在，行为就像 PROPAGATION_REQUIRES_NEW
+		 */
 		else if (def.getPropagationBehavior() == TransactionDefinition.PROPAGATION_REQUIRED ||
 				def.getPropagationBehavior() == TransactionDefinition.PROPAGATION_REQUIRES_NEW ||
 				def.getPropagationBehavior() == TransactionDefinition.PROPAGATION_NESTED) {
+
+			/**
+			 * 挂起当前事务，这里为什么传入 null？
+			 * 因为逻辑运行至此，经过了上面的 isExistingTransaction(transaction) 方法判断当前是不存在事务的
+			 * 所以在这里挂起当前事务，传递一个 null，其实是没有事务可被挂起的
+			 */
 			SuspendedResourcesHolder suspendedResources = suspend(null);
 			if (debugEnabled) {
 				logger.debug("Creating new transaction with name [" + def.getName() + "]: " + def);
@@ -379,7 +404,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 			}
 		}
 		else {
-			// Create "empty" transaction: no actual transaction, but potentially synchronization.
+			// 创建一个空事务。Create "empty" transaction: no actual transaction, but potentially synchronization.
 			if (def.getIsolationLevel() != TransactionDefinition.ISOLATION_DEFAULT && logger.isWarnEnabled()) {
 				logger.warn("Custom isolation level specified but no actual transaction initiated; " +
 						"isolation level will effectively be ignored: " + def);
@@ -395,11 +420,14 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 	private TransactionStatus startTransaction(TransactionDefinition definition, Object transaction,
 			boolean debugEnabled, @Nullable SuspendedResourcesHolder suspendedResources) {
 
+		// 可以进行同步
 		boolean newSynchronization = (getTransactionSynchronization() != SYNCHRONIZATION_NEVER);
+		// 构造事务状态对象，newTransactionStatus 代表一个新事务
 		DefaultTransactionStatus status = newTransactionStatus(
 				definition, transaction, true, newSynchronization, debugEnabled, suspendedResources);
-		// 开启事务
+		// 开启一个新事务
 		doBegin(transaction, definition);
+		// 把当前的事务信息绑定到线程变量中去
 		prepareSynchronization(status, definition);
 		return status;
 	}
@@ -529,11 +557,15 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 	 */
 	protected void prepareSynchronization(DefaultTransactionStatus status, TransactionDefinition definition) {
 		if (status.isNewSynchronization()) {
+			// 绑定事务激活
 			TransactionSynchronizationManager.setActualTransactionActive(status.hasTransaction());
+			// 当前事务的隔离级别
 			TransactionSynchronizationManager.setCurrentTransactionIsolationLevel(
 					definition.getIsolationLevel() != TransactionDefinition.ISOLATION_DEFAULT ?
 							definition.getIsolationLevel() : null);
+			// 是否为只读事务
 			TransactionSynchronizationManager.setCurrentTransactionReadOnly(definition.isReadOnly());
+			// 事务的名称
 			TransactionSynchronizationManager.setCurrentTransactionName(definition.getName());
 			TransactionSynchronizationManager.initSynchronization();
 		}

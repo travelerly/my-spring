@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author colin
  * @create 2022-07-25 20:33
  */
-//@Component
+@Component
 public class CglibStudentService {
 
     @Autowired

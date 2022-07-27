@@ -102,6 +102,8 @@ public abstract class AbstractFallbackTransactionAttributeSource
 	@Override
 	@Nullable
 	public TransactionAttribute getTransactionAttribute(Method method, @Nullable Class<?> targetClass) {
+
+		// 判断 method 所在的 class 是不是 Object 类型
 		if (method.getDeclaringClass() == Object.class) {
 			return null;
 		}
@@ -121,23 +123,30 @@ public abstract class AbstractFallbackTransactionAttributeSource
 		if (cached != null) {
 			// Value will either be canonical value indicating there is no transaction attribute,
 			// or an actual transaction attribute.
+			// 判断缓存中的对象是否为空事务属性对象
 			if (cached == NULL_TRANSACTION_ATTRIBUTE) {
 				return null;
 			}
 			else {
+				// 返回
 				return cached;
 			}
 		}
 		else {
-			// We need to work it out.
-			// 获取注解 @Transactional 中配置的属性
+			/**
+			 * 获取注解 @Transactional 中配置的属性，例如事务的传播行为、事务隔离级别、超时时间 ……
+			 * 解析 @Transactional 注解
+			 */
 			TransactionAttribute txAttr = computeTransactionAttribute(method, targetClass);
 			// Put it in the cache.
 			if (txAttr == null) {
+				// 缓存空事务注解属性
 				this.attributeCache.put(cacheKey, NULL_TRANSACTION_ATTRIBUTE);
 			}
 			else {
+				// 获取方法的全限定名称：全类名 + 方法名
 				String methodIdentification = ClassUtils.getQualifiedMethodName(method, targetClass);
+				// 把方法全限定名封装到到事务属性对象上
 				if (txAttr instanceof DefaultTransactionAttribute) {
 					DefaultTransactionAttribute dta = (DefaultTransactionAttribute) txAttr;
 					dta.setDescriptor(methodIdentification);
@@ -146,6 +155,7 @@ public abstract class AbstractFallbackTransactionAttributeSource
 				if (logger.isTraceEnabled()) {
 					logger.trace("Adding transactional method '" + methodIdentification + "' with attribute: " + txAttr);
 				}
+
 				// 将注解 @Transactional 中配置的属性放入缓存中，key 为添加了事务注解的方法名
 				this.attributeCache.put(cacheKey, txAttr);
 			}
@@ -189,7 +199,7 @@ public abstract class AbstractFallbackTransactionAttributeSource
 
 		/**
 		 * 首先尝试在目标类中的方法上寻找事务属性
-		 * 即找到 @Transactional 注解，并获取注解中配置的属性
+		 * 即找到 @Transactional 注解，并获取注解中配置的属性，顺序是先到目标类的方法上找、再到接口的方法上找，最后再到父类的方法上找
 		 * First try is the method in the target class.
 		 */
 		TransactionAttribute txAttr = findTransactionAttribute(specificMethod);
@@ -199,7 +209,7 @@ public abstract class AbstractFallbackTransactionAttributeSource
 
 		/**
 		 * 如果目标方法上没有找到事务属性，则尝试在目标类上寻找事务属性
-		 * 在类上寻找事务注解的逻辑，和在方法上寻找事务注解的逻辑是一模一样的
+		 * 到方法所在的类上寻找事务注解，和在方法上寻找事务注解的逻辑是一模一样的，顺序是先到目标类上找，再到接口上找，最后再到父类上找
 		 * 其实就是通过 SpringTransactionAnnotationParser 事务注解解析器来完成解析的
 		 * Second try is the transaction attribute on the target class.
 		 */
