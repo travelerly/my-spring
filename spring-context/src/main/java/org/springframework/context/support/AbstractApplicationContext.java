@@ -563,7 +563,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			prepareRefresh();
 
 			/**
-			 * 初始化 bean 工厂
+			 * 初始化 bean 工厂，即创建 DefaultListableBeanFactory
 			 * 工厂的创建：BeanFactory 第一次创建，获取当前准备好的空容器。
 			 * XML 配置方式，会在此处进行 xml 文件的解析，将信息注册进 BeanDefinitionMap 中；
 			 * 注解或配置类的配置方式，只是刷新了 BeanFactory
@@ -594,8 +594,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				 * 2.调用 bean 工厂的后置处理器
 				 * 执行 spring 容器基本的后置处理器
 				 * 所有的 BeanDefinition 就已经准备就绪了
-				 * 例如配置类的后置处理器 ConfigurationClassPostProcessor，会在此解析配置类，
-				 * 注册了所有标有 @Component、@ComponentScans、@ImportResource、@PropertySources、@Bean、@Import 等注解的 bean
+				 * 例如配置类的后置处理器 ConfigurationClassPostProcessor，※※※※※※※※ 会在此解析配置类 ※※※※※※※※
+				 * 注册了所有 @Component、@ComponentScans、@ImportResource、@PropertySources、@Bean、@Import 注解的 BeanDefinition
 				 *
 				 * Invoke factory processors registered as beans in the context.
 				 */

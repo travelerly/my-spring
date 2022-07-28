@@ -302,7 +302,7 @@ class ConfigurationClassBeanDefinitionReader {
 					configClass.getMetadata().getClassName(), beanName));
 		}
 
-		// 将方法对应的 BeanDefinition 注册到容器中
+		// 将方法对应的 BeanDefinition 注册到容器中，即注册到 beanDefinitionMap 中
 		this.registry.registerBeanDefinition(beanName, beanDefToRegister);
 	}
 

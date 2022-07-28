@@ -2,10 +2,7 @@ package com.colin.demo;
 
 import com.colin.aop.HelloService;
 import com.colin.aop.cycle.AService;
-import com.colin.bean.ContextBean;
-import com.colin.bean.Hello;
-import com.colin.bean.HelloFactory;
-import com.colin.bean.Person;
+import com.colin.bean.*;
 import com.colin.bean.cycle.A;
 import com.colin.bean.cycle.B;
 import com.colin.config.MyConfig;
@@ -26,12 +23,12 @@ public class AnnotationDemo {
 
 	public static void main(String[] args) {
 		/*aopTest();*/
-		/*testBean();*/
+		testBean();
 		/*testFactoryBean();*/
 		/*testCycle();*/
 		/*listenerTest();*/
 		/*testCycleAop();*/
-		testTransactional();
+		/*testTransactional();*/
 
 	}
 
@@ -81,9 +78,13 @@ public class AnnotationDemo {
 	 */
 	private static void testBean() {
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
-		Hello hello = applicationContext.getBean(Hello.class);
+		/*Hello hello = applicationContext.getBean(Hello.class);
 		Hello hello2 = applicationContext.getBean(Hello.class);
-		System.out.println(hello==hello2);
+		System.out.println(hello==hello2);*/
+
+		Car car_1 = applicationContext.getBean(Car.class);
+		Car car_2 = applicationContext.getBean(Car.class);
+		System.out.println();
 	}
 
 	/**
