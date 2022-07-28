@@ -337,7 +337,13 @@ try {
 
 ---
 
-## 动态代理
+## Spring 事务原理
+
+![](src/docs/spring/事务原理.jpg)
+
+---
+
+## 动态代理（待完善）
 
 ### 动态代理对象的创建时机分为两处：
 
@@ -374,10 +380,6 @@ public class BService {
 **若当前类是 AOP 目标类，且不存在循环依赖，则会为其创建 AOP 代理对象。**
 
 AService 在初始化之后，后置处理器 AbstractAutoProxyCreator 的后置处理逻辑介入，为其创建 AOP 代理对象。
-
----
-
-## Spring 事务
 
 ---
 
