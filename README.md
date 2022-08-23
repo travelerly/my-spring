@@ -8,7 +8,7 @@
 
 ###  Spring 如何工作
 
-Spring 暴露给程序员的使用方式是，要么写一个 xml 文件、要么使用注解、要么利用磁盘文件、网络文件等，把需要的功能定义出来，这个信息最终会生成一个组件或者功能配置清单，Spring 会去读取并解析这些功能清单，这些信息就会决定 Spring 框架中的各种行为。
+Spring 暴露给开发者的使用方式是，要么写一个 xml 文件、要么使用注解、要么利用磁盘文件、网络文件等，把需要的功能定义出来，这个信息最终会生成一个组件或者功能配置清单，Spring 会去读取并解析这些功能清单，这些信息就会决定 Spring 框架中的各种行为。
 
 
 
@@ -20,21 +20,21 @@ Spring 暴露给程序员的使用方式是，要么写一个 xml 文件、要�
 
 ### ApplicationContext 与 BeanFactory 的区别与作用：
 
-1. ApplicationContext 实现了 BeanFactory 接口，所以是 BeanFactory；
-2. AnnotationConfigApplicationContext 组合了 DefaultListableBeanFactory，在 AnnotationConfigApplicationContext 执行构造方法时，先通过其父类 GenericApplicationContext 的构造方法创建了 DefaultListableBeanFactory，DefaultListableBeanFactory 及其父类创初始化了用于保存 Bean 定义信息的集合、保存实例的各种池、Bean 定义信息的扫描器和读取器、底层的后置处理器等，然后 AnnotationConfigApplicationContext 再创建 BeanDefinition 的扫描器和读取器，并注册主配置类，最后调用 refresh() 方法刷新容器；
+1. ApplicationContext 实现了 BeanFactory 接口，所以 ApplicationContext 就是 BeanFactory；
+2. AnnotationConfigApplicationContext 组合了 DefaultListableBeanFactory，在 AnnotationConfigApplicationContext 执行构造方法时，先通过其父类 GenericApplicationContext 的构造方法创建了 DefaultListableBeanFactory，DefaultListableBeanFactory 及其父类创初始化了用于保存 Bean 定义信息的集合、保存实例的各种缓存池、Bean 定义信息的扫描器和读取器、底层的后置处理器等，然后 AnnotationConfigApplicationContext 再创建 BeanDefinition 的扫描器和读取器，并注册主配置类，最后调用 refresh() 方法刷新容器；
 3. DefaultListableBeanFactory 是整个 bean 加载的核心部分，是 Spring 注册及加载 bean 的默认实现；
 
-4. BeanFactory 定义工厂的创建和获取 Bean 的流程，其中包含有用于保存 Bean 定义信息的集合、保存实例的各种池等，因此通常称为 IOC 容器；
+4. BeanFactory 定义工厂的创建和获取 Bean 的流程，其中包含有用于保存 Bean 定义信息的集合、保存实例的各种缓存池等，因此通常称为 IOC 容器；
 5. ApplicationContext 是建立在 BeanFactory 基础之上， 定义了 Bean 的各种增强处理的流程，提供了更多面向应用的功能，更易于创建实际应用，因此通常称为应用上下文；
 6. ApplicationContext 里面第一次要用到 bean，会使用工厂 BeanFactory 先来创建，创建好后保存在容器中；
 7. ApplicationContext 中管理 bean 的能力是由 BeanFactory 提供支持的，即由 DefaultListableBeanFactory 提供支持的；
-8. BeanFactory 是 Spring 框架的基础设施，面向 Spring 本身，ApplicationContext 面向使用 Spring 框架的开发者，几乎所有的应用场景都可以直接使用 ApplicationContext，而非底层的 BeanFactory。
+8. **BeanFactory 是 Spring 框架的基础设施，面向 Spring 本身，ApplicationContext 面向使用 Spring 框架的开发者，几乎所有的应用场景都可以直接使用 ApplicationContext，而非底层的 BeanFactory**。
 
 
 
 ### ApplicationContext的继承树
 
-![](src/docs/spring/ApplicationContext的继承树.jpg)
+<img src="src/docs/spring/ApplicationContext的继承树.jpg" style="zoom:25%;" />
 
 #### AOP：
 
@@ -47,11 +47,12 @@ Spring 暴露给程序员的使用方式是，要么写一个 xml 文件、要�
 
 1. BeanFactoryPostProcessor：在 BeanFactory 初始化前后拦截；
 2. BeanPostProcessor：在所有组件创建对象及初始化前后拦截；
-3. InitializingBean：组件单独实现它，可以在组件赋值结束以后调用初始化进行增强处理；
+3. InitializingBean：组件单独实现它，可以在组件**赋值结束以后**调用初始化进行增强处理；
 4. SmartInitializingBean：所有组件都创建好以后，每个组件再来 SmartInitializingBean
 
-Bean：保存 BeanDefinition 信息→根据 BeanDefinition 信息创建对象→赋值→初始化；
+Bean：保存 BeanDefinition 信息→根据 BeanDefinition 信息创建对象→属性赋值→初始化；
 Bean 的功能增强全都是由 BeanPostProcessor + InitializingBean (合起来)完成的
+
 使用建议：
 
 1. 所有组件可能都会使用的功能，使用后置处理器 BeanPostProcessor 来实现；
@@ -95,22 +96,16 @@ Spring 容器启动时，先加载一些底层的后置处理器，例如 Config
 2. **obtainFreshBeanFactory()**：初始化初级容器 BeanFactory，即工厂的创建，BeanFactory 的第一次创建(有 xml 的解析逻辑)，获取当前准备好的空容器，返回在 this() 环节就准备(new)好的 BeanFactory；
 3. **prepareBeanFactory(beanFactory)**：预准备工厂，给容器中注册了环境信息作为单实例 Bean，方便后续自动装配；beanPostProcessor 池中注册了一些后置处理器，例如处理监听功能、XXXAware(感知接口)功能；
 4. **postProcessBeanFactory(beanFactory)**：留给子类的模板方法，允许子类继续对工厂执行一些处理(注册一些特殊的后置处理器)；
-5. **invokeBeanFactoryPostProcessors(beanFactory)**：工厂的增强或修改：执行所有的 BeanFactory 后置处理器，对工厂进行增强或修改(配置类会在这里解析)，即执行 Spring 容器基本的后置处理。所有的 BeanDefinition 就已经准备就绪了。例如配置类的后置处理器 ConfigurationClassPostProcessor，会在此解析配置类，注册了所有标有 @Component、@ComponentScans、@ImportResource、@PropertySources、@Bean、@Import 等注解的 bean；
+5. **invokeBeanFactoryPostProcessors(beanFactory)**：工厂的增强或修改：执行所有的 BeanFactory 后置处理器，对工厂进行增强或修改(配置类会在这里解析)，即执行 Spring 容器基本的后置处理。所有的 BeanDefinition 就已经准备就绪了。例如配置类的后置处理器 ConfigurationClassPostProcessor，会在此解析配置类，注册了所有标有 @Component、@ComponentScans、@ImportResource、@PropertySources、@Bean、@Import 等注解的 bean 的 BeanDefinition；
 6. **registerBeanPostProcessors(beanFactory)**：注册所有的 bean 的后置处理器。例如：注册了创建 AOP 代理的入口 AnnotationAwareAspectJAutoProxyCreator、注册了与注解 @Autowired 相关的 AutowiredAnnotationBeanPostProcessor 等；
 7. **initMessageSource()**：初始化消息源 MessageResource。观察容器中是否含有 MessageResource 的定义信息，如果没有就注册一个并放到单例池中；
 8. **initApplicationEventMulticaster()**：初始化事件多播器(之后注册的监听器和发布事件都是基于该事件多播器执行的)。判断容器中是否有 id 为 applicationEventMulticaster 的定义信息，如果没有就注册一个事件多播器 ApplicationEventMulticaster 放到单例池中；
 9. **onRefresh()**：留给子类继续增强处理逻辑，采用模板模式，用于在实例化 bean 之前，做一些其它初始化 bean 的工作；
 10. **registerListeners()**：初始化各种监听器，关联 Spring 的事件监听机制。将容器中所有的监听器 ApplicationListener 保存进多播器集合中；
-11. **finishBeanFactoryInitialization(beanFactory)**：初始化所有非懒加载的单实例 bean。详细参照 Bean 的初始化流程，再执行所有后初始化操作，即 SmartInitializingSingleton.afterSingletonsInstantiated；
+11. **finishBeanFactoryInitialization(beanFactory)**：初始化所有非懒加载的单实例 bean。详细参照 Bean 的初始化流程，再执行所有的后初始化操作，即 SmartInitializingSingleton.afterSingletonsInstantiated；
 12. **finishRefresh()**：最后的一些清理、事件发送等处理，即初始化生命周期处理器，并发出相应的事件进行通知。
 
 ![](src/docs/spring/容器刷新完整流程.jpg)
-
-
-
-### 后置处理器
-
-
 
 
 
@@ -175,9 +170,9 @@ Spring 容器启动时，先加载一些底层的后置处理器，例如 Config
 
 1. singletonObjects：一级缓存，即 spring 的 ioc 容器，用于存放完整的 bean 实例(已经完成属性赋值和初始化的实例对象)
 2. earlySingletonObjects：二级缓存，存放半成品的 bean 实例(尚未被属性赋值和初始化)
-    - 如果 bean 被 AOP 切面代理，则其保存的是(未属性赋值的半成品的)bean 实例
-    - 如果 bean 不被 AOP 切面代理，则其保存的是代理的 bean 实例--beanProxy，其目标 bean 还是半成品的。
-3. singletonObjects：三级缓存，存放的是 ObjectFactory，是一个函数式接口，当执行objectFactory.getObject() 方法时，最终会调用 getEarlyBeanReference(beanName, mbd, bean)，来获取 bean 的早期引用
+    - 如果 bean 不被 AOP 切面代理，则其保存的是(未属性赋值的半成品的)bean 实例
+    - 如果 bean 被 AOP 切面代理，则其保存的是代理的 bean 实例--beanProxy，其目标 bean 还是半成品的。
+3. singletonObjects：三级缓存，存放的是 ObjectFactory，是一个函数式接口，当执行 objectFactory.getObject() 方法时，最终会调用 getEarlyBeanReference(beanName, mbd, bean)，来获取 bean 的早期引用
     - 如果 bean 被 AOP 代理，则其会返回 bean 的代理对象
     - 如果 bean 不被 AOP 代理，则其会返回原 bean 实例对象
 
@@ -231,29 +226,29 @@ earlyProxyReferences 其实就是用于记录哪些 Bean 被执行过 AOP，防�
 ### 开启 AOP
 
 使用注解 @EnableAspectJAutoProxy 开启基于注解的 AOP 功能，@EnableAspectJAutoProxy 会给容器中导入一个组件 AspectJAutoProxyRegistrar。
-Spring 容器刷新执行 invokeBeanFactoryPostProcessors() 方法时，对工厂进行增强，由配置文件解析器 ConfigurationClassPostProcessor 解析 @Import 注解，将组件 AspectJAutoProxyRegistrar 导入到容器中，会为容器中注册了 AnnotationAwareAspectJAutoProxyCreator 的 BeanDefinition。这是一个 bean 的后置处理器，会干预到每个组件的创建环节。
+Spring 容器刷新执行 `invokeBeanFactoryPostProcessors()` 方法时，对工厂进行增强，由配置文件解析器 ConfigurationClassPostProcessor 解析 @Import 注解，将组件 AspectJAutoProxyRegistrar 导入到容器中，会为容器中注册了 AnnotationAwareAspectJAutoProxyCreator 的 BeanDefinition。这是一个 bean 的后置处理器，会干预到每个组件的创建环节。
 
-Spring 容器刷新执行 registerBeanPostProcessors() 方法时，注册所有的 bean 的后置处理器，就会为 AnnotationAwareAspectJAutoProxyCreator 创建对象，并在其初始化期间，为其属性中创建并保存了用于利用反射创建增强器的工厂--ReflectiveAspectJAdvisorFactory，同时为其父类属性中创建并保存了 BeanFactoryAspectJAdvisorsBuilderAdapter。由于 AnnotationAwareAspectJAutoProxyCreator 是一个 bean 的后置处理器，就会介入到 bean 的创建过程中。
+Spring 容器刷新执行 `registerBeanPostProcessors() `方法时，注册所有的 bean 的后置处理器，就会为 AnnotationAwareAspectJAutoProxyCreator 创建对象，并在其初始化期间，为其属性中创建并保存了用于利用反射创建增强器的工厂--ReflectiveAspectJAdvisorFactory，同时为其父类属性中创建并保存了 BeanFactoryAspectJAdvisorsBuilderAdapter。由于 AnnotationAwareAspectJAutoProxyCreator 是一个 bean 的后置处理器，就会介入到 bean 的创建过程中。
 
-AnnotationAwareAspectJAutoProxyCreator 是一个 bean 的后置处理器，会干预到每个组件的创建环节。 会利用 postProcessBeforeInstantiation 方法将容器中所有标注了 @Aspect、@Before、@After、@AfterThrowing 等注解解析成 Advisor，Advisor 是一个包含了 Advise 和 pointcut 的增强器。即 Spring 容器在加载配置文件时(一般情况 @EnableAspectJAutoProxy  注解添加在配置文件上)，AnnotationAwareAspectJAutoProxyCreator 会将每一个通知方法都解析成一个 Advisor。
+AnnotationAwareAspectJAutoProxyCreator 会利用 `postProcessBeforeInstantiation()` 方法将容器中所有标注了 @Aspect、@Before、@After、@AfterThrowing 等注解解析成 Advisor，Advisor 是一个包含了 Advise 和 pointcut 的增强器。即 Spring 容器在加载配置文件时(一般情况 @EnableAspectJAutoProxy  注解添加在配置文件上)，AnnotationAwareAspectJAutoProxyCreator 会将每一个通知方法都解析成一个 Advisor。
 
 
 
 ### AOP 增强器的创建
 
-Spring 容器刷新执行 finishBeanFactoryInitialization() 方法时，初始化所有非懒加载的单例 bean，在实例化 bean 之前，后置处理器就会介入，即 AnnotationAwareAspectJAutoProxyCreator 会在 bean 实例化之前执行 postProcessBeforeInstantiation() 方法，会为容器中所有的切面中所有的通知方法创建增强器，即筛所有组件中标注了 @Aspect 注解的切面，为其中的所有通知方法生成增强器 Advisor，排序后存入缓存中，一个增强器 Advisor 即是一个 InstantiationModelAwarePointcutAdvisorImpl 类型的实例对象，其封装了增强方法(通知方法)和切入点等关键信息。
+Spring 容器刷新执行 `finishBeanFactoryInitialization()` 方法时，初始化所有非懒加载的单例 bean，在实例化 bean 之前，后置处理器就会介入，即 AnnotationAwareAspectJAutoProxyCreator 会在 bean 实例化之前执行 `postProcessBeforeInstantiation()` 方法，会为容器中所有的切面中所有的通知方法创建增强器，即筛所有组件中标注了 @Aspect 注解的切面，为其中的所有通知方法生成增强器 Advisor，排序后存入缓存中，一个增强器 Advisor 即是一个 InstantiationModelAwarePointcutAdvisorImpl 类型的实例对象，其封装了增强方法(通知方法)和切入点等关键信息。
 
 
 
 ### 创建动态代理
 
-在 bean 的初始化之后，AnnotationAwareAspectJAutoProxyCreator 会再次介入，执行 postProcessAfterInitialization() 方法，判断是否有切面的通知方法切入当前 bean 对象，即当前 bean 对象是切面的目标类，则会为当前 bean 创建动态代理，会根据 bean 是否实现了接口，来区分是使用 JDK 动态代理还是 Cglib 动态代理，代理对象创建完成保存进 ioc 容器。
+在 bean 的初始化之后，AnnotationAwareAspectJAutoProxyCreator 会再次介入，执行 `postProcessAfterInitialization() `方法，判断是否有切面的通知方法切入当前 bean 对象，即当前 bean 对象是切面的目标类，则会为当前 bean 创建动态代理，会根据 bean 是否实现了接口，来区分是使用 JDK 动态代理还是 Cglib 动态代理，代理对象创建完成保存进 ioc 容器。
 
 
 
 ### 调用代理
 
-调用目标方法时，跳转至代理的回调方法，例如：CglibAopProxy#intercept()，使用代理工厂获取容器中所有的增强器 Advisor，遍历这些 Advisor，与当前目标方法进行匹配，生成增强器链，生成的过程中，将增强器 Advisor 转换成拦截器 Interceptor 类型，最终返回的是拦截器类型的集合，即拦截器链，并缓存到 methodCache 中，将拦截器链封装到 CglibMethodInvocation 中，然后执行 proceed() 方法，执行拦截器链。
+调用目标方法时，跳转至代理的回调方法，例如：`CglibAopProxy#intercept()`，使用代理工厂获取容器中所有的增强器 Advisor，遍历这些 Advisor，与当前目标方法进行匹配，生成增强器链，生成的过程中，将增强器 Advisor 转换成拦截器 Interceptor 类型，最终返回的是拦截器类型的集合，即拦截器链，并缓存到 methodCache 中，将拦截器链封装到 CglibMethodInvocation 中，然后执行 `proceed()` 方法，执行拦截器链。
 
 
 
@@ -297,19 +292,19 @@ try {
 
 目标方法的执行，容器中保存了组件的代理对象「cglib 增强后的对象」，这个对象里面保存了详细信息（比如增强器、目标对象等）
 
-1. CglibAopProxy.intercept()，拦截目标方法的执行；
+1. `CglibAopProxy.intercept()`，拦截目标方法的执行；
 2. 根据 ProxyFactory 对象获取将要执行的目标方法的拦截器链， 
-    List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
+    `List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass)`;
     1. List<Object> interceptorList：保存所有的拦截器，一个默认的 ExposeInvocationInterceptor 和四个增强器，即通知方法；
-    2. 遍历所有的增强器，将其转换成 Interceptor：MethodInterceptor[] interceptors = registry.getInterceptors(advisor)；
+    2. 遍历所有的增强器，将其转换成 Interceptor：`MethodInterceptor[] interceptors = registry.getInterceptors(advisor)`；
     3. 将增强器转为 List<MethodInterceptor>；
         1. 如果是 MethodInterceptor ，直接加入到集合中；
         2. 如果不是 MethodInterceptor，则使用 AdvisorAdapter 将增强器转为 MethodInterceptor，转换完成后，返回 MethodInterceptor 数组。
 3. 如果没有拦截器链，则直接执行目标方法。「拦截器链：每一个通知方法又被包装成方法拦截器，利用 MethodInterceptor 拦截器机制执行」；
-4. 如果有拦截器链，把需要执行的目标对象、目标方法、拦截器链等信息传入创建的CglibMethodInvokation对象，并调用Object retVal = mi.procceed()；
+4. 如果有拦截器链，把需要执行的目标对象、目标方法、拦截器链等信息传入创建的 CglibMethodInvokation 对象，并调用 `Object retVal = mi.procceed()`；
 5. 拦截器链的触发过程；
-    1. 如果没有拦截器或者拦截器索引和拦截器数组-1的大小相同(指定到了最后一个拦截器)，则执行目标方法；
-    2. 链式获取每一个拦截器，拦截器执行 invoke() 方法，每一个拦截器等待下一个拦截器执行完成返回以后再执行。为拦截器链的机制，保证通知方法和目标方法的执行顺序。
+    1. 如果没有拦截器或者拦截器索引和拦截器数组 - 1 的大小相同(指定到了最后一个拦截器)，则执行目标方法；
+    2. 链式获取每一个拦截器，拦截器执行 `invoke()` 方法，每一个拦截器等待下一个拦截器执行完成返回以后再执行。为拦截器链的机制，保证通知方法和目标方法的执行顺序。
 
 
 
@@ -318,15 +313,15 @@ try {
 1. @EnableAspectJAutoProxy 开启基于注解的 AOP 功能
 2. @EnableAspectJAutoProxy 会给容器中注册一个组件 AnnotationAwareAspectJAutoProxyCreator，是一个后置处理器
 3. 容器的创建流程
-    1. registerBeanPostProcessors(beanFactory) 注册后置处理器，创建 AnnotationAwareAspectJAutoProxyCreator 对象
-    2. finishBeanFactoryInitialization(beanFactory) 初始化剩下的单实例 Bean
+    1. `registerBeanPostProcessors(beanFactory)` 注册后置处理器，创建 AnnotationAwareAspectJAutoProxyCreator 对象
+    2. `finishBeanFactoryInitialization(beanFactory)` 初始化剩下的单实例 Bean
         1. 创建业务逻辑组件和切面组件
         2. AnnotationAwareAspectJAutoProxyCreator 拦截组件的创建过程
         3. 组件创建完成后，判断组件是否需要增强
             需要增强：将切面的通知方法，包装成增强器 Advisor，给业务逻辑组件创建一个代理对象(反射 cglib)。
 4. 执行目标方法
     1. 代理对象执行目标方法
-    2. CglibAopProxy.intercept()
+    2. `CglibAopProxy.intercept()`
         1. 得到目标方法的拦截器链（增强器包装成拦截器 MethodInterceptor ）
         2. 利用拦截器的链式机制，依次进入每一个拦截器进行执行；
         3. Spring 5.0 的效果

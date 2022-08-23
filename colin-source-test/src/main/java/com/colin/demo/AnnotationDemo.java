@@ -23,13 +23,23 @@ public class AnnotationDemo {
 
 	public static void main(String[] args) {
 		/*aopTest();*/
-		testBean();
+		/*testBean();*/
 		/*testFactoryBean();*/
 		/*testCycle();*/
 		/*listenerTest();*/
 		/*testCycleAop();*/
 		/*testTransactional();*/
+		/*testConfCglib();*/
 
+	}
+
+	private static void testConfCglib() {
+
+		// 测试"full"配置文件和"lite"配置文件
+		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MyConfig.class);
+		Car car_1 = context.getBean(Car.class);
+		Car car_2 = context.getBean(Car.class);
+		System.out.println("※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※");
 	}
 
 	private static void testTransactional() {
@@ -78,13 +88,9 @@ public class AnnotationDemo {
 	 */
 	private static void testBean() {
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
-		/*Hello hello = applicationContext.getBean(Hello.class);
+		Hello hello = applicationContext.getBean(Hello.class);
 		Hello hello2 = applicationContext.getBean(Hello.class);
-		System.out.println(hello==hello2);*/
-
-		Car car_1 = applicationContext.getBean(Car.class);
-		Car car_2 = applicationContext.getBean(Car.class);
-		System.out.println();
+		System.out.println(hello==hello2);
 	}
 
 	/**

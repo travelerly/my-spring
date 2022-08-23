@@ -3,8 +3,6 @@ package com.colin.config;
 import com.colin.bean.Car;
 import com.colin.bean.Tank;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 
 /**
  * @author colin
@@ -12,7 +10,7 @@ import org.springframework.stereotype.Component;
  */
 //@Configuration
 //@Component
-public class CnfCglibConfig {
+public class ConfCglibConfig {
 
     /**
      * @Configuration、@Component、@ComponentScan、@Import、@ImportResource 等注解都可以注册配置类
