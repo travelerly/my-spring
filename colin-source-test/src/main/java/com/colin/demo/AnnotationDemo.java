@@ -84,13 +84,16 @@ public class AnnotationDemo {
 	}
 
 	/**
-	 * 测试普通 bean
+	 * 测试普通 bean 及 @Bean 标注的 bean 的创建
 	 */
 	private static void testBean() {
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
 		Hello hello = applicationContext.getBean(Hello.class);
 		Hello hello2 = applicationContext.getBean(Hello.class);
 		System.out.println(hello==hello2);
+
+		// 测试 @Bean 标注的 bean 的创建
+		// Phone bean = applicationContext.getBean(Phone.class);
 	}
 
 	/**

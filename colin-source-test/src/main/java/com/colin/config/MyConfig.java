@@ -1,5 +1,7 @@
 package com.colin.config;
 
+import com.colin.bean.Phone;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,4 +18,13 @@ public class MyConfig {
 		System.out.println("...MyConfig创建了...");
 	}
 
+	/**
+	 * @Bean 标注的组件的方法可视为工厂方法
+	 * @Bean 标注的组件类似于用一个工厂方法来创建对象
+	 * 会有代理
+	 */
+	/*@Bean
+	public Phone phone(){
+		return new Phone();
+	}*/
 }
