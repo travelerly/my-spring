@@ -33,6 +33,7 @@ import org.springframework.transaction.TransactionDefinition;
  * @see DefaultTransactionAttribute
  * @see RuleBasedTransactionAttribute
  */
+// 继承了 TransactionDefinition，可以定义事务的基础属性
 public interface TransactionAttribute extends TransactionDefinition {
 
 	/**

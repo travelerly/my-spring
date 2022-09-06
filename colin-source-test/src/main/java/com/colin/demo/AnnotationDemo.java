@@ -26,7 +26,7 @@ public class AnnotationDemo {
 		/*testBean();*/
 		/*testFactoryBean();*/
 		/*testCycle();*/
-		/*listenerTest();*/
+		listenerTest();
 		/*testCycleAop();*/
 		/*testTransactional();*/
 		/*testConfCglib();*/
@@ -63,8 +63,12 @@ public class AnnotationDemo {
 		AppEventPublisher appEventPublisher = applicationContext.getBean(AppEventPublisher.class);
 		// 测试派发事件
 		appEventPublisher.publish(new A());
-		appEventPublisher.publish(new MessageEvent("你好 MessageEvent"));
+		appEventPublisher.publish(new MessageEvent("你好 appEventPublisher MessageEvent"));
 		appEventPublisher.publish(new ChangeEvent(appEventPublisher,"ending……"));
+
+		applicationContext.publishEvent(new A());
+		applicationContext.publishEvent(new MessageEvent("你好 applicationContext MessageEvent"));
+		applicationContext.publishEvent(new ChangeEvent(new A(),"ending……"));
 	}
 
 	/**

@@ -355,9 +355,16 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				 * Create bean instance.
 				 */
 				if (mbd.isSingleton()) {
+					/**
+					 * 第二个参数类型是 ObjectFactory<?>，是一个函数式接口，不会立即执行，而是在 getSingleton() 方法中调用，
+					 * 调用 ObjectFactory#getObject() 方法，在会执行 createBean() 方法
+					 */
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
-							//创建 bean 对象的实例，开启完整的 bean 生命周期干预流程
+							/**
+							 * 创建 bean 对象的实例，开启完整的 bean 生命周期干预流程
+							 * 实现类 AbstractAutowireCapableBeanFactory#createBean
+							 */
 							return createBean(beanName, mbd, args);
 						}
 						catch (BeansException ex) {

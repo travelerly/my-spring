@@ -45,6 +45,7 @@ public class DefaultBeanFactoryPointcutAdvisor extends AbstractBeanFactoryPointc
 	 * @see #setAdviceBeanName
 	 */
 	public void setPointcut(@Nullable Pointcut pointcut) {
+		// 若 pointcut 为 null，则选择 Pointcut.TRUE，即匹配所有
 		this.pointcut = (pointcut != null ? pointcut : Pointcut.TRUE);
 	}
 

@@ -25,15 +25,18 @@ import org.springframework.aop.MethodMatcher;
  * which do care about arguments at runtime.
  *
  * @author Rod Johnson
+ * 动态匹配
  */
 public abstract class DynamicMethodMatcher implements MethodMatcher {
 
+	// 固定返回值 true
 	@Override
 	public final boolean isRuntime() {
 		return true;
 	}
 
 	/**
+	 * 固定返回值 true，表明每次都要进行动态匹配
 	 * Can override to add preconditions for dynamic matching. This implementation
 	 * always returns true.
 	 */

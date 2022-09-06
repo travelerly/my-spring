@@ -304,7 +304,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		// 用于存放容器中的所有配置类的 BeanDefinition，并将其封装成 BeanDefinitionHolder
 		List<BeanDefinitionHolder> configCandidates = new ArrayList<>();
 
-		// 拿到容器中所有 BeanDefinition 的名字。「包含后置处理器和配置类」
+		// 获取容器中所有 BeanDefinition 的名字。「包含后置处理器和配置类」
 		String[] candidateNames = registry.getBeanDefinitionNames();
 
 		// 遍历处理，筛选出所有的配置类的 BeanDefinition，并封装成 BeanDefinitionHolder，再添加到结合 configCandidates 中。
@@ -318,6 +318,14 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			 * 判断当前 BeanDefinition 是否存在属性名称为 ConfigurationClassPostProcessor.configurationClass 的值
 			 * 如果不存在，意味着配置类的 BeanDefinition 并没有被处理过。
 			 * 第一次执行该方法时，默认不存在。
+			 *
+			 * 内部有两个标记来标记是否已经处理过了
+			 * 注册配置类的时候，可以不添加 @Configuration 注解，而是直接使用 @Component、@ComponentScan、@Import、@ImportResource 等注解
+			 * 而添加了注解 @Configuration 的配置了称为 "FULL" 配置类，添加了其它注解的配置类则称为 "Lite" 配置类
+			 * 注册的 "FULL" 配置类，在 getBean() 时，获取的是配置类的 cglib 代理的类
+			 * 注册的 "Lite" 配置类，在 getBean() 时，获取的是原本的那个配置类
+			 *
+			 * 对于 "FULL" 配置类和 "Lite" 配置类的对比，记录在 ConfCglibConfig 中
 			 */
 			if (beanDef.getAttribute(ConfigurationClassUtils.CONFIGURATION_CLASS_ATTRIBUTE) != null) {
 				if (logger.isDebugEnabled()) {
@@ -417,7 +425,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			}
 
 			/**
-			 * 此处才把 @Bean 的方法和 @Import 导入的组件注册到 BeanDefinitionMap 中
+			 * 此处才把 @Bean、@Import、@ImportResource 导入的组件注册到 BeanDefinitionMap 中
 			 * configClasses 中保存了解析过的 BeanDefinition 数据
 			 */
 			this.reader.loadBeanDefinitions(configClasses);
@@ -436,6 +444,8 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 				// 存储方法执行前，容器中的 bean 的名称集合
 				Set<String> oldCandidateNames = new HashSet<>(Arrays.asList(candidateNames));
 				Set<String> alreadyParsedClasses = new HashSet<>();
+
+				// 循环 alreadyParsed，把类名加入到 alreadyParsedClasses
 				for (ConfigurationClass configurationClass : alreadyParsed) {
 					// 存储解析完毕了的配置类对应的 configurationClass
 					alreadyParsedClasses.add(configurationClass.getMetadata().getClassName());

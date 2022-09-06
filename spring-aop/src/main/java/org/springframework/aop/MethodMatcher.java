@@ -62,9 +62,15 @@ public interface MethodMatcher {
 	 * @param targetClass the target class
 	 * @return whether or not this method matches statically
 	 */
+	// 这个称为静态匹配：在匹配条件不是太严格时使用，可以满足大部分场景的使用
 	boolean matches(Method method, Class<?> targetClass);
 
 	/**
+	 * 是否需要执行动态匹配
+	 * 两个 matches() 方法的分界线就是此方法，步骤如下：
+	 * 1.先调用静态匹配方法，若返回 true，此时就会继续去检查 isRuntime() 方法的返回值
+	 * 2.若 isRuntime() 方法的返回值为 true，则继续调用动态匹配方法。
+	 *
 	 * Is this MethodMatcher dynamic, that is, must a final call be made on the
 	 * {@link #matches(java.lang.reflect.Method, Class, Object[])} method at
 	 * runtime even if the 2-arg matches method returns {@code true}?
@@ -90,6 +96,7 @@ public interface MethodMatcher {
 	 * @return whether there's a runtime match
 	 * @see MethodMatcher#matches(Method, Class)
 	 */
+	// 这个称为动态匹配(运行时匹配)：它是严格的匹配，在运行时动态的对参数的类型进行匹配
 	boolean matches(Method method, Class<?> targetClass, Object... args);
 
 

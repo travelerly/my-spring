@@ -25,14 +25,17 @@ import org.springframework.aop.MethodMatcher;
  * about arguments at runtime.
  *
  * @author Rod Johnson
+ * 静态匹配
  */
 public abstract class StaticMethodMatcher implements MethodMatcher {
 
+	// 固定返回值 fasle，表示只会进行静态匹配。
 	@Override
 	public final boolean isRuntime() {
 		return false;
 	}
 
+	// 抛出异常，即不再被调用
 	@Override
 	public final boolean matches(Method method, Class<?> targetClass, Object... args) {
 		// should never be invoked because isRuntime() returns false

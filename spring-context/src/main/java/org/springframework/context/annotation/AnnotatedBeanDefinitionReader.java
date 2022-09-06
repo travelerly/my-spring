@@ -260,15 +260,21 @@ public class AnnotatedBeanDefinitionReader {
 	private <T> void doRegisterBean(Class<T> beanClass, @Nullable String name,
 			@Nullable Class<? extends Annotation>[] qualifiers, @Nullable Supplier<T> supplier,
 			@Nullable BeanDefinitionCustomizer[] customizers) {
-		// 将主配置类封解析成 BeanDefinition，即将添加了注解 @Configuration 的类，解析成 BeanDefinition
+		/**
+		 * 将主配置类封解析成 BeanDefinition，即将添加了注解 @Configuration 的类，解析成 BeanDefinition
+		 * AnnotatedGenericBeanDefinition 可以理解为一种数据结构，用来描述 Bean 的，
+		 * 这里的作用就是把传入的标记了注解的类转为 AnnotatedGenericBeanDefinition 数据结构
+		 * 其内部有个 getMetadata() 方法，可以拿到类上的注解
+		 */
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass);
 
-		// 判断是否需要跳过注解，Spring 中有一个 @Condition 注解，当条件不满足时，这个 bean 就不会被解析
+		// 判断是否需要跳过注解，Spring 中有一个 @Condition 注解，当条件不满足时，这个 bean 就不会被解析，则跳过这个类的注册流程
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
 			return;
 		}
 
 		abd.setInstanceSupplier(supplier);
+
 		// 解析 bean 的作用域，默认为单例
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
 		abd.setScope(scopeMetadata.getScopeName());
@@ -279,14 +285,26 @@ public class AnnotatedBeanDefinitionReader {
 		 * 处理常规的注解定义信息 @Lazy、@Primary、@Description、@Role、@DependsOn
 		 */
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
+
+		/**
+		 * 限定符处理，不是特指 @Qualifier 注解，也有可能是 Primary，或者 Lazy，或其它(理论上是任何注解，这里没有判断注解的有效性)
+		 * 常规方式初始化 Spring，qualifiers 永远都是空的，但是 Spring 提供了其它方式去注册 bean，是有可能会传入的 qualifiers 非空
+		 */
 		if (qualifiers != null) {
+			// 可传入 qualifier 数组，所以需要循环处理
 			for (Class<? extends Annotation> qualifier : qualifiers) {
+
+				// Primary 优先
 				if (Primary.class == qualifier) {
 					abd.setPrimary(true);
 				}
+
+				// Lazy 注解
 				else if (Lazy.class == qualifier) {
 					abd.setLazyInit(true);
 				}
+
+				// 其它，AnnotatedGenericBeanDefinition 有个 Map<String,AutowireCandidateQualifier>属性，可直接 push 进去
 				else {
 					abd.addQualifier(new AutowireCandidateQualifier(qualifier));
 				}
@@ -298,8 +316,10 @@ public class AnnotatedBeanDefinitionReader {
 			}
 		}
 
+		// 此方法用处不大，就是把 AnnotatedGenericBeanDefinition 的数据结构和 beanName 封装到一个对象中
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
+
 		/**
 		 * 注册主配置类的定义信息
 		 * 调用 DefaultListableBeanFactory#registerBeanDefinition() 方法进行注册

@@ -65,19 +65,29 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
 	 */
 	public AnnotationConfigApplicationContext() {
-		StartupStep createAnnotatedBeanDefReader = this.getApplicationStartup().start("spring.context.annotated-bean-reader.create");
 		/**
+		 * 先隐式调用其父类 GenericApplicationContext 的构造函数
+		 * 其父类构造函数里初始化了 DefaultListableBeanFactory，并赋值给 BeanFactory
+		 * 然后再运行其本类构造，即执行下面的逻辑
+		 */
+
+		StartupStep createAnnotatedBeanDefReader = this.getApplicationStartup().start("spring.context.annotated-bean-reader.create");
+
+		/**
+		 * 初始化一个 Bean 的读取器
 		 * 创建一个（注解版的）BeanDefinition 读取器
 		 * 加载了底层功能组件的后置处理器的 BeanDefinition
 		 */
 		this.reader = new AnnotatedBeanDefinitionReader(this);
 		createAnnotatedBeanDefReader.end();
 		/**
+		 * 初始化一个扫描器
 		 * 创建一个类路径下的扫描器，可以用来扫描包或者类，继而转换为 BeanDefinition
 		 * Spring 默认的扫描包所使用的扫描器，并不是这个 scanner 对象，
 		 * 而是在执行后置处理器 ConfigurationClassPostProcessor 去扫描包时会新创建一个 ClassPathBeanDefinitionScanner 对象
 		 * 这里的 scanner 仅仅是为了程序员可以手动调用 AnnotationConfigApplicationContext#scanner() 方法，
 		 * 以实现在没有指定配置类的时候，能手动扫描包
+		 * 扫描器用处不大，仅仅是在外部手动调用 .scan() 方法时使用，常规方法不会用到这个 Scanner 对象的
 		 */
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
@@ -99,10 +109,25 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * {@link Configuration @Configuration} classes
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
-		// 注册了一些底层的后置处理器
+		/**
+		 * 注册了一些底层的后置处理器
+		 * 调用了无参构造函数，会先调用父类 GenericApplicationContext 的构造函数
+		 * 父类构造函数里初始化了 DefaultListableBeanFactory，并赋值给 BeanFactory
+		 * 本类构造函数初始化了一个读取器：AnnotationBeanDefinitionReader，一个扫描器 ClassPathBeanDefinitionScanner
+		 * 扫描器用处不大，仅仅是在外部手动调用.scan() 方法时使用，常规方法不会用到这个 Scanner 对象的
+		 */
 		this();
-		// 解析并注册所有主配置类的定义信息，构造参数传入的所有主配置类「MyConfig.class，主配置类可以是多个」
+
+		/**
+		 * 解析并注册所有主配置类的定义信息，构造参数传入的所有主配置类「MyConfig.class，主配置类可以是多个」
+		 * 把传入的类进行注册，分为两种情况：
+		 * 1.传入传统的配置类
+		 * 2.传入 bean，但通常不会这么做
+		 * Spring 将注解 @Configuration 标注的类称为 "FULL" 配置类；非注解 @Configuration 标注的类称为 "Lite" 配置类
+		 * "FULL" 配置类为传统配置类；"Lite" 配置类称为普通的 bean，例如注解 @Component、@Import 等标注的类
+		 */
 		register(componentClasses);
+
 		// 容器完整刷新（创建出所有组件，组织好所有功能）
 		refresh();
 	}

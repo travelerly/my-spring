@@ -280,9 +280,9 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
 		Assert.notEmpty(basePackages, "At least one base package must be specified");
 		Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();
-		// 遍历每个包的路径
+		// 遍历basePackages路径
 		for (String basePackage : basePackages) {
-			// 扫描所有组件，找到候选组件，我们需要扫描进来的组件
+			// 扫描所有组件，找到候选组件，我们需要扫描进来的组件的 BeanDefinition 集合
 			Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
 			for (BeanDefinition candidate : candidates) {
 				// 获取 BeanDefinition 中，@Scope 注解的元数据
@@ -300,7 +300,10 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 
 				// 判断 BeanDefinition 是否是 AnnotatedBeanDefinition 类型的实例，即是否是注解类型的 BeanDefinition
 				if (candidate instanceof AnnotatedBeanDefinition) {
-					// 将其它各注解上的信息设置到 BeanDefinition 中（@Lazy/@Primary/@DependsOn/@Role/@Description）
+					/**
+					 * 将其它各注解上的信息设置到 BeanDefinition 中（@Lazy/@Primary/@DependsOn/@Role/@Description）
+					 * 即再设置一次值
+					 */
 					AnnotationConfigUtils.processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);
 				}
 

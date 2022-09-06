@@ -51,6 +51,10 @@ public class RuleBasedTransactionAttribute extends DefaultTransactionAttribute i
 	/** Static for optimal serializability. */
 	private static final Log logger = LogFactory.getLog(RuleBasedTransactionAttribute.class);
 
+	/**
+	 * RollbackRuleAttribute：确定给定异常是否应导致回滚的规则
+	 * 相当于封装了这个规则的实体类，内部封装了一个异常，提供一个实例变量：这个变量相当于回滚规则为只回滚 RuntimeException
+	 */
 	@Nullable
 	private List<RollbackRuleAttribute> rollbackRules;
 

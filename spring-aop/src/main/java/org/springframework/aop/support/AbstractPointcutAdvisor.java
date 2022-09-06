@@ -41,7 +41,10 @@ public abstract class AbstractPointcutAdvisor implements PointcutAdvisor, Ordere
 	@Nullable
 	private Integer order;
 
-
+	/**
+	 * 可以指定 Order 级别
+	 * @param order
+	 */
 	public void setOrder(int order) {
 		this.order = order;
 	}
@@ -51,6 +54,8 @@ public abstract class AbstractPointcutAdvisor implements PointcutAdvisor, Ordere
 		if (this.order != null) {
 			return this.order;
 		}
+
+		// 若调用者没有指定 Order 级别，则以 advice 的 Order 级别为准，LOWEST_PRECEDENCE 表示最后执行
 		Advice advice = getAdvice();
 		if (advice instanceof Ordered) {
 			return ((Ordered) advice).getOrder();

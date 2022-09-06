@@ -220,8 +220,17 @@ public abstract class AnnotationConfigUtils {
 	private static BeanDefinitionHolder registerPostProcessor(
 			BeanDefinitionRegistry registry, RootBeanDefinition definition, String beanName) {
 
+		/**
+		 * ROLE_INFRASTRUCTURE：表示这是 Spring 内部定义的，非开发者定义的
+		 */
 		definition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+
+		/**
+		 * 通过 DefaultListableBeanFactory 重写的 registerBeanDefinition() 方法，
+		 * 将 ConfigurationClassPostProcessor 注册进 BeanDefinitionMap 中
+		 */
 		registry.registerBeanDefinition(beanName, definition);
+
 		return new BeanDefinitionHolder(definition, beanName);
 	}
 

@@ -111,17 +111,59 @@ Spring 容器启动时，先加载一些底层的后置处理器，例如 Config
 
 ---
 
-## Spring 监听器原理
+## Spring 事件原理
 
 
 
-### 监听器的使用
+### Spring 事件的使用
 
-1. 自定义组件装配 ApplicationContext 或者 ApplicationEventMulticaster， 可以派发事件；
+Spring 事件体系包括三个组件：事件、事件监听器、事件多播器
+
+
+
+### Spring 内置事件
+
+内置事件由系统内部进行发布，只需注入监听器
+
+| Event                 | 说明                                                         |
+| --------------------- | ------------------------------------------------------------ |
+| ContextRefreshedEvent | 当容器被实例化或 refreshed 时发布。如调用 refresh() 方法，此处的实例化是指所有的 bean 都已被加载，后置处理器都被激活，所有单例 bean 都已被实例化，所有的容器对象都已准备好可使用。如果容器支持热重载，则 refresh 可以被触发多次(XmlWebApplicatonContext 支持热刷新，而GenericApplicationContext 则不支持) |
+| ContextStartedEvent   | 当容器启动时发布，即调用 start() 方法，已启用意味着所有的 Lifecycle bean 都已显式接收到了 start 信号 |
+| ContextStoppedEvent   | 当容器停止时发布，即调用 stop() 方法，即所有的 Lifecycle bean 都已显式接收到了 stop 信号，关闭的容器可以通过 start() 方法重启 |
+| ContextClosedEvent    | 当容器关闭时发布，即调用 close 方法，关闭意味着所有的单例 bean 都已被销毁。关闭的容器不能被重启或 refresh |
+| RequestHandledEvent   | 这只在使用 spring 的 DispatcherServlet 时有效，当一个请求被处理完成时发布 |
+
+
+
+### Spring 自定义事件
+
+1. 自定义组件装配 ApplicationContext 或者 ApplicationEventMulticaster，可以派发事件；
 2. 自定义组件实现 ApplicationListener 或者使用注解 @EventListener 标注在方法上，可以接收事件；
 3. publish 的 Object 对象会被认为是自定义事件，也可以定义事件(通过实现 ApplicationEvent)。
 
 ![](src/docs/spring/Spring监听器原理.jpg)
+
+
+
+### Spring 事件原理
+
+原理：观察者模式
+
+spring 事件监听有三个部分组成
+
+- ApplicationEvent 事件：赋值对应相应监听器，事件源发生某事件是特定事件监听器触发的原因
+- ApplicationListener 监听器：对应于观察者模式中的观察者。监听器监听特定事件，并在内部定义了事件发生后的响应逻辑
+- ApplicationEventMulticaster 事件多播器：对应于观察者模式中的被观察者/主题，负责通知观察者，对外提供发布事件和增删事件监听器的接口，维护事件和事件监听器之间的映射关系，并在事件发生时，负责通知相关的监听器。
+
+Spring 事件机制是观察者模式的一种实现，除了事件发布者和事件监听者两个角色之外，还有一个事件多播器 EventMulticaster 的角色负责把事件转发给监听者。即发布者是将事件发送给了事件多播器 EventMulticaster，而后由事件多播器中注册着所有的监听器 Listener，然后根据事件类型决定转发给那个 Listener。
+
+工作流程如下：
+
+![](src/docs/spring/spring 事件流程.jpg)
+
+
+
+
 
 ---
 
@@ -218,6 +260,44 @@ getEarlyBeanReference() 方法具体作用：
 earlyProxyReferences 其实就是用于记录哪些 Bean 被执行过 AOP，防止后期再次对 Bean 进行 AOP 处理。
 由于此时的代理对象也是一个尚未初始化的对象，不能被直接使用，不能直接放入到一级缓存中，因此将代理对象存入二级缓存中；
 当 A 的属性赋值完成、初始化完成后，此时 A 的代理对象就已经晚上了，便将其存入到一级缓存中
+
+
+
+#### 为什么需要二级缓存
+
+- 一级缓存和二级缓存相比：二级缓存主要是为了分离成熟 bean 和纯净 bean(未注入属性) 的存放，防止多线程中，在 bean 还未创建完成时，读取到的 bean 是不完整的。所以二级缓存是为了保证在 getBean() 时，获取的是完整的最终的 bean，不会出现不完整的情况；
+- 一、二、三级缓存下，二级缓存的意义：二级缓存是为了存储三级缓存创建出来的早期 bean，为了避免三级缓存重复执行
+
+
+
+#### 为什么需要三级缓存
+
+Bean 的 AOP 动态代理的创建是在 Bean 初始化之后，但是循环依赖的 Bean 如果使用了 AOP，那么无法等到解决完循环依赖再创建动态代理，因为这个时候已经注入属性了，所以如果循环依赖的 Bean 使用了 AOP，就需要提前创建 AOP。
+
+但是正常的 Bean 是在初始化之后创建的 AOP，所以创建 AOP 时，可以加个判断，即如果是循环依赖，就在实例化后创建 AOP；如果不是循环依赖，就在正常完成初始化之后再创建 AOP。
+
+
+
+#### 为什么 Spring 不能解决构造器的循环依赖
+
+在 Bean 调用构造器实例化之前，一、二、三级缓存并没有 Bean 的任何信息，其是在实例化之后才放入缓存中，因此当 getBean() 的时候缓存并没有命中，这样就抛出了循环依赖的异常了。
+
+
+
+#### 循环依赖功能的关闭
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext();
+        applicationContext.setAllowCircularReferences(false);
+        applicationContext.register(AppConfig.class);
+        applicationContext.refresh();
+    }
+}
+```
+
+
 
 ---
 

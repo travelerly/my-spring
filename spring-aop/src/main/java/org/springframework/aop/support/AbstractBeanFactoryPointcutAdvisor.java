@@ -40,6 +40,7 @@ import org.springframework.util.Assert;
  * @see #setAdviceBeanName
  * @see DefaultBeanFactoryPointcutAdvisor
  */
+// 实现了 BeanFactoryAware 接口，若在 bean 容器中注册可以注入 BeanFactory，从而访问里面的实例
 @SuppressWarnings("serial")
 public abstract class AbstractBeanFactoryPointcutAdvisor extends AbstractPointcutAdvisor implements BeanFactoryAware {
 
@@ -96,6 +97,7 @@ public abstract class AbstractBeanFactoryPointcutAdvisor extends AbstractPointcu
 	 * @since 3.1
 	 */
 	public void setAdvice(Advice advice) {
+		// 此处加了锁
 		synchronized (this.adviceMonitor) {
 			this.advice = advice;
 		}
@@ -113,7 +115,7 @@ public abstract class AbstractBeanFactoryPointcutAdvisor extends AbstractPointcu
 
 		if (this.beanFactory.isSingleton(this.adviceBeanName)) {
 			// Rely on singleton semantics provided by the factory.
-			// 根据 adviceBeanName 获得增强器实例
+			// 根据 adviceBeanName，从容器中获得增强器实例(单例 bean)
 			advice = this.beanFactory.getBean(this.adviceBeanName, Advice.class);
 			this.advice = advice;
 			return advice;

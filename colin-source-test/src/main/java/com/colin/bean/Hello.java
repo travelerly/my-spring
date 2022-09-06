@@ -1,5 +1,6 @@
 package com.colin.bean;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -8,4 +9,8 @@ import org.springframework.stereotype.Component;
  */
 //@Component
 public class Hello {
+
+    public Hello() {
+        System.out.println("※※※※※※※※※※※※hello 正在创建※※※※※※※※※※※※");
+    }
 }

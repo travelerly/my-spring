@@ -639,7 +639,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 
 			/**
-			 * 将(未属性赋值、未初始化的半成品)对象存入"单例工厂池"中，即三级缓存中，进行暴露
+			 * 暴露早期引用，将(未属性赋值、未初始化的半成品)对象存入"单例工厂池"中，即三级缓存中，进行暴露，用于解决循环依赖
 			 *
 			 * 三级缓存：
 			 * singletonObjects：一级缓存，即 spring 的 ioc 容器，用于存放完整的 bean 实例(已经完成属性赋值和初始化的实例对象)
@@ -674,7 +674,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		Object exposedObject = bean;
 		try {
 			/**
-			 * 为创建好的对象的每个属性进行赋值。@Autowired 发生在这里
+			 * 为创建好的对象的每个属性进行赋值。
+			 * @Autowired 发生在这里
 			 * bean 属性相关的信息都存放在 BeanDefinition 中
 			 * 若当前要注入的属性是 AOP 的目标类，并且存在循环依赖，则会为这个属性创建 AOP 代理对象
 			 */
@@ -1545,7 +1546,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		/**
 		 * 检查 Spring 容器中，是否注册过后置处理器 InstantiationAwareBeanPostProcessor
 		 * 它是 BeanPostProcessor 的子接口，可以在 Bean 生命周期的另外两个时期提供扩展的回调接口，
-		 * 即实例化 Bean 之前（调用 postProcessBeforeInstantiation方法）介入
+		 * 即实例化 Bean 之前（调用 postProcessBeforeInstantiation 方法）介入
 		 * 和实例化 Bean 之后（调用 postProcessAfterInstantiation 方法）介入
 		 */
 		boolean hasInstAwareBpps = hasInstantiationAwareBeanPostProcessors();

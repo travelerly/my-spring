@@ -39,6 +39,11 @@ public class RootClassFilter implements ClassFilter, Serializable {
 	}
 
 
+	/**
+	 * 匹配校验，匹配条件是：参数 candidate 必须是 clazz 的子类才行
+	 * @param candidate the candidate target class
+	 * @return true 表示能够匹配，则会进行织入的操作。
+	 */
 	@Override
 	public boolean matches(Class<?> candidate) {
 		return this.clazz.isAssignableFrom(candidate);

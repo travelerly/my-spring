@@ -74,9 +74,15 @@ class ComponentScanAnnotationParser {
 
 
 	public Set<BeanDefinitionHolder> parse(AnnotationAttributes componentScan, final String declaringClass) {
+
+		/**
+		 * 初始化一个扫描器
+		 * 并不是容器构造方法中初始化的那个扫描器，那个扫描器几乎不会使用。
+		 */
 		ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(this.registry,
 				componentScan.getBoolean("useDefaultFilters"), this.environment, this.resourceLoader);
 
+		// 判断是否重写了默认的命名规则
 		Class<? extends BeanNameGenerator> generatorClass = componentScan.getClass("nameGenerator");
 		boolean useInheritedGenerator = (BeanNameGenerator.class == generatorClass);
 		scanner.setBeanNameGenerator(useInheritedGenerator ? this.beanNameGenerator :
@@ -93,11 +99,14 @@ class ComponentScanAnnotationParser {
 
 		scanner.setResourcePattern(componentScan.getString("resourcePattern"));
 
+		// 处理 includeFilters
 		for (AnnotationAttributes filter : componentScan.getAnnotationArray("includeFilters")) {
 			for (TypeFilter typeFilter : typeFiltersFor(filter)) {
 				scanner.addIncludeFilter(typeFilter);
 			}
 		}
+
+		// 处理 excludeFilters
 		for (AnnotationAttributes filter : componentScan.getAnnotationArray("excludeFilters")) {
 			for (TypeFilter typeFilter : typeFiltersFor(filter)) {
 				scanner.addExcludeFilter(typeFilter);
@@ -110,12 +119,20 @@ class ComponentScanAnnotationParser {
 		}
 
 		Set<String> basePackages = new LinkedHashSet<>();
+		// @ComponentScans 执行扫描目标，最常用的 basePackages
 		String[] basePackagesArray = componentScan.getStringArray("basePackages");
 		for (String pkg : basePackagesArray) {
 			String[] tokenized = StringUtils.tokenizeToStringArray(this.environment.resolvePlaceholders(pkg),
 					ConfigurableApplicationContext.CONFIG_LOCATION_DELIMITERS);
 			Collections.addAll(basePackages, tokenized);
 		}
+
+		/**
+		 * @ComponentScans 执行扫描目标，处理最常用的 basePackages，还有两种方式：
+		 * 1.指定 basePackageClasses：就是指定多个类，只要与这几个类同级的，或者在这几个类下级的都可以被扫描到，这种方式 Spring 还是比较推荐的
+		 *   因为指定 basePackages 没有 IDE 的检测，容易出错，但是指定一个类，就有 IDE 的检测了，不容易出错，经常会用一个空的类来作为 basePackageClasses
+		 * 2.指定不指定，默认会把与配置类同级或下级作为扫描目标
+		 */
 		for (Class<?> clazz : componentScan.getClassArray("basePackageClasses")) {
 			basePackages.add(ClassUtils.getPackageName(clazz));
 		}
@@ -123,13 +140,19 @@ class ComponentScanAnnotationParser {
 			basePackages.add(ClassUtils.getPackageName(declaringClass));
 		}
 
+		// 把规则填充到排除规则：List<TypeFilter>，这里就把注册类自身当做排除规则，真正执行匹配的时候，会把自身排除
 		scanner.addExcludeFilter(new AbstractTypeHierarchyTraversingFilter(false, false) {
 			@Override
 			protected boolean matchClassName(String className) {
 				return declaringClass.equals(className);
 			}
 		});
-		return scanner.doScan(StringUtils.toStringArray(basePackages));	// 扫描器进行扫描
+
+		/**
+		 *  扫描器进行扫描
+		 *  basePackages 是一个 LinkedHashSet<String>，这里就是把 basePackages 转为字符串数组的形式
+		 */
+		return scanner.doScan(StringUtils.toStringArray(basePackages));
 	}
 
 	private List<TypeFilter> typeFiltersFor(AnnotationAttributes filterAttributes) {

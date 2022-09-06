@@ -36,6 +36,7 @@ import org.aopalliance.aop.Advice;
 public interface Advisor {
 
 	/**
+	 * spring 5 之后新增的。空通知，一般作为默认值
 	 * Common placeholder for an empty {@code Advice} to be returned from
 	 * {@link #getAdvice()} if no proper advice has been configured (yet).
 	 * @since 5.0
@@ -44,6 +45,7 @@ public interface Advisor {
 
 
 	/**
+	 * 该 Advisor 持有的通知器
 	 * Return the advice part of this aspect. An advice may be an
 	 * interceptor, a before advice, a throws advice, etc.
 	 * @return the advice that should apply if the pointcut matches
