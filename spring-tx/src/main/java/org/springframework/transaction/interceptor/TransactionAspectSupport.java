@@ -346,6 +346,9 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		 * 创建代理的时候调用了 getTransactionAttribute() 方法，这里是从缓存中获取
 		 */
 		final TransactionAttribute txAttr = (tas != null ? tas.getTransactionAttribute(method, targetClass) : null);
+		/**
+		 * 获取配置的事务管理器对象
+		 */
 		final TransactionManager tm = determineTransactionManager(txAttr);
 
 		if (this.reactiveAdapterRegistry != null && tm instanceof ReactiveTransactionManager) {
@@ -628,6 +631,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 				}
 			}
 		}
+		// 把事务状态和事务属性等信息封装成一个 TransactionInfo 对象
 		return prepareTransactionInfo(tm, txAttr, joinpointIdentification, status);
 	}
 

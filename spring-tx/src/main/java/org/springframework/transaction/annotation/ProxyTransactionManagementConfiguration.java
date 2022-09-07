@@ -41,6 +41,7 @@ public class ProxyTransactionManagementConfiguration extends AbstractTransaction
 
 	/**
 	 * 导入了关于事务的切面信息
+	 * 这个 Advisor 是事务的核心内容
 	 * @param transactionAttributeSource
 	 * @param transactionInterceptor
 	 * @return
@@ -49,7 +50,7 @@ public class ProxyTransactionManagementConfiguration extends AbstractTransaction
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE) // 角色设置为 2，即角色为内部类
 	public BeanFactoryTransactionAttributeSourceAdvisor transactionAdvisor(
 			TransactionAttributeSource transactionAttributeSource, TransactionInterceptor transactionInterceptor) {
-		// 事务的 Advisor 中内置了 Advice 和
+		// 事务的 Advisor 中内置了 Advice
 
 		// 创建 Advisor
 		BeanFactoryTransactionAttributeSourceAdvisor advisor = new BeanFactoryTransactionAttributeSourceAdvisor();
@@ -57,6 +58,8 @@ public class ProxyTransactionManagementConfiguration extends AbstractTransaction
 		advisor.setTransactionAttributeSource(transactionAttributeSource);
 		// 设置 Advice 对象
 		advisor.setAdvice(transactionInterceptor);
+
+		// 顺序由 @EnableTransactionManagement 注解的 Order 属性来指定，默认为：Ordered.LOWEST_PRECEDENCE
 		if (this.enableTx != null) {
 			advisor.setOrder(this.enableTx.<Integer>getNumber("order"));
 		}
@@ -65,7 +68,7 @@ public class ProxyTransactionManagementConfiguration extends AbstractTransaction
 
 	/**
 	 * 导入的事务属性源对象：用于解析 @Transactional 注解
-	 * @return
+	 * @return AnnotationTransactionAttributeSource：基于注解的事务属性源对象
 	 */
 	@Bean
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
@@ -75,14 +78,22 @@ public class ProxyTransactionManagementConfiguration extends AbstractTransaction
 
 	/**
 	 * 用户拦截事务方法执行的拦截器
-	 * @param transactionAttributeSource
-	 * @return
+	 * 它是一个 MethodInterceptor，它也是 Spring 处理事务最核心的部分
+	 * 也可以自定义一个 TransactionInterceptor(同名)，来覆盖此 Bean(注意是覆盖)
+	 * 注意自定义的 BeanName 必须同名，也就是必须为 transactionInterceptor，否则两个都会注册进容器中
+	 * @param transactionAttributeSource 基于注解的事务属性源对象
+	 * @return 用户拦截事务方法执行的拦截器
 	 */
 	@Bean
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public TransactionInterceptor transactionInterceptor(TransactionAttributeSource transactionAttributeSource) {
 		TransactionInterceptor interceptor = new TransactionInterceptor();
+		// 设置事务的属性
 		interceptor.setTransactionAttributeSource(transactionAttributeSource);
+		/**
+		 * 事务管理器，也就是注解最终需要使用的事务管理器，父类已经处理好了
+		 * 此处注意：是可以不用特殊指定的，最终它自己会去容器中匹配一个合适的
+		 */
 		if (this.txManager != null) {
 			interceptor.setTransactionManager(this.txManager);
 		}

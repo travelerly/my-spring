@@ -59,6 +59,7 @@ public class BeanFactoryAdvisorRetrievalHelper {
 
 
 	/**
+	 * 解析事务 Advisor
 	 * Find all eligible Advisor beans in the current bean factory,
 	 * ignoring FactoryBeans and excluding beans that are currently in creation.
 	 * @return the list of {@link org.springframework.aop.Advisor} beans
@@ -75,13 +76,10 @@ public class BeanFactoryAdvisorRetrievalHelper {
 			 * 从容器中获取到实现了 Advisor 接口的实现类
 			 * 事务注解 @EnableTransactionManagement 导入了一个叫 ProxyTransactionManagementConfiguration 的配置类
 			 * 这个配置类中配置了：
-			 * @Bean(name = TransactionManagementConfigUtils.TRANSACTION_ADVISOR_BEAN_NAME)
-			 * @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-			 * public BeanFactoryTransactionAttributeSourceAdvisor transactionAdvisor() ……
+			 * 		@Bean(name = TransactionManagementConfigUtils.TRANSACTION_ADVISOR_BEAN_NAME)
+			 * 		@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+			 * 		public BeanFactoryTransactionAttributeSourceAdvisor transactionAdvisor() ……
 			 * 把他的名字获取出来保存到本类的属性变量 cachedAdvisorBeanNames 中，即保存到缓存中
-			 *
-			 * Do not initialize FactoryBeans here: We need to leave all regular beans
-			 * uninitialized to let the auto-proxy creator apply to them!
 			 */
 			advisorNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 					this.beanFactory, Advisor.class, true, false);

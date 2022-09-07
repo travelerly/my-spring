@@ -41,6 +41,7 @@ import org.springframework.util.CollectionUtils;
  * @since 3.1
  * @see EnableTransactionManagement
  */
+// 其实现了 ImportAware 接口，所以拿到 @Import 所在的类的所有注解信息
 @Configuration
 public abstract class AbstractTransactionManagementConfiguration implements ImportAware {
 
@@ -56,19 +57,26 @@ public abstract class AbstractTransactionManagementConfiguration implements Impo
 
 	@Override
 	public void setImportMetadata(AnnotationMetadata importMetadata) {
+		// 此处拿到 @EnableTransactionManagement 注解
 		this.enableTx = AnnotationAttributes.fromMap(
 				importMetadata.getAnnotationAttributes(EnableTransactionManagement.class.getName(), false));
 		if (this.enableTx == null) {
+			// @EnableTransactionManagement 注解是必须值，若为空，则抛出异常
 			throw new IllegalArgumentException(
 					"@EnableTransactionManagement is not present on importing class " + importMetadata.getClassName());
 		}
 	}
 
+	/**
+	 * 可以配置一个 Bean 实现这个接口，然后给注解驱动的设置一个默认的事务管理器
+	 * @param configurers
+	 */
 	@Autowired(required = false)
 	void setConfigurers(Collection<TransactionManagementConfigurer> configurers) {
 		if (CollectionUtils.isEmpty(configurers)) {
 			return;
 		}
+		// 最多可以配置一个事务管理器，否则抛出异常
 		if (configurers.size() > 1) {
 			throw new IllegalStateException("Only one TransactionManagementConfigurer may exist");
 		}
@@ -77,6 +85,11 @@ public abstract class AbstractTransactionManagementConfiguration implements Impo
 	}
 
 
+	/**
+	 * 注册一个监听器工厂，用以支持注解 @TransactionalEventListener 标注的方法，来监听事务相关的事件
+	 * 通过事件监听模式来实现事务的监控
+	 * @return
+	 */
 	@Bean(name = TransactionManagementConfigUtils.TRANSACTIONAL_EVENT_LISTENER_FACTORY_BEAN_NAME)
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public static TransactionalEventListenerFactory transactionalEventListenerFactory() {

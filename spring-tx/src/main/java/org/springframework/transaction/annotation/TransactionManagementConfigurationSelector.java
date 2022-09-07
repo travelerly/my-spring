@@ -55,6 +55,7 @@ public class TransactionManagementConfigurationSelector extends AdviceModeImport
 				/**
 				 * 向容器中导入了两个组件：
 				 * 1.AutoProxyRegistrar：会为容器中注册了一个处理事务的后置处理器(InfrastructureAdvisorAutoProxyCreator)，用来解析切面、创建动态代理 ……
+				 *   其实现了接口 ImportBeanDefinitionRegistrar，可以实现自己向容器中注册 Bean 的定义信息
 				 * 2.ProxyTransactionManagementConfiguration：会为容器中注册一个实现了 Advisor 的配置类 BeanFactoryTransactionAttributeSourceAdvisor
 				 */
 				return new String[] {AutoProxyRegistrar.class.getName(),

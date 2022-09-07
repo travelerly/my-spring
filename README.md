@@ -80,7 +80,7 @@ Bean 的功能增强全都是由 BeanPostProcessor + InitializingBean (合起来
 
 ### Spring架构原理图
 
-![](src/docs/spring/Spring架构原理图.jpg)
+![](src/docs/spring/Spring架构原理图.jpg )
 
 ---
 
@@ -92,9 +92,9 @@ Bean 的功能增强全都是由 BeanPostProcessor + InitializingBean (合起来
 
 Spring 容器启动时，先加载一些底层的后置处理器，例如 ConfigurationClassPostProcessor 配置类后置处理器，容器刷新时，执行工厂后置处理器，注册系统内所有配置类定义信息、AutowiredAnnotationBeanPostProcessor 自动装配功能后置处理器 ……，然后再将由构造传入的所有主配置类的定义信息注册进容器。然后开始刷新容器的步骤，即容器刷新十二大步。
 
-1. **prepareRefresh()**：准备上下文环境；
-2. **obtainFreshBeanFactory()**：初始化初级容器 BeanFactory，即工厂的创建，BeanFactory 的第一次创建(有 xml 的解析逻辑)，获取当前准备好的空容器，返回在 this() 环节就准备(new)好的 BeanFactory；
-3. **prepareBeanFactory(beanFactory)**：预准备工厂，给容器中注册了环境信息作为单实例 Bean，方便后续自动装配；beanPostProcessor 池中注册了一些后置处理器，例如处理监听功能、XXXAware(感知接口)功能；
+1. **prepareRefresh()**：准备上下文环境，即是刷新预处理，与主流程关系不大，仅仅是保存了容器的启动时间、启动标志等；
+2. **obtainFreshBeanFactory()**：初始化初级容器 BeanFactory，即工厂的创建，BeanFactory 的第一次创建(有 xml 的解析逻辑)，获取当前准备好的空容器，返回在 this() 环节就准备(new)好的 BeanFactory，即返回 DefaultListableBeanFactory，其实现了 ConfigurableListableBeanFactory ；
+3. **prepareBeanFactory(beanFactory)**：预准备工厂，给容器中注册了环境信息作为单实例 Bean，方便后续自动装配；beanPostProcessor 池中注册了一些后置处理器，例如处理监听功能的后置处理器 ApplicationListenerDetector、XXXAware(感知接口)功能的后置处理器 ApplicationContextAwareProcessor ；还设置了 忽略自动装配 和 允许自动装配 的接口；还设置了 bean 表达式解析器等；
 4. **postProcessBeanFactory(beanFactory)**：留给子类的模板方法，允许子类继续对工厂执行一些处理(注册一些特殊的后置处理器)；
 5. **invokeBeanFactoryPostProcessors(beanFactory)**：工厂的增强或修改：执行所有的 BeanFactory 后置处理器，对工厂进行增强或修改(配置类会在这里解析)，即执行 Spring 容器基本的后置处理。所有的 BeanDefinition 就已经准备就绪了。例如配置类的后置处理器 ConfigurationClassPostProcessor，会在此解析配置类，注册了所有标有 @Component、@ComponentScans、@ImportResource、@PropertySources、@Bean、@Import 等注解的 bean 的 BeanDefinition；
 6. **registerBeanPostProcessors(beanFactory)**：注册所有的 bean 的后置处理器。例如：注册了创建 AOP 代理的入口 AnnotationAwareAspectJAutoProxyCreator、注册了与注解 @Autowired 相关的 AutowiredAnnotationBeanPostProcessor 等；
@@ -108,6 +108,68 @@ Spring 容器启动时，先加载一些底层的后置处理器，例如 Config
 ![](src/docs/spring/容器刷新完整流程.jpg)
 
 
+
+### 容器刷新之工厂的增强 
+
+`invokeBeanFactoryPostProcessors(beanFactory)`
+
+工厂的增强或修改：执行所有的 BeanFactory 后置处理器，对工厂进行增强或修改(配置类会在这里解析)，即执行 Spring 容器基本的后置处理。所有的 BeanDefinition 就已经准备就绪了。例如配置类的后置处理器 `ConfigurationClassPostProcessor`，会在此解析配置类，注册了所有标有 `@Component、@ComponentScans、@ImportResource、@PropertySources、@Bean、@Import` 等注解的 bean 的 BeanDefinition；
+
+首先判断 beanFactory 是不是 BeanDefinitionRegistry 的实例，当然肯定是的，然后执行如下操作：
+
+1. 定义了一个 Set，装载 BeanName，后面会根据这个 Set，来判断后置处理器是否被执行过了；
+
+2. 定义了两个 List，一个是 `regularPostProcessors`，用来装载 `BeanFactoryPostProcessor`，一个是 registryProcessors 用来装载 BeanDefinitionRegistryPostProcessor，其中BeanDefinitionRegistryPostProcessor 扩展了 BeanFactoryPostProcessor。BeanDefinitionRegistryPostProcessor 有两个方法，一个是独有的 postProcessBeanDefinitionRegistry 方法，一个是父类的 postProcessBeanFactory 方法。
+
+3. 循环传进来的 beanFactoryPostProcessors，上面已经解释过了，一般情况下，这里永远都是空的，只有手动 add beanFactoryPostProcessor，这里才会有数据。我们假设beanFactoryPostProcessors 有数据，进入循环，判断 postProcessor 是不是 BeanDefinitionRegistryPostProcessor，因为 BeanDefinitionRegistryPostProcessor 扩展了BeanFactoryPostProcessor，所以这里先要判断是不是 BeanDefinitionRegistryPostProcessor，是的话，执行 postProcessBeanDefinitionRegistry 方法，然后把对象装到registryProcessors 里面去，不是的话，就装到 regularPostProcessors。
+
+4. 定义了一个临时变量：currentRegistryProcessors，用来装载 `BeanDefinitionRegistryPostProcessor`。
+
+5. getBeanNamesForType，是根据类型查到 BeanNames，这里有一点需要注意，就是去哪里找，点开这个方法的话，就知道是循环 beanDefinitionNames 去找，这个方法以后也会经常看到。这里传了 BeanDefinitionRegistryPostProcessor.class，就是找到类型为 BeanDefinitionRegistryPostProcessor 的后置处理器，并且赋值给 postProcessorNames。一般情况下，只会找到一个，就是 org.springframework.context.annotation.internalConfigurationAnnotationProcessor，也就是 ConfigurationAnnotationProcessor。这个后置处理器在上一节中已经说明过了，十分重要。这里有一个问题，为什么我自己写了个类，实现了 BeanDefinitionRegistryPostProcessor 接口，也打上了 @Component 注解，但是这里没有获得，因为直到这一步，Spring 还没有完成扫描，扫描是在 ConfigurationClassPostProcessor 类中完成的，也就是下面第一个 invokeBeanDefinitionRegistryPostProcessors 方法。
+
+6. 循环 postProcessorNames，其实也就是 org.springframework.context.annotation.internalConfigurationAnnotationProcessor，判断此后置处理器是否实现了 PriorityOrdered 接口（ConfigurationAnnotationProcessor 也实现了 PriorityOrdered 接口），如果实现了，把它添加到 currentRegistryProcessors 这个临时变量中，再放入 processedBeans，代表这个后置处理已经被处理过了。当然现在还没有处理，但是马上就要处理了。。。
+
+7. 进行排序，PriorityOrdered 是一个排序接口，如果实现了它，就说明此后置处理器是有顺序的，所以需要排序。当然目前这里只有一个后置处理器，就是 ConfigurationClassPostProcessor。
+
+8. 把 currentRegistryProcessors 合并到 registryProcessors，为什么需要合并？因为一开始 spring 只会执行 BeanDefinitionRegistryPostProcessor 独有的方法，而不会执行BeanDefinitionRegistryPostProcessor 父类的方法，即 BeanFactoryProcessor 接口中的方法，所以需要把这些后置处理器放入一个集合中，后续统一执行 BeanFactoryProcessor 接口中的方法。当然目前这里只有一个后置处理器，就是 ConfigurationClassPostProcessor。
+
+9. 可以理解为执行 currentRegistryProcessors 中的 ConfigurationClassPostProcessor 中的 postProcessBeanDefinitionRegistry 方法，这就是 Spring 设计思想的体现了，在这里体现的就是其中的**热插拔**，插件化开发的思想。Spring 中很多东西都是交给插件去处理的，这个后置处理器就相当于一个插件，如果不想用了，直接不添加就是了。这个方法特别重要，我们后面会详细说来。
+
+10. 清空 currentRegistryProcessors，因为 currentRegistryProcessors 是一个临时变量，已经完成了目前的使命，所以需要清空，当然后面还会用到。
+
+11. 再次根据 BeanDefinitionRegistryPostProcessor 获得 BeanName，然后进行循环，看这个后置处理器是否被执行过了，如果没有被执行过，也实现了 Ordered 接口的话，把此后置处理器推送到 currentRegistryProcessors 和 processedBeans 中。
+
+    > 这里就可以获得我们定义的，并且打上 @Component 注解的后置处理器了，因为 Spring 已经完成了扫描，但是这里需要注意的是，由于 ConfigurationClassPostProcessor 在上面已经被执行过了，所以虽然可以通过 getBeanNamesForType 获得，但是并不会加入到 currentRegistryProcessors 和 processedBeans。
+
+12. 处理排序。
+
+13. 合并 Processors，合并的理由和上面是一样的。
+
+14. 执行我们自定义的 BeanDefinitionRegistryPostProcessor。
+
+15. 清空临时变量。
+
+16. 在上面的方法中，仅仅是执行了实现了 Ordered 接口的 BeanDefinitionRegistryPostProcessor，这里是执行没有实现 Ordered 接口的 BeanDefinitionRegistryPostProcessor。
+
+17. 上面的代码是执行子类独有的方法，这里需要再把父类的方法也执行一次。
+
+18. 执行 regularPostProcessors 中的后置处理器的方法，需要注意的是，在一般情况下，regularPostProcessors 是不会有数据的，只有在外面手动添加 BeanFactoryPostProcessor，才会有数据。
+
+19. 查找实现了 BeanFactoryPostProcessor 的后置处理器，并且执行后置处理器中的方法。和上面的逻辑差不多，不再详细说明。
+
+这就是这个方法中做的主要的事情了，可以说是比较复杂的。但是逻辑还是比较清晰的，在第9步的时候，我说有一个方法会详细说来，现在就让我们好好看看这个方法究竟做了什么吧。
+
+1. 获得所有的 BeanName，放入 candidateNames 数组。
+2. 循环 candidateNames 数组，根据 beanName 获得 BeanDefinition，判断此 BeanDefinition 是否已经被处理过了。
+3. 判断是否是配置类，如果是的话。加入到 configCandidates 数组，在判断的时候，还会标记配置类属于Full配置类，还是 Lite 配置类，这里会引发一连串的知识盲点：
+    1. 当我们注册配置类的时候，可以不加 @Configuration 注解，直接使用 @Component、@ComponentScan、@Import、@ImportResource 等注解，Spring 把这种配置类称之为 **Lite** 配置类， 如果加了 @Configuration 注解，就称之为 **Full** 配置类。
+    2. 如果我们注册了 **Lite** 配置类，我们 getBean 这个配置类，会发现它就是原本的那个配置类，如果我们注册了 **Full** 配置类，我们 getBean 这个配置类，会发现它已经不是原本那个配置类了，而是已经被 cgilb 代理的类了。
+    3. 写一个 A 类，其中有一个构造方法，打印出“你好”，再写一个配置类，里面有两个被 @bean 注解的方法，其中一个方法 new 了 A 类，并且返回 A 的对象，把此方法称之为 getA，第二个方法又调用了 getA 方法，如果配置类是 **Lite** 配置类，会发现打印了两次“你好”，也就是说 A 类被 new 了两次，如果配置类是 **Full** 配置类，会发现只打印了一次“你好”，也就是说 A 类只被 new 了一次，因为这个类被 cgilb 代理了，方法已经被改写。
+
+4. 如果没有配置类直接返回。
+5. 处理排序。
+6. 解析配置类，可能是 **Full** 配置类，也有可能是 **Lite** 配置类，这个小方法是此方法的核心，稍后具体说明。
+7. 在第 6 步的时候，只是注册了部分 Bean，像 @Import、@Bean 等，是没有被注册的，这里统一对这些进行注册。
 
 ---
 
@@ -416,6 +478,40 @@ try {
 
 ![](src/docs/spring/事务原理.jpg)
 
+
+
+### 事务的传播行为
+
+| **事务传播行为类型** | **外部不存在事务** | **外部存在事务**                                             | **使用方式**                                                 |
+| -------------------- | ------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| REQUIRED（默认）     | 开启新的事务       | 融合到外部事务中                                             | @Transactional(propagation = Propagation.REQUIRED)适用增删改查 |
+| SUPPORTS             | 不开启新的事务     | 融合到外部事务中                                             | @Transactional(propagation = Propagation.SUPPORTS)适用查询   |
+| REQUIRES_NEW         | 开启新的事务       | 挂起外部事务，创建新的事务                                   | @Transactional(propagation = Propagation.REQUIRES_NEW)适用内部事务和外部事务不存在业务关联情况，如日志 |
+| NOT_SUPPORTED        | 不开启新的事务     | 挂起外部事务，不开启事务                                     | @Transactional(propagation = Propagation.NOT_SUPPORTED)不常用 |
+| NEVER                | 不开启新的事务     | 抛出异常                                                     | @Transactional(propagation = Propagation.NEVER )不常用       |
+| MANDATORY            | 抛出异常           | 融合到外部事务中                                             | @Transactional(propagation = Propagation.MANDATORY)不常用    |
+| NESTED               | 开启新的事务       | 融合到外部事务中,SavePoint机制，外层影响内层， 内层不会影响外层 | @Transactional(propagation = Propagation.NESTED)不常用       |
+
+
+
+### 事务的执行
+
+参考注释：`TransactionAspectSupport#invokeWithinTransaction()`
+
+
+
+### 创建并开启事务
+
+参考注释：`TransactionAspectSupport#createTransactionIfNecessary()`
+
+
+
+### 嵌套事务的处理
+
+参考注释：`AbstractPlatformTransactionManager#handleExistingTransaction()`
+
+
+
 ---
 
 ## 动态代理（待完善）
@@ -470,7 +566,7 @@ AService 在初始化之后，后置处理器 AbstractAutoProxyCreator 的后置
 
 ### MVC启动过程
 
-引入的 spring-web 的类路径 “/spring-web/src/main/resources/META-INF/services/javax.servlet.ServletContainerInitializer” 下指定了 Servlet 规范的实现类“**org.springframework.web.SpringServletContainerInitializer**”，Servlet 规范规定，ServletContainerInitializer 这个接口的实现类负责处理 @HandleTypes 注解，这个接口的所有实现类是由 Tomcat 使用 SPI 机制加载的。
+引入的 spring-web 的类路径 “/spring-web/src/main/resources/META-INF/services/javax.servlet.ServletContainerInitializer” 下指定了 Servlet 规范的实现类 `org.springframework.web.SpringServletContainerInitializer`，Servlet 规范规定，ServletContainerInitializer 这个接口的实现类负责处理 @HandleTypes 注解，这个接口的所有实现类是由 Tomcat 使用 SPI 机制加载的。
 
 Tomcat 启动时利用 SPI 机制加载，扫描所有实现了 WebApplicationInitializer 接口的实现类，调用这些实现类的 onStartup() 方法完成了下面两件事：
 

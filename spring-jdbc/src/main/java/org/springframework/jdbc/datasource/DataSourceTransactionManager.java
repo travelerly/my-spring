@@ -278,7 +278,7 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 		Connection con = null;
 
 		try {
-			// 判断事务对象有没有数据库链接持有者(器)
+			// 判断事务对象有没有数据库链接持有者
 			if (!txObject.hasConnectionHolder() ||
 					txObject.getConnectionHolder().isSynchronizedWithTransaction()) {
 				// 通过数据源获取一个数据库链接对象

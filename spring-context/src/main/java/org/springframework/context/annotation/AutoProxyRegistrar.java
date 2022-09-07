@@ -58,23 +58,44 @@ public class AutoProxyRegistrar implements ImportBeanDefinitionRegistrar {
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 		boolean candidateFound = false;
+		/**
+		 * 这里面需要特别注意的是：这里是拿到所有的注解类型，而不是只拿 @EnableAspectJAutoProxy 这个类型的
+		 * 原因：因为 mode、proxyTargetClass 等属性会直接影响到代理的方式，而拥有这些属性的注解至少有：
+		 * 		@EnableTransactionManagement、@EnableAsync、@EnableCaching等~~~~
+		 * 		甚至还有启用 AOP 的注解：@EnableAspectJAutoProxy 它也能设置 "proxyTargetClass" 这个属性的值，因此也会产生关联影响
+		 */
 		Set<String> annTypes = importingClassMetadata.getAnnotationTypes();
 		for (String annType : annTypes) {
 			AnnotationAttributes candidate = AnnotationConfigUtils.attributesFor(importingClassMetadata, annType);
 			if (candidate == null) {
 				continue;
 			}
+			/**
+			 * 拿到注解例的这两个属性
+			 * 如果是 @Configuration 或者别的注解的话，属性可能为 null
+			 */
 			Object mode = candidate.get("mode");
 			Object proxyTargetClass = candidate.get("proxyTargetClass");
+
+			/**
+			 * 如果存在属性 mode 和 proxyTargetClass，并且两个属性的 class 类型也对应的上，才会进入此逻辑
+			 */
 			if (mode != null && proxyTargetClass != null && AdviceMode.class == mode.getClass() &&
 					Boolean.class == proxyTargetClass.getClass()) {
+
+				// 标志找到了候选注解
 				candidateFound = true;
 				if (mode == AdviceMode.PROXY) {
 					/**
 					 * 会给容器中注册一个 bean 的后置处理器：InfrastructureAdvisorAutoProxyCreator
 					 * 类似于 AOP 为容器中注册的：AspectJAwareAdvisorAutoProxyCreator
+					 * 若 AOP 和事务同时存在，
+					 * 由于 AOP 和事务注册的后置处理器的名字都为 org.springframework.aop.config.internalAutoProxyCreator，
+					 * 容器会根据内部维护的优先级来覆盖 beanClass，而 AOP 的优先级更高，即 AOP 会覆盖事务的 beanClass
 					 */
 					AopConfigUtils.registerAutoProxyCreatorIfNecessary(registry);
+
+					// 判断是否需要强制使用 CGLIB 的方式（若这个属性出现多此，是会以覆盖的形式）
 					if ((Boolean) proxyTargetClass) {
 						AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);
 						return;
@@ -82,6 +103,11 @@ public class AutoProxyRegistrar implements ImportBeanDefinitionRegistrar {
 				}
 			}
 		}
+
+		/**
+		 * 如果一个属性都没有找到，记录日志。
+		 * 若是自己注入这个类，而不是使用注解注入，是有可能找不到属性的，但不建议这么做。
+		 */
 		if (!candidateFound && logger.isInfoEnabled()) {
 			String name = getClass().getSimpleName();
 			logger.info(String.format("%s was imported but no annotations were found " +

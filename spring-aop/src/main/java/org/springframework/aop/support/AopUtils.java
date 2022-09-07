@@ -229,18 +229,24 @@ public abstract class AopUtils {
 			return false;
 		}
 
+		/**
+		 * 进行方法级别过滤
+		 */
 		MethodMatcher methodMatcher = pc.getMethodMatcher();
 		if (methodMatcher == MethodMatcher.TRUE) {
-			// No need to iterate the methods if we're matching any method anyway...
+			// 如果返回 true，则匹配所有方法。No need to iterate the methods if we're matching any method anyway...
 			return true;
 		}
 
+		// 判断匹配器是否实现了接口 IntroductionAwareMethodMatcher，只有 AspectJExpressionPointCut 才会实现这个接口
 		IntroductionAwareMethodMatcher introductionAwareMethodMatcher = null;
 		if (methodMatcher instanceof IntroductionAwareMethodMatcher) {
 			introductionAwareMethodMatcher = (IntroductionAwareMethodMatcher) methodMatcher;
 		}
 
+		// 创建一个集合，用于保存 targetClass 的 class 对象
 		Set<Class<?>> classes = new LinkedHashSet<>();
+		// 判断当前 class 是不是代理的 class 对象
 		if (!Proxy.isProxyClass(targetClass)) {
 			// 将目标类，也就是当前要匹配的 bean，放入到 classes 集合中
 			classes.add(ClassUtils.getUserClass(targetClass));
@@ -256,8 +262,11 @@ public abstract class AopUtils {
 			for (Method method : methods) {
 				// 目标类和接口中只要有一个方法被匹配到，那么就直接返回 true，即说明此类需要被代理
 				if (introductionAwareMethodMatcher != null ?
+						// 通过切点表达式进行匹配 AspectJ 方式
 						introductionAwareMethodMatcher.matches(method, targetClass, hasIntroductions) :
+						// 通过方法匹配器进行匹配，内置 AOP 接口方式
 						methodMatcher.matches(method, targetClass)) {
+					// 只要有一个方法被匹配到，那么就直接返回 true，即说明此类需要被代理
 					return true;
 				}
 			}

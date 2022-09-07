@@ -139,7 +139,7 @@ public abstract class AopConfigUtils {
 		/**
 		 * 判断容器中是否包含组件 internalAutoProxyCreator。
 		 * AOP 和 TX 都会为容器中注册名称为 internalAutoProxyCreator 的 bean 的后置处理器的 BeanDefinition
-		 * 容器会根据内部维护的优先级来覆盖 beanClass，即会覆盖 cls
+		 * 容器会根据内部维护的优先级来覆盖 beanClass，即 AOP 会覆盖事务的组件
 		 */
 		if (registry.containsBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME)) {
 			BeanDefinition apcDefinition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);

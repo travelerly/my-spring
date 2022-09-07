@@ -31,6 +31,7 @@ import org.springframework.lang.Nullable;
  * @see TransactionInterceptor
  * @see TransactionAttributeSourceAdvisor
  */
+// 它实现了接口 AbstractBeanFactoryPointcutAdvisor
 @SuppressWarnings("serial")
 public class BeanFactoryTransactionAttributeSourceAdvisor extends AbstractBeanFactoryPointcutAdvisor {
 
@@ -39,6 +40,7 @@ public class BeanFactoryTransactionAttributeSourceAdvisor extends AbstractBeanFa
 
 	/**
 	 * 事务属性源切点
+	 * 决定那些类会被切入，从而生成代理对象
 	 */
 	private final TransactionAttributeSourcePointcut pointcut = new TransactionAttributeSourcePointcut() {
 		@Override
@@ -50,6 +52,7 @@ public class BeanFactoryTransactionAttributeSourceAdvisor extends AbstractBeanFa
 
 
 	/**
+	 * 可以手动设置一个事务属性源
 	 * Set the transaction attribute source which is used to find transaction
 	 * attributes. This should usually be identical to the source reference
 	 * set on the transaction interceptor itself.
@@ -60,6 +63,7 @@ public class BeanFactoryTransactionAttributeSourceAdvisor extends AbstractBeanFa
 	}
 
 	/**
+	 * 可以指定 ClassFilter，默认情况下 classFilter = ClassFilter.TRUE，匹配所有的类
 	 * Set the {@link ClassFilter} to use for this pointcut.
 	 * Default is {@link ClassFilter#TRUE}.
 	 */
@@ -67,6 +71,10 @@ public class BeanFactoryTransactionAttributeSourceAdvisor extends AbstractBeanFa
 		this.pointcut.setClassFilter(classFilter);
 	}
 
+	/**
+	 * 此处的 Pointcut 就是使用自己的这个切点去切入
+	 * @return
+	 */
 	@Override
 	public Pointcut getPointcut() {
 		return this.pointcut;
