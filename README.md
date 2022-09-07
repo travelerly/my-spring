@@ -4,6 +4,10 @@
 
 ## Spring 整体架构
 
+> colin-source-test：spring 功能测试模块
+>
+> colin-mvc-test：mvc 功能测试模块
+
 
 
 ###  Spring 如何工作
