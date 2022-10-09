@@ -1,6 +1,7 @@
 package com.colin.web;
 
 import com.colin.web.config.MySpringConfig;
+import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 
@@ -47,6 +48,9 @@ public class AppStarter /*implements WebApplicationInitializer*/ {
 		// 指定好映射路径
 		registration.addMapping("/");
 
-		// 3.上面的 DispatcherServlet 添加到 servletContext 里面后，Tomcat 就会对 DispatcherServlet 进行初始化
+		// 上面的 DispatcherServlet 添加到 servletContext 里面后，Tomcat 就会对 DispatcherServlet 进行初始化
+
+		// 优先级最高，表示最早被加载
+		registration.setLoadOnStartup(1);
 	}
 }

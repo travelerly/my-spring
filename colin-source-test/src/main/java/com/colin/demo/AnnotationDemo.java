@@ -26,7 +26,7 @@ public class AnnotationDemo {
 		/*testBean();*/
 		/*testFactoryBean();*/
 		/*testCycle();*/
-		listenerTest();
+		/*listenerTest();*/
 		/*testCycleAop();*/
 		/*testTransactional();*/
 		/*testConfCglib();*/
