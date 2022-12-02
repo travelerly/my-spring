@@ -32,13 +32,13 @@ Spring 暴露给开发者的使用方式是，要么写一个 xml 文件、要�
 5. ApplicationContext 是建立在 BeanFactory 基础之上， 定义了 Bean 的各种增强处理的流程，提供了更多面向应用的功能，更易于创建实际应用，因此通常称为应用上下文；
 6. ApplicationContext 里面第一次要用到 bean，会使用工厂 BeanFactory 先来创建，创建好后保存在容器中；
 7. ApplicationContext 中管理 bean 的能力是由 BeanFactory 提供支持的，即由 DefaultListableBeanFactory 提供支持的；
-8. **BeanFactory 是 Spring 框架的基础设施，面向 Spring 本身，ApplicationContext 面向使用 Spring 框架的开发者，几乎所有的应用场景都可以直接使用 ApplicationContext，而非底层的 BeanFactory**。
+8. ==BeanFactory 是 Spring 框架的基础设施，面向 Spring 本身，ApplicationContext 面向使用 Spring 框架的开发者，几乎所有的应用场景都可以直接使用 ApplicationContext，而非底层的 BeanFactory==
 
 
 
 ### ApplicationContext的继承树
 
-<img src="src/docs/spring/ApplicationContext的继承树.jpg" style="zoom:25%;" />
+<img src="src/docs/spring/ApplicationContext的继承树.jpg"  />
 
 #### AOP：
 
@@ -97,16 +97,16 @@ Bean 的功能增强全都是由 BeanPostProcessor + InitializingBean (合起来
 Spring 容器启动时，先加载一些底层的后置处理器，例如 ConfigurationClassPostProcessor 配置类后置处理器，容器刷新时，执行工厂后置处理器，注册系统内所有配置类定义信息、AutowiredAnnotationBeanPostProcessor 自动装配功能后置处理器 ……，然后再将由构造传入的所有主配置类的定义信息注册进容器。然后开始刷新容器的步骤，即容器刷新十二大步。
 
 1. **prepareRefresh()**：准备上下文环境，即是刷新预处理，与主流程关系不大，仅仅是保存了容器的启动时间、启动标志等；
-2. **obtainFreshBeanFactory()**：初始化初级容器 BeanFactory，即工厂的创建，BeanFactory 的第一次创建(有 xml 的解析逻辑)，获取当前准备好的空容器，返回在 this() 环节就准备(new)好的 BeanFactory，即返回 DefaultListableBeanFactory，其实现了 ConfigurableListableBeanFactory ；
+2. **obtainFreshBeanFactory()**：初始化初级容器 BeanFactory，即**工厂的创建**，BeanFactory 的第一次创建(有 xml 的解析逻辑)，获取当前准备好的空容器，返回在 this() 环节就准备(new)好的 BeanFactory，即返回 DefaultListableBeanFactory，其实现了 ConfigurableListableBeanFactory ；
 3. **prepareBeanFactory(beanFactory)**：预准备工厂，给容器中注册了环境信息作为单实例 Bean，方便后续自动装配；beanPostProcessor 池中注册了一些后置处理器，例如处理监听功能的后置处理器 ApplicationListenerDetector、XXXAware(感知接口)功能的后置处理器 ApplicationContextAwareProcessor ；还设置了 忽略自动装配 和 允许自动装配 的接口；还设置了 bean 表达式解析器等；
 4. **postProcessBeanFactory(beanFactory)**：留给子类的模板方法，允许子类继续对工厂执行一些处理(注册一些特殊的后置处理器)；
-5. **invokeBeanFactoryPostProcessors(beanFactory)**：工厂的增强或修改：执行所有的 BeanFactory 后置处理器，对工厂进行增强或修改(配置类会在这里解析)，即执行 Spring 容器基本的后置处理。所有的 BeanDefinition 就已经准备就绪了。例如配置类的后置处理器 ConfigurationClassPostProcessor，会在此解析配置类，注册了所有标有 @Component、@ComponentScans、@ImportResource、@PropertySources、@Bean、@Import 等注解的 bean 的 BeanDefinition；
-6. **registerBeanPostProcessors(beanFactory)**：注册所有的 bean 的后置处理器。例如：注册了创建 AOP 代理的入口 AnnotationAwareAspectJAutoProxyCreator、注册了与注解 @Autowired 相关的 AutowiredAnnotationBeanPostProcessor 等；
-7. **initMessageSource()**：初始化消息源 MessageResource。观察容器中是否含有 MessageResource 的定义信息，如果没有就注册一个并放到单例池中；
-8. **initApplicationEventMulticaster()**：初始化事件多播器(之后注册的监听器和发布事件都是基于该事件多播器执行的)。判断容器中是否有 id 为 applicationEventMulticaster 的定义信息，如果没有就注册一个事件多播器 ApplicationEventMulticaster 放到单例池中；
+5. **invokeBeanFactoryPostProcessors(beanFactory)**：工厂的增强或修改：**执行所有的 BeanFactory 后置处理器**，对工厂进行增强或修改(配置类会在这里解析)，即执行 Spring 容器基本的后置处理。所有的 BeanDefinition 就已经准备就绪了。例如配置类的后置处理器 ConfigurationClassPostProcessor，会在此解析配置类，注册了所有标有 @Component、@ComponentScans、@ImportResource、@PropertySources、@Bean、@Import 等注解的 bean 的 BeanDefinition；
+6. **registerBeanPostProcessors(beanFactory)**：**注册所有的 bean 的后置处理器**。例如：注册了创建 AOP 代理的入口 AnnotationAwareAspectJAutoProxyCreator、注册了与注解 @Autowired 相关的 AutowiredAnnotationBeanPostProcessor 等；
+7. **initMessageSource()**：**初始化消息源 MessageResource**。观察容器中是否含有 MessageResource 的定义信息，如果没有就注册一个并放到单例池中；
+8. **initApplicationEventMulticaster()**：**初始化事件多播器**(之后注册的监听器和发布事件都是基于该事件多播器执行的)。判断容器中是否有 id 为 applicationEventMulticaster 的定义信息，如果没有就注册一个事件多播器 ApplicationEventMulticaster 放到单例池中；
 9. **onRefresh()**：留给子类继续增强处理逻辑，采用模板模式，用于在实例化 bean 之前，做一些其它初始化 bean 的工作；
-10. **registerListeners()**：初始化各种监听器，关联 Spring 的事件监听机制。将容器中所有的监听器 ApplicationListener 保存进多播器集合中；
-11. **finishBeanFactoryInitialization(beanFactory)**：初始化所有非懒加载的单实例 bean。详细参照 Bean 的初始化流程，再执行所有的后初始化操作，即 SmartInitializingSingleton.afterSingletonsInstantiated；
+10. **registerListeners()**：**初始化各种监听器**，关联 Spring 的事件监听机制。将容器中所有的监听器 ApplicationListener 保存进多播器集合中；
+11. **finishBeanFactoryInitialization(beanFactory)**：**初始化所有非懒加载的单实例 bean**。详细参照 Bean 的初始化流程，再执行所有的后初始化操作，即 SmartInitializingSingleton.afterSingletonsInstantiated；
 12. **finishRefresh()**：最后的一些清理、事件发送等处理，即初始化生命周期处理器，并发出相应的事件进行通知。
 
 ![](src/docs/spring/容器刷新完整流程.jpg)
