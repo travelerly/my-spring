@@ -10,7 +10,6 @@ import com.colin.listener.AppEventPublisher;
 import com.colin.listener.ChangeEvent;
 import com.colin.listener.MessageEvent;
 import com.colin.transactional.CglibStudentService;
-import com.colin.transactional.StudentService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -23,7 +22,7 @@ public class AnnotationDemo {
 
 	public static void main(String[] args) {
 		/*aopTest();*/
-		/*testBean();*/
+		testBean();
 		/*testFactoryBean();*/
 		/*testCycle();*/
 		/*listenerTest();*/

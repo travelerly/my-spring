@@ -369,14 +369,22 @@ public class Main {
 
 ## AOP
 
+
+
+### AOP定义
+
+指在程序运行期间动态的将某段代码切入到指定方法指定位置进行的编程方式。
+
+
+
 ### 开启 AOP
 
-使用注解 @EnableAspectJAutoProxy 开启基于注解的 AOP 功能，@EnableAspectJAutoProxy 会给容器中导入一个组件 AspectJAutoProxyRegistrar。
-Spring 容器刷新执行 `invokeBeanFactoryPostProcessors()` 方法时，对工厂进行增强，由配置文件解析器 ConfigurationClassPostProcessor 解析 @Import 注解，将组件 AspectJAutoProxyRegistrar 导入到容器中，会为容器中注册了 AnnotationAwareAspectJAutoProxyCreator 的 BeanDefinition。这是一个 bean 的后置处理器，会干预到每个组件的创建环节。
+使用注解 `@EnableAspectJAutoProxy` 开启基于注解的 AOP 功能，@EnableAspectJAutoProxy 会给容器中导入一个组件 `AspectJAutoProxyRegistrar`。
+Spring 容器刷新执行 `invokeBeanFactoryPostProcessors()` 方法时，对工厂进行增强，由配置文件解析器 `ConfigurationClassPostProcessor` 解析 @Import 注解，将组件 AspectJAutoProxyRegistrar 导入到容器中，会为容器中注册了 ==AnnotationAwareAspectJAutoProxyCreator== 的 BeanDefinition。这是一个 bean 的后置处理器，会干预到每个组件的创建环节。
 
-Spring 容器刷新执行 `registerBeanPostProcessors() `方法时，注册所有的 bean 的后置处理器，就会为 AnnotationAwareAspectJAutoProxyCreator 创建对象，并在其初始化期间，为其属性中创建并保存了用于利用反射创建增强器的工厂--ReflectiveAspectJAdvisorFactory，同时为其父类属性中创建并保存了 BeanFactoryAspectJAdvisorsBuilderAdapter。由于 AnnotationAwareAspectJAutoProxyCreator 是一个 bean 的后置处理器，就会介入到 bean 的创建过程中。
+Spring 容器刷新执行 `registerBeanPostProcessors() `方法时，注册所有的 bean 的后置处理器，就会为 ==AnnotationAwareAspectJAutoProxyCreator== 创建对象，并在其初始化期间，为其属性中创建并保存了用于利用反射创建增强器的工厂--`ReflectiveAspectJAdvisorFactory`，同时为其父类属性中创建并保存了 `BeanFactoryAspectJAdvisorsBuilderAdapter`。由于 `AnnotationAwareAspectJAutoProxyCreator` 是一个 bean 的后置处理器，就会介入到 bean 的创建过程中。
 
-AnnotationAwareAspectJAutoProxyCreator 会利用 `postProcessBeforeInstantiation()` 方法将容器中所有标注了 @Aspect、@Before、@After、@AfterThrowing 等注解解析成 Advisor，Advisor 是一个包含了 Advise 和 pointcut 的增强器。即 Spring 容器在加载配置文件时(一般情况 @EnableAspectJAutoProxy  注解添加在配置文件上)，AnnotationAwareAspectJAutoProxyCreator 会将每一个通知方法都解析成一个 Advisor。
+`AnnotationAwareAspectJAutoProxyCreator` 会利用 `postProcessBeforeInstantiation()` 方法将容器中所有标注了 @Aspect、@Before、@After、@AfterThrowing 等注解解析成 Advisor，Advisor 是一个包含了 Advise 和 pointcut 的增强器。即 Spring 容器在加载配置文件时(一般情况 @EnableAspectJAutoProxy  注解添加在配置文件上)，`AnnotationAwareAspectJAutoProxyCreator` 会将每一个通知方法都解析成一个 Advisor。
 
 
 
@@ -400,35 +408,25 @@ Spring 容器刷新执行 `finishBeanFactoryInitialization()` 方法时，初始
 
 ### Spring 5.0 通知方法执行顺序
 
-#### 正常执行顺序
-
-1. 前置通知
-2. 目标方法
-3. 返回通知
-4. 后置通知
-
-#### 异常执行顺序
-
-1. 前置通知
-2. 目标方法
-3. 异常通知
-4. 后置通知
-
 ```java
 try {
-	前置通知
+	前置通知（@Before）
 	目标方法
-	返回通知
+	返回通知（@AfterReturning）
 } catch (Exception e) {
-	异常通知
+	异常通知（@AfterThrowing）
 } finally {
-	后置通知
+	后置通知（@After）
 }
 ```
 
 
 
 ### AOP创建流程
+
+AnnotationAwareAspectJAutoProxyCreator 实现了 InstantiationAwareBeanPostProcessor 接口，其是一个后置处理器，其作用是：
+
+1. 在每一个 bean 的实例化之前介入，调用 postProcessBeforeInstantiation() 方法
 
 ![](src/docs/spring/AOP的创建流程.jpg)
 

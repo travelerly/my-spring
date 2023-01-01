@@ -15,13 +15,13 @@ import java.util.Arrays;
  * 异常执行顺序：前置通知-->目标方法-->异常通知-->后置通知
  *
  * try{
- *     前置通知
+ *     前置通知（@Before）
  *     目标方法
- *     返回通知
+ *     返回通知（@AfterReturning）
  * }catch(){
- *     异常通知
+ *     异常通知（@AfterThrowing）
  * }finally{
- *     后置通知
+ *     后置通知（@After）
  * }
  *
  * 「@Aspect」：表明为切面类
@@ -36,10 +36,18 @@ public class LogAspect {
 	}
 
 	/**
+	 * 抽取公共的切入点表达式
+	 */
+	@Pointcut("execution(* com.colin.aop.HelloService.sayHello(..))")
+	public void pointCut(){};
+
+
+	/**
 	 * 前置通知，增强方法/增强器
 	 * @param joinPoint 封装了 AOP 中切面方法的信息
 	 */
-	@Before("execution(* com.colin.aop.HelloService.sayHello(..))")
+	/*@Before("execution(* com.colin.aop.HelloService.sayHello(..))")*/
+	@Before("pointCut()")
 	public void logStart(JoinPoint joinPoint){
 		String name = joinPoint.getSignature().getName();
 		System.out.println("前置通知logStart==>"+name+"===【args:"+ Arrays.asList(joinPoint.getArgs())+"】");
@@ -47,6 +55,7 @@ public class LogAspect {
 
 	/**
 	 * 返回通知
+	 * joinPoint 一定要出现在参数表的第一位，即第一个参数一定是 joinPoint，否则会报错
 	 * @param joinPoint 封装了 AOP 中切面方法的信息
 	 * @param result 目标方法的返回值
 	 */
