@@ -125,19 +125,27 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 			// 关闭容器 BeanFactory
 			closeBeanFactory();
 		}
+
 		try {
 			/**
-			 * 为 Spring 应用上下文创建 spring 的初级容器 BeanFactory，即创建 DefaultListableBeanFactory
+			 * 为 Spring 应用上下文创建 spring 的初级容器 BeanFactory，
+			 * 即创建 DefaultListableBeanFactory
 			 * 是保存所有 BeanDefinition 的档案馆
  			 */
 			DefaultListableBeanFactory beanFactory = createBeanFactory();
+
 			// 为容器设置一个序列化 ID
 			beanFactory.setSerializationId(getId());
 
-			// 定制话 spring 的初级容器 BeanFactory
+			// 定制化 spring 的初级容器 BeanFactory（设置是否允许 Bean 覆盖、设置是否允许循环引用）
 			customizeBeanFactory(beanFactory);
 
-			// 加载 bean 定义信息。（开始解析并加载 xml 文件中的 bean）
+			/**
+			 * 加载 bean 定义信息
+			 * 开始解析并加载 xml 文件中的 bean
+			 * 通过 BeanDefinitionReader 将 XML 解析成 Document
+			 * 再将 Document 注册到 BeanFactory 中，仅仅是 BeanDefinition，还没有被初始化
+			 */
 			loadBeanDefinitions(beanFactory);
 			this.beanFactory = beanFactory;
 		}

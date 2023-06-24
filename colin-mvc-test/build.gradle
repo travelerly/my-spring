@@ -8,7 +8,8 @@ version '5.3.5-SNAPSHOT'
 
 repositories {
     mavenLocal()
-    maven { url "https://maven.aliyun.com/nexus/content/groups/public/" }
+    maven{name "Alibaba" ; url "https://maven.aliyun.com/repository/public"}
+    maven{name "Bstek" ; url "https://nexus.bsdn.org/content/groups/public/"}
     maven { url "https://maven.aliyun.com/nexus/content/repositories/jcenter" }
     mavenCentral()
 }

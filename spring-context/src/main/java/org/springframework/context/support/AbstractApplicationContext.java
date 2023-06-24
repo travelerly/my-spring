@@ -553,27 +553,40 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	@Override
 	public void refresh() throws BeansException, IllegalStateException {
+
+		/**
+		 * synchronized 块锁，
+		 * 防止因为刷新还没有结束，又执行了启动或销毁容器的操作
+		 * startupShutdownMonitor 就是一个空对象
+		 */
 		synchronized (this.startupShutdownMonitor) {
 			StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
 
 			/**
-			 * 刷新预处理，和主流程关系不大，就是保存了容器的启动时间、启动标志等
-			 * 初始化上下文环境
+			 * 准备刷新，刷新预处理，和主流程关系不大，就是保存了容器的启动时间、启动标志等，初始化上下文环境
+			 * 1.设置容器的启动时间
+			 * 2.设置活跃状态为 true
+			 * 3.设置关闭状态为 true
+			 * 4.获取 Environment 对象，校验配置文件
+			 * 5.准备监听器和时间的集合对象，默认为空的 set 集合
+			 *
 			 * Prepare this context for refreshing.
 			 */
 			prepareRefresh();
 
 			/**
-			 * 初始化 bean 工厂，即创建 DefaultListableBeanFactory
-			 * 工厂的创建：BeanFactory 第一次创建，获取当前准备好的空容器。
-			 * XML 模式，会在此处进行 xml 文件的解析，将信息注册进 BeanDefinitionMap 中；
-			 * 注解或配置类的配置方式，只是刷新了 BeanFactory
-			 * 和主流程关系不大，最终获得了 DefaultListableBeanFactory
+			 * 初始化 BeanFactory，即创建 DefaultListableBeanFactory
+			 * 1.如果存在旧的 BeanFactory，则会被销毁
+			 * 2.工厂的创建：BeanFactory 第一次创建，即创建 DefaultListableBeanFactory，获取当前准备好的空容器
+			 * 3.XML 模式，会在此处进行 xml 文件的解析，将信息注册进 BeanDefinitionMap 中
+			 * 4.注解或配置类的配置方式，只是刷新了 BeanFactory
+			 * 5.最终获得了 DefaultListableBeanFactory
 			 */
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			/**
-			 * 对 BeanFactory 进行属性填充
+			 * BeanFactory 的前置操作，即对 BeanFactory 进行属性填充，
+			 * 配置容器特性，例如类加载器、表达式解析器、注册默认环境 bean、后置管理器 BeanPostProcessor
 			 * 预准备工厂，给容器中注册了环境信息作为单实例 Bean，方便后续自动装配；
 			 * 还注册了一些后置处理器，例如监听功能、XXXAware(感知接口)功能
 			 * 添加了两个后置处理器：
@@ -605,7 +618,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				/**
-				 * 注册所有的 bean 的后置处理器 BeanPostProcessor
+				 * 注册所有的 bean 的后置处理器 BeanPostProcessor，但不会调用
 				 * 例如：
 				 * AnnotationAwareAspectJAutoProxyCreator：创建 AOP 代理的入口
 				 * AutowiredAnnotationBeanPostProcessor：处理被 @Autowired 注解修饰的 bean 并注入
@@ -626,6 +639,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				 * 初始化事件多播器，之后注册的监听器和发布事件都是基于该事件多播器执行的
 				 * 判断容器中是否有 id 为 applicationEventMulticaster 的定义信息，
 				 * 如果没有就注册一个事件多播组件 SimpleApplicationEventMulticaster 放到单例池中。
+				 * 如果需要发布事件，就调它的 multicastEvent() 方法
+				 * 把事件广播给 listeners，其实就是起一个线程来处理，把 Event 交给 listeners 处理
 				 * Initialize event multicaster for this context.
 				 */
 				initApplicationEventMulticaster();
@@ -639,8 +654,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				onRefresh();
 
 				/**
-				 * 初始化各种监听器，关联 Spring 的事件监听机制。
-				 * 将容器中所有的监听器 ApplicationListener 保存进多播器集合中。
+				 * 初始化(注册)各种监听器，关联 Spring 的事件监听机制。
+				 * 扫描容器中所有的监听器(实现 ApplicationListener 接口) 保存进多播器集合中
 				 * Check for listener beans and register them.
 				 */
 				registerListeners();
@@ -656,6 +671,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				 * 初始化生命周期处理器，并刷新，找出 Spring 容器中实现了 Lifecycle 接口的 bean，并执行 start() 方法
 				 * 最后容器刷新，发布 ContextRefreshedEvent 事件，告知对应的 ApplicationListener 进行相应的操作，
 				 * Spring Cloud 就是从这里启动的
+				 * 发布事件与清除上下文
 				 * Last step: publish corresponding event.
 				 */
 				finishRefresh();
@@ -731,7 +747,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		/**
-		 * 存储一些早期待发布的事件的集合
+		 * 初始化一个 set 集合，用于存储一些早期待发布的事件
 		 * 早期事件：就是我们的事件监听器还没有注册到多播器上的时候待发布的事件，称为早期事件
 		 * 早期事件不需要手动 publishEvent() 发布，在 registerListeners 中会自动发布，发布完早期事件就不存在了
 		 * Allow for the collection of early ApplicationEvents,
@@ -764,7 +780,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		 */
 		refreshBeanFactory();
 
-		// 返回 bean 工厂
+		// 返回刚刚创建的 BeanFactory
 		return getBeanFactory();
 	}
 
