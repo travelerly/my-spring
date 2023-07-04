@@ -649,7 +649,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				 * 留给子类继续增强处理逻辑「模板模式」。
 				 * 用于在实例化 bean 之前，做一些其它初始化 bean 的工作
 				 * 在容器刷新的时候可以自定义逻辑，不同的 Spring 容器做不同的事情，
-				 * Springboot 也是从这个方法启动 Tomcat 的
+				 * Springboot 就是从这个方法启动 Tomcat 的
 				 */
 				onRefresh();
 
@@ -879,7 +879,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	}
 
 	/**
-	 * 实例化并且调用所有的BeanFactoryPostProcessor
+	 * 实例化并且调用所有的 BeanFactoryPostProcessor
 	 * Instantiate and invoke all registered BeanFactoryPostProcessor beans,
 	 * respecting explicit order if given.
 	 * <p>Must be called before singleton instantiation.
@@ -888,11 +888,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		/**
 		 * 执行了所有的工厂增强器。后置处理器的注册代理（门面模式-装饰模式）
 		 *
-		 * getBeanFactoryPostProcessors()：获取当前 bean 工厂的后置处理器 list 集合，此集合默认情况下为空，
+		 * 1.getBeanFactoryPostProcessors()：获取当前已经注册的 bean 工厂的后置处理器 list 集合，此集合默认为空，
 		 * Spring 允许手动添加 BeanFactoryPostProcessor，
 		 * 即 annotationConfigApplicationContext#addBeanFactoryPostProcessor(XXX);
 		 *
 		 * 但可以使用 AnnotationConfigApplicationContext#addBeanFactoryPostProcessor 进行添加
+		 * 2.invokeBeanFactoryPostProcessors()：实例化并调用所有已注册的工厂后置处理器中的值
 		 */
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 
@@ -1049,7 +1050,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// Do not initialize FactoryBeans here: We need to leave all regular beans
 		// uninitialized to let post-processors apply to them!
-		// 获取容器中所有 ApplicationListener 类型的监听器组件的名字
+		// 获取容器中所有 ApplicationListener 类型的监听器组件的 beanName
 		String[] listenerBeanNames = getBeanNamesForType(ApplicationListener.class, true, false);
 		// 将所有的监听器保存在多播器的集合中
 		for (String listenerBeanName : listenerBeanNames) {

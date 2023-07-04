@@ -62,11 +62,14 @@ final class PostProcessorRegistrationDelegate {
 		// ※※※※※※※※※※※※※※※※※※※※ 调用 BeanDefinitionRegistryPostProcessor 的后置处理器  Begin ※※※※※※※※※※※※※※※※※※※※
 
 		/**
-		 * 用于存储"已处理"的后置处理器的集合
+		 * 用于存储"已处理"的后置处理器的集合，防止处理器被重复执行
 		 */
 		Set<String> processedBeans = new HashSet<>();
 
-		// 判断 BeanFactory 是否是 BeanDefinitionRegistry 接口的实现类，肯定满足 if
+		/**
+		 * 判断 BeanFactory 是否是 BeanDefinitionRegistry 接口的实现类
+		 * beanFactory 类型为 DefaultListableBeanFactory，其实现了 BeanDefinitionRegistry 接口
+		 */
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
 
@@ -75,7 +78,9 @@ final class PostProcessorRegistrationDelegate {
 			// 用来存储 BeanDefinitionRegistryPostProcessor 类型的 bean 工厂后置处理器
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
 
-			// 先拿到底层默认的所有的工厂后置处理器 beanFactoryPostProcessor 进行遍历（※※※※※※※※ 默认为空，只有手动添加才非空 ※※※※※※※※）
+			/**
+			 * 遍历入参中的后置处理器集合（※※※※※※※※ 默认为空，只有手动添加才非空 ※※※※※※※※）
+			 */
 			for (BeanFactoryPostProcessor postProcessor : beanFactoryPostProcessors) {
 				/**
 				 * 判断 postProcessor 是不是 BeanDefinitionRegistryPostProcessor，
@@ -99,11 +104,20 @@ final class PostProcessorRegistrationDelegate {
 				}
 			}
 
+
+
+
+
 			// 临时集合，用于保存当前需要执行的 BeanDefinitionRegistryPostProcessor（每处理完一批，会阶段性清除一批）
 			List<BeanDefinitionRegistryPostProcessor> currentRegistryProcessors = new ArrayList<>();
 
 			/**
-			 * 首先；从容器中获取所有的既实现了优先级（PriorityOrdered）接口，又实现了 BeanDefinitionRegistryPostProcessor 接口的实现类的名称
+			 * 首先处理实现了 BeanDefinitionRegistryPostProcessor 接口的工厂后置处理器，按照其实现的优先级接口排序
+			 * 1.PriorityOrdered 接口优先级最高
+			 * 2.Order 接口按照其 getOrder() 方法的返回值，值越小，优先级越高
+			 * 3.没有实现优先级接口，按照其配置(加载)的顺序执行
+			 *
+			 * 先从容器中获取所有的实现了 PriorityOrdered 接口的工厂后置处理器（BeanDefinitionRegistryPostProcessor）的 beanName
 			 * 例如：配置类后置处理器 internalConfigurationAnnotationProcessor，类型是 ConfigurationClassPostProcessor
 			 *
 			 * 获得实现了 BeanDefinitionRegistryPostProcessor 接口的实现类的名称，封装进数组 postProcessorNames 中，
@@ -118,7 +132,7 @@ final class PostProcessorRegistrationDelegate {
 			for (String ppName : postProcessorNames) {
 				if (beanFactory.isTypeMatch(ppName, PriorityOrdered.class)) {
 					/**
-					 * 从容器中获得这个后置处理器「getBean 整个创建过程」，并放入这个临时集合中。
+					 * 从容器中获得这个后置处理器「getBean 创建对象」，并放入这个临时集合中。
 					 * beanFactory.getBean()：第一次获取时会创建这个后置处理器，
 					 * 例如配置类后置处理器 ConfigurationClassPostProcessor 就在此创建了对象
 					 *
@@ -131,8 +145,15 @@ final class PostProcessorRegistrationDelegate {
 				}
 			}
 
-			// 利用优先级排序
+			/**
+			 * 利用优先级排序
+			 * 根据是否实现了 PriorityOrdered 接口、Order 接口，以及 Order 接口的 getOrder() 方法的返回值 进行排序
+			 * 1.PriorityOrdered 接口优先级最高
+			 * 2.Order 接口的 getOrder() 方法的返回值越小，优先级越高
+			 * 3.没有实现优先级接口，则按照配置(加载)的先后顺序
+			 */
 			sortPostProcessors(currentRegistryProcessors, beanFactory);
+
 			/**
 			 * 添加到 registryProcessors 中，方便后续执行方法 postProcessBeanFactory
 			 * 即合并后置处理器。为什么要合并，因为集合 registryProcessors 是装载 BeanDefinitionRegistryPostProcessor 的，
@@ -157,10 +178,15 @@ final class PostProcessorRegistrationDelegate {
 			currentRegistryProcessors.clear();
 
 			/**
-			 * 接下来，从工厂中获取所有既实现了排序（Ordered）接口，又实现了 BeanDefinitionRegistryPostProcessor 接口的实现类的名字。
+			 * 再次获取 BeanDefinitionRegistryPostProcessor 工厂后置处理器的 beanName，
+			 * 再次获取的原因是，上述步骤有可能会产生新的 BeanDefinitionRegistryPostProcessor 后置处理器，因此再次获取一次，以防漏掉
+			 * 然后根据是否实现了 Order 接口，再进行筛选
 			 */
-				postProcessorNames = beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
+			postProcessorNames = beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 			for (String ppName : postProcessorNames) {
+				/**
+				 * 若在上述步骤中已经处理过的后置处理器，这里不再处理
+				 */
 				if (!processedBeans.contains(ppName) && beanFactory.isTypeMatch(ppName, Ordered.class)) {
 					// 从容器中获得这个组件「getBean 整个创建过程」，并放入这个集合中
 					currentRegistryProcessors.add(beanFactory.getBean(ppName, BeanDefinitionRegistryPostProcessor.class));
@@ -181,8 +207,8 @@ final class PostProcessorRegistrationDelegate {
 			currentRegistryProcessors.clear();
 
 			/**
-			 * 最后，没有实现任何排序及优先级接口的情况，从容器中拿到所有 BeanDefinitionRegistryPostProcessor 接口的实现类的名字
-			 * Finally, invoke all other BeanDefinitionRegistryPostProcessors until no further ones appear.
+			 * 最后，没有实现任何排序及优先级接口的情况，再次获取 BeanDefinitionRegistryPostProcessor 工厂后置处理器的 beanName
+			 * 以防漏掉上述步骤产生新的 BeanDefinitionRegistryPostProcessor 后置处理器
 			 */
 			boolean reiterate = true;
 			// 直到 postProcessorName 为空，reiterate 为 false，在退出 while 循环
@@ -197,6 +223,7 @@ final class PostProcessorRegistrationDelegate {
 						reiterate = true;
 					}
 				}
+
 				// 此处没有实现排序接口，则根据类名首字母大小写进行排序
 				sortPostProcessors(currentRegistryProcessors, beanFactory);
 				registryProcessors.addAll(currentRegistryProcessors);
@@ -212,7 +239,7 @@ final class PostProcessorRegistrationDelegate {
 
 			/**
 			 * 统一调用 BeanDefinitionRegistryPostProcessor 类型的工厂后置处理器的 postProcessBeanFactory 方法
-			 * 即执行其父类的 postProcessBeanFactory 方法。
+			 * 即执行其父类（BeanFactoryPostProcessor）的 postProcessBeanFactory 方法。
 			 * registryProcessors 中存储 BeanDefinitionRegistryPostProcessor 类型的 BeanFactoryPostProcessor 工厂后置处理器
 			 * 配置类的后置处理器 ConfigurationClassPostProcessor 会再次执行后置处理方法，
 			 * 主要是修改了标注了 @Configuration 注解的配置类的 BeanDefinition 的 beanClass 属性为 cglib 动态代理类型，
@@ -239,14 +266,29 @@ final class PostProcessorRegistrationDelegate {
 
 		// ※※※※※※※※※※※※※※※※※※※※ 调用 BeanDefinitionRegistryPostProcessor 的后置处理器  End ※※※※※※※※※※※※※※※※※※※※
 
+
+
+
+
+
+
+
+
 		/**
 		 * 以上环节，参数 beanFactoryPostProcessors，以及工厂中所有类型为 BeanDefinitionRegistryPostProcessor 的 bean 就已经全部都处理完成了。
 		 * 接下来处理工厂中只实现了接口 BeanFactoryPostProcessor 的 bean
 		 */
 
+
+
+
+
+
+
+
 		// ※※※※※※※※※※※※※※※※※※※※ 调用 BeanFactoryPostProcessor 的后置处理器  Begin ※※※※※※※※※※※※※※※※※※※※
 
-		// 从工厂中获取所有实现 BeanFactoryPostProcessor 接口的实现类的名字
+		// 从工厂中获取所有实现 BeanFactoryPostProcessor 接口的实现类的 beanName
 		String[] postProcessorNames =
 				beanFactory.getBeanNamesForType(BeanFactoryPostProcessor.class, true, false);
 
@@ -318,6 +360,7 @@ final class PostProcessorRegistrationDelegate {
 
 		// ※※※※※※※※※※※※※※※※※※※※ 调用 BeanFactoryPostProcessor 的后置处理器  end ※※※※※※※※※※※※※※※※※※※※
 	}
+
 
 	/**
 	 * 注册所有的后置处理器，并按照以下几种方式分类，并重进行新排序和注册进工厂；
