@@ -248,12 +248,22 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	protected <T> T doGetBean(
 			String name, @Nullable Class<T> requiredType, @Nullable Object[] args, boolean typeCheckOnly)
 			throws BeansException {
-		// 转换并获得 Bean 的真实名称(例如去掉工厂 bean 名称的前缀 "&")
+
+		// 解析 beanName，主要是解析别名、去掉工厂 bean 名称的前缀 "&"
 		String beanName = transformedBeanName(name);
+		// bean 实例对象(返回值)
 		Object beanInstance;
 
-		// 先从缓存中获取对象（根据 beanName 获取）。 Eagerly check singleton cache for manually registered singletons.
+		/**
+		 * 先从缓存中获取对象（根据 beanName 获取）
+		 * Eagerly check singleton cache for manually registered singletons.
+		 */
 		Object sharedInstance = getSingleton(beanName);
+
+
+		/**
+		 * args：
+		 */
 		if (sharedInstance != null && args == null) {
 			if (logger.isTraceEnabled()) {
 				if (isSingletonCurrentlyInCreation(beanName)) {
@@ -1186,7 +1196,10 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 	@Override
 	public boolean isFactoryBean(String name) throws NoSuchBeanDefinitionException {
+		// 拿到真正的 beanName（去掉 "&" 前缀、解析别名）
 		String beanName = transformedBeanName(name);
+
+		// 尝试从缓存中获取 bean 对象
 		Object beanInstance = getSingleton(beanName, false);
 		if (beanInstance != null) {
 			return (beanInstance instanceof FactoryBean);

@@ -941,26 +941,38 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			logger.trace("Pre-instantiating singletons in " + this);
 		}
 
+		// 创建 BeanDefinitionNames 的副本 beanNames 集合，用于后续的遍历，以允许 init 等方法注册新的 bean 定义
 		// Iterate over a copy to allow for init methods which in turn register new bean definitions.
 		// While this may not be part of the regular factory bootstrap, it does otherwise work fine.
 		List<String> beanNames = new ArrayList<>(this.beanDefinitionNames);
 
 		/**
 		 * 从档案馆（beanDefinitionNames）中拿到所有 bean 的名字，再挨个获取「getBean(beanName)」。
+		 * 遍历获取 beanNames，触发所有非懒加载单实例 bean 的初始化
 		 * Trigger initialization of all non-lazy singleton beans...
 		 */
 		for (String beanName : beanNames) {
-			// 获取当前 bean 的定义信息
+
+			/**
+			 * 获取当前 bean 的定义信息
+			 * Merged 意义在于处理 bean 之间的父子继承关系，处理属性继承和覆盖(如果有的话)
+			 */
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
-			// 判断当前 bean 是否为普通bean、是否为单例、是否为懒加载
+
+
+			// 判断当前 bean 是否为普通 bean（非抽象类）、是否为单例、是否为懒加载
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
 				/**
-				 * 判断当前 bean 是否为工厂 bean
-				 * 工厂 bean，即实现了接口 FactoryBean，其 bean 实例的构建，由工厂的 getBean() 方法来完成。
+				 * 判断当前 beanName 对应的 bean 是否为 FactoryBean，即是否为工厂 bean
+				 * 工厂 bean，即实现了接口 FactoryBean，会重写 getBean() 方法，其 bean 实例的创建，就由这个 getBean() 方法来完成。
 				 */
 				if (isFactoryBean(beanName)) {
 					/**
 					 * 工厂 bean 实例的构建时，其 beanName 拼接 "&" 符号
+					 * 通过 beanName 获取 FactoryBean 实例
+					 * 在 beanName 前面加上 "&" 符号，再调用其 getBean() 方法创建 bean 实例
+					 * 通过 getBean(&beanName) 拿到的是 FactoryBean 本身，
+					 * 通过 getBean(beanName) 拿到的是 FactoryBean 创建的 bean 对象
 					 */
 					Object bean = getBean(FACTORY_BEAN_PREFIX + beanName);
 					if (bean instanceof FactoryBean) {
@@ -981,11 +993,19 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 					}
 				}
 				else {
-					//（非 FactoryBean）普通单实例、非懒加载 Bean 的创建
+					/**
+					 * （非 FactoryBean）普通单实例、非懒加载 Bean 的创建
+					 *
+					 * 调用前置/后置处理器、实例化、属性填充、反射，都在此方法内完成
+					 * getBean → doGetBean → creatBean → doCreatBean
+					 */
 					getBean(beanName);
 				}
 			}
 		}
+
+
+
 
 		/**
 		 * 触发 post-initialization 逻辑。
