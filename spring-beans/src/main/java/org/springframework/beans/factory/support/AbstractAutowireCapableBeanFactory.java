@@ -16,6 +16,15 @@
 
 package org.springframework.beans.factory.support;
 
+import org.apache.commons.logging.Log;
+import org.springframework.beans.*;
+import org.springframework.beans.factory.*;
+import org.springframework.beans.factory.config.*;
+import org.springframework.core.*;
+import org.springframework.lang.Nullable;
+import org.springframework.util.*;
+import org.springframework.util.ReflectionUtils.MethodCallback;
+
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -25,65 +34,10 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Supplier;
-
-import org.apache.commons.logging.Log;
-
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.BeanWrapperImpl;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.MutablePropertyValues;
-import org.springframework.beans.PropertyAccessorUtils;
-import org.springframework.beans.PropertyValue;
-import org.springframework.beans.PropertyValues;
-import org.springframework.beans.TypeConverter;
-import org.springframework.beans.factory.Aware;
-import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.BeanCurrentlyInCreationException;
-import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.InjectionPoint;
-import org.springframework.beans.factory.UnsatisfiedDependencyException;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.beans.factory.config.AutowiredPropertyMarker;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.beans.factory.config.ConstructorArgumentValues;
-import org.springframework.beans.factory.config.DependencyDescriptor;
-import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
-import org.springframework.beans.factory.config.SmartInstantiationAwareBeanPostProcessor;
-import org.springframework.beans.factory.config.TypedStringValue;
-import org.springframework.core.DefaultParameterNameDiscoverer;
-import org.springframework.core.MethodParameter;
-import org.springframework.core.NamedThreadLocal;
-import org.springframework.core.NativeDetector;
-import org.springframework.core.ParameterNameDiscoverer;
-import org.springframework.core.PriorityOrdered;
-import org.springframework.core.ResolvableType;
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.ReflectionUtils.MethodCallback;
-import org.springframework.util.StringUtils;
 
 /**
  * Abstract bean factory superclass that implements default bean creation,
@@ -495,21 +449,28 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 		RootBeanDefinition mbdToUse = mbd;
 
-		// Make sure bean class is actually resolved at this point, and
-		// clone the bean definition in case of a dynamically resolved Class
-		// which cannot be stored in the shared merged bean definition.
-		// 解析 BeanDefinition 中的 "class" 属性，并通过反射创建相应的 Class
+		/**
+		 * 解析beanName 对应的 bean 的类型 Class
+		 *
+		 * Make sure bean class is actually resolved at this point, and
+		 * clone the bean definition in case of a dynamically resolved Class
+		 * which cannot be stored in the shared merged bean definition.
+		 */
 		Class<?> resolvedClass = resolveBeanClass(mbd, beanName);
+
 		if (resolvedClass != null && !mbd.hasBeanClass() && mbd.getBeanClassName() != null) {
-			// BeanDefinition 类型转换 RootBeanDefinition
+			/**
+			 * 条件成立，则说明 beanClass 存的是 Class 的 name
+			 * 则使用 mdb 深拷贝一个新的 RootBeanDefinition 副本，
+			 * 并且将解析的 Class 赋值给拷贝的 RootBeanDefinition 副本的 beanClass 属性
+			 */
 			mbdToUse = new RootBeanDefinition(mbd);
-			// 将 "class" 属性 封装到 RootBeanDefinition 中
 			mbdToUse.setBeanClass(resolvedClass);
 		}
 
 		// Prepare method overrides.
 		try {
-			// 预先标记没有重载的方法
+			// 验证及准备覆盖的方法（对 override 属性进行标记及验证）
 			mbdToUse.prepareMethodOverrides();
 		}
 		catch (BeanDefinitionValidationException ex) {
@@ -519,8 +480,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		try {
 			/**
-			 * 创建对象之前留给我们一个机会，可以通过 BeanPostProcessors 创建并返回组件的代理对象。
-			 * 容器启动，创建第一个对象时，AnnotationAwareAspectJAutoProxyCreator 就会介入，
+			 * 创建对象之前留给我们一个机会，可以通过 BeanPostProcessors 创建并返回组件的代理对象，达到"短路"效果
+			 * 实例化前的处理，给 InstantiationAwareBeanPostProcessor 一个机会返回代理对象来替代真正的 bean 实例，达到“短路”效果
+			 * 例如在容器启动，创建第一个对象时，AnnotationAwareAspectJAutoProxyCreator 就会介入，
 			 * 为 AOP 的所有切面生产所有的增强器并缓存起来
 			 * Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
 			 */
@@ -528,8 +490,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 			if (bean != null) {
 				/**
-				 * 如果返回了对象，则直接退出对象创建过程
-				 * 即 InstantiationAwareBeanPostProcessor.postProcessBeforeInstantiation() 返回的对象，直接退出对象创建过程
+				 * 如果上一步返回了对象，则直接退出对象创建过程，直接返回
+				 * 即 InstantiationAwareBeanPostProcessor#postProcessBeforeInstantiation() 返回的对象，直接退出对象创建过程
 				 */
 				return bean;
 			}
@@ -575,18 +537,24 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @see #instantiateBean
 	 * @see #instantiateUsingFactoryMethod
 	 * @see #autowireConstructor
+	 *
+	 * 真正的创建对象：
+	 * 1.创建 bean 实例
+	 * 2.依赖注入（属性填充）
+	 * 3.初始化对象
 	 */
 	protected Object doCreateBean(String beanName, RootBeanDefinition mbd, @Nullable Object[] args)
 			throws BeanCreationException {
 
-		// Instantiate the bean.
+		// Bean 实例的包装类。Instantiate the bean.
 		BeanWrapper instanceWrapper = null;
 		if (mbd.isSingleton()) {
 			instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
 		}
 		if (instanceWrapper == null) {
 			/**
-			 * 创建 bean 的实例，默认使用无参构造器创建对象
+			 * 1.实例化 bean 对象
+			 * 创建 bean 的实例，且尚未属性赋值以及初始化，默认使用无参构造器创建对象
 			 * 真正的创建对象，并生成其包装类 BeanWrapper，属于装饰(Decorator)模式
 			 */
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
@@ -606,7 +574,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					/**
 					 * 对象实例化之后，后置处理器再次介入(MergedBeanDefinitionPostProcessor)，可以修改 BeanDefinition 信息。
 					 * MergedBeanDefinitionPostProcessor 的主要职责，就是用来合并一些信息到 BeanDefinition 中的，
-					 * 尤其是 bean 的属性上添加了 @Autoired、@Value、@Resource 等注解，这些注解上面的信息是需要被纳入到 BeanDefinition 中
+					 * 尤其是 bean 的属性上添加了 @Autoired、@Value、@Resource 等这些注解上面的信息是需要被纳入到 BeanDefinition 中
 					 * 比如，MergedBeanDefinitionPostProcessor 有很多实现类都是和解析注解上的 BeanDefinition 信息有关的，
 					 * 例如：CommonAnnotationBeanPostProcessor(@Resource 相关)
 					 * 		AutowiredAnnotationBeanPostProcessor(@Autoired，@Value 相关)
@@ -639,15 +607,15 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 
 			/**
-			 * 暴露早期引用，将(未属性赋值、未初始化的半成品)对象存入"单例工厂池"中，即三级缓存中，进行暴露，用于解决循环依赖
+			 * 暴露早期引用，将(未属性赋值、未初始化的半成品)对象 ObjectFactory 存入"单例工厂池"中，即三级缓存中，进行暴露，用于解决循环依赖
 			 *
 			 * 三级缓存：
 			 * singletonObjects：一级缓存，即 spring 的 ioc 容器，用于存放完整的 bean 实例(已经完成属性赋值和初始化的实例对象)
 			 * earlySingletonObjects：二级缓存，存放半成品的 bean 实例(尚未被属性赋值和初始化)
 			 * 		如果 bean 被 AOP 切面代理，则其保存的是(未属性赋值的半成品的)bean 实例
 			 * 		如果 bean 不被 AOP 切面代理，则其保存的是代理的 bean 实例--beanProxy，其目标 bean 还是半成品的。
-			 * singletonObjects：三级缓存，存放的是 ObjectFactory，是一个函数式接口，
-			 * 当执行objectFactory.getObject() 方法时，最终会调用 getEarlyBeanReference(beanName, mbd, bean)，来获取 bean 的早期引用
+			 * singletonFactories：三级缓存，存放的是 ObjectFactory，是一个函数式接口，
+			 * 当执行objectFactory#getObject() 方法时，最终会调用 getEarlyBeanReference(……)，来获取 bean 的早期引用
 			 * 		如果 bean 被 AOP 代理，则其会返回 bean 的代理对象
 			 * 		如果 bean 不被 AOP 代理，则其会返回原 bean 实例对象
 			 *
@@ -656,16 +624,18 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			 *
 			 * 	对于被 AOP 代理的 bean 的循环依赖需使用三级缓存解决：
 			 * 		因为三级缓存中的 ObjectFactory 每执行一次就会创建一个对象，
-			 * 		此时需要借助另外一个缓存来存放 objectFactory.getObject() 创建的对象，即使用二级缓存来存储其创建的对象
+			 * 		此时需要借助另外一个缓存来存放 objectFactory#getObject() 创建的对象，即使用二级缓存来存储其创建的对象
 			 * 		所以，对于被 AOP 代理的 bean 的循环依赖需使用三级缓存解决。
 			 * 为什么要使用二级缓存 earlySingletonObjects？
 			 * 1.如果不涉及 AOP 代理，二级缓存就会显得多此一举，但如果使用了 AOP 代理，那么二级缓存就发挥作用了。
 			 * 	 bean 的 AOP 动态代理对象的创建时在 bean 的初始化之后实现的，但是循环依赖的 bean 就无法等到解决完循环依赖后再创建其代理对象了，
 			 * 	 因为这个时候需要属性注入，所以如果循环依赖的 bean 被 AOP 代理了，则需要提前创建出代理对象，然后放入到二级缓存中
-			 * 2.三级缓存中存放的是 ObjectFactory 对象工厂，当执行 objectFactory.getObject() 回调时，会调用 getEarlyBeanReference() 方法
+			 * 2.三级缓存中存放的是 ObjectFactory 对象工厂，当执行 objectFactory#getObject() 时，会调用 getEarlyBeanReference(……)
 			 * 	 获取 bean 的早期引用，每次调用都会产生一个新的代理对象，这有悖于 Spring 的单例设计理念
 			 * 3.所以使用二级缓存来缓存 bean 的早期引用，后续步骤可以从二级缓存中获取，就解决了因每次都调用都产生新代理对象的这个问题了
 			 *   从而保证这个 bean 始终都只有这一个代理对象。
+			 *
+			 *
 			 */
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
@@ -674,7 +644,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		Object exposedObject = bean;
 		try {
 			/**
-			 * 为创建好的对象的每个属性进行赋值。
+			 * 2.依赖注入（属性填充）
+			 * 为创建好的对象的每个属性进行赋值（属性填充）。
 			 * @Autowired 发生在这里
 			 * bean 属性相关的信息都存放在 BeanDefinition 中
 			 * 若当前要注入的属性是 AOP 的目标类，并且存在循环依赖，则会为这个属性创建 AOP 代理对象
@@ -682,7 +653,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			populateBean(beanName, mbd, instanceWrapper);
 
 			/**
-			 * 初始化 bean
+			 * 3.初始化 bean，回调 bean 的后置处理器
 			 * 若当前 bean 是 AOP 的目标类：
 			 * 1.并且当前 bean 不存在循环依赖，则会为其创建 AOP 动态代理类；
 			 * 2.并且当前 bean 存在循环依赖，因在其属性赋值阶段就被创建了 AOP 动态代理类，此处不再创建，直接返回已经创建好的代理类。
@@ -734,7 +705,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Register bean as disposable.
 		try {
-			// 为当前组件注册 DisposableBean。(bean 销毁相关的方法)
+			/**
+			 * 注册用于销毁的 bean，执行销毁操作的有三种：
+			 * 1.自定义destroy方法
+			 * 2.DisposableBean接口
+			 * 3.DestructionAwareBeanPostProcessor
+			 */
 			registerDisposableBeanIfNecessary(beanName, bean, mbd);
 		}
 		catch (BeanDefinitionValidationException ex) {
@@ -742,6 +718,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					mbd.getResourceDescription(), beanName, "Invalid destruction signature", ex);
 		}
 
+		// 完成创建并返回
 		return exposedObject;
 	}
 

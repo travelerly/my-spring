@@ -10,7 +10,7 @@ public class Car {
     private Tank tank;
 
     public Car() {
-        System.out.println("※※※※※Car 创建了※※※※※");
+        System.out.println("※※※※※ Car  创建了 ※※※※※");
     }
 
     public String getName() {

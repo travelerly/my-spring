@@ -16,14 +16,14 @@
 
 package org.springframework.context.support;
 
-import java.io.IOException;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.lang.Nullable;
+
+import java.io.IOException;
 
 /**
  * Base class for {@link org.springframework.context.ApplicationContext}
@@ -119,6 +119,7 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 */
 	@Override
 	protected final void refreshBeanFactory() throws BeansException {
+		// 判断是否已经存在 BeanFactory
 		if (hasBeanFactory()) {
 			// 销毁 BeanFactory
 			destroyBeans();
@@ -147,6 +148,8 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 			 * 再将 Document 注册到 BeanFactory 中，仅仅是 BeanDefinition，还没有被初始化
 			 */
 			loadBeanDefinitions(beanFactory);
+
+			// 将 DefaultListableBeanFactory 赋值给当前的 beanFactory
 			this.beanFactory = beanFactory;
 		}
 		catch (IOException ex) {

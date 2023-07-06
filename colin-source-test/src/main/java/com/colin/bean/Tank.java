@@ -10,7 +10,7 @@ public class Tank {
     private Integer index;
 
     public Tank() {
-        System.out.println("※※※※※Tank 创建了※※※※※");
+        System.out.println("※※※※※ Tank 创建了 ※※※※※");
     }
 
     public String getName() {

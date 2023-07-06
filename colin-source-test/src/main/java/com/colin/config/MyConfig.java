@@ -1,10 +1,7 @@
 package com.colin.config;
 
-import com.colin.bean.Phone;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-
 
 /**
  * @author colin

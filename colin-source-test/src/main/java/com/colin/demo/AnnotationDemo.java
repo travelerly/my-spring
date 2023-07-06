@@ -5,6 +5,7 @@ import com.colin.aop.cycle.AService;
 import com.colin.bean.*;
 import com.colin.bean.cycle.A;
 import com.colin.bean.cycle.B;
+import com.colin.config.ConfCglibConfig;
 import com.colin.config.MyConfig;
 import com.colin.listener.AppEventPublisher;
 import com.colin.listener.ChangeEvent;
@@ -34,11 +35,15 @@ public class AnnotationDemo {
 
 	private static void testConfCglib() {
 
-		// 测试"full"配置文件和"lite"配置文件
-		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MyConfig.class);
+		/**
+		 * 测试"full"配置文件和"lite"配置文件
+		 * "full"配置类，其会被 Cglib 所代理
+		 * @Configuration："full"配置类，连续两次获取 Car，则 Tank 只创建一次
+		 * @Component："lite"配置类，连续两次获取 Car，则 Tank 会创建两次
+		 */
+		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(ConfCglibConfig.class);
 		Car car_1 = context.getBean(Car.class);
 		Car car_2 = context.getBean(Car.class);
-		System.out.println("※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※");
 	}
 
 	private static void testTransactional() {
@@ -96,7 +101,8 @@ public class AnnotationDemo {
 		System.out.println(hello==hello2);
 
 		// 测试 @Bean 标注的 bean 的创建
-		// Phone bean = applicationContext.getBean(Phone.class);
+		/*Phone phone = applicationContext.getBean(Phone.class);
+		System.out.println("Phone = " + phone);*/
 	}
 
 	/**
@@ -106,8 +112,8 @@ public class AnnotationDemo {
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MyConfig.class);
 		HelloFactory helloFactory = applicationContext.getBean(HelloFactory.class);
 		Person person = applicationContext.getBean(Person.class);
-		Hello hello = applicationContext.getBean(Hello.class);
-		System.out.println("hello: "+ hello);
+		/*Hello hello = applicationContext.getBean(Hello.class);
+		System.out.println("hello: "+ hello);*/
 	}
 
 	/**

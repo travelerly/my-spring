@@ -3,13 +3,14 @@ package com.colin.config;
 import com.colin.bean.Car;
 import com.colin.bean.Tank;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author colin
  * @create 2022-07-28 19:09
  */
-//@Configuration
-//@Component
+@Configuration
+/*@Component*/
 public class ConfCglibConfig {
 
     /**

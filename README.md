@@ -22,23 +22,32 @@ Spring 暴露给开发者的使用方式是，要么写一个 xml 文件、要�
 
 
 
-### ApplicationContext 与 BeanFactory 的区别与作用：
+### BeanFactory 顶级接口下的方法栈
 
-1. ApplicationContext 实现了 BeanFactory 接口，所以 ApplicationContext 就是 BeanFactory；
-2. AnnotationConfigApplicationContext 组合了 DefaultListableBeanFactory，在 AnnotationConfigApplicationContext 执行构造方法时，先通过其父类 GenericApplicationContext 的构造方法创建了 DefaultListableBeanFactory，DefaultListableBeanFactory 及其父类创初始化了用于保存 Bean 定义信息的集合、保存实例的各种缓存池、Bean 定义信息的扫描器和读取器、底层的后置处理器等，然后 AnnotationConfigApplicationContext 再创建 BeanDefinition 的扫描器和读取器，并注册主配置类，最后调用 refresh() 方法刷新容器；
-3. DefaultListableBeanFactory 是整个 bean 加载的核心部分，是 Spring 注册及加载 bean 的默认实现；
+<img src="src/docs/spring/BeanFactory 顶级接口下的方法栈.jpg" style="zoom: 50%;" />
 
-4. BeanFactory 定义工厂的创建和获取 Bean 的流程，其中包含有用于保存 Bean 定义信息的集合、保存实例的各种缓存池等，因此通常称为 IOC 容器；
-5. ApplicationContext 是建立在 BeanFactory 基础之上， 定义了 Bean 的各种增强处理的流程，提供了更多面向应用的功能，更易于创建实际应用，因此通常称为应用上下文；
-6. ApplicationContext 里面第一次要用到 bean，会使用工厂 BeanFactory 先来创建，创建好后保存在容器中；
-7. ApplicationContext 中管理 bean 的能力是由 BeanFactory 提供支持的，即由 DefaultListableBeanFactory 提供支持的；
-8. ==BeanFactory 是 Spring 框架的基础设施，面向 Spring 本身，ApplicationContext 面向使用 Spring 框架的开发者，几乎所有的应用场景都可以直接使用 ApplicationContext，而非底层的 BeanFactory==
+
 
 
 
 ### ApplicationContext的继承树
 
 <img src="src/docs/spring/ApplicationContext的继承树.jpg"  />
+
+
+
+### ApplicationContext 与 BeanFactory
+
+1. BeanFactory 是 Spring 框架中 IOC 容器的顶层接口，它只是用来定义一些基础功能、基础规范，而 ApplicationContext 是 BeanFactory 的一个子接口，所以 ApplicationContext 具备了 BeanFactory 提供的全部功能，就是一个 BeanFactory；
+2. AnnotationConfigApplicationContext 组合了 DefaultListableBeanFactory，在 AnnotationConfigApplicationContext 执行构造方法时，先通过其父类 GenericApplicationContext 的构造方法创建了 DefaultListableBeanFactory，DefaultListableBeanFactory 及其父类创初始化了用于保存 Bean 定义信息的集合、保存实例的各种缓存池、Bean 定义信息的扫描器和读取器、底层的后置处理器等，然后 AnnotationConfigApplicationContext 再创建 BeanDefinition 的扫描器和读取器，并注册主配置类，最后调用 refresh() 方法刷新容器；
+3. DefaultListableBeanFactory 是整个 bean 加载的核心部分，是 Spring 注册及加载 bean 的默认实现；
+4. BeanFactory 定义工厂的创建和获取 Bean 的流程，其中包含有用于保存 Bean 定义信息的集合、保存实例的各种缓存池等，因此通常称为 IOC 的基础容器；
+5. ApplicationContext 是建立在 BeanFactory 基础之上，是 IOC 容器的高级接口，比 BeanFactory 要拥有更多的功能，例如定义了 Bean 的各种增强处理的流程，提供了更多面向应用的功能，更易于创建实际应用，因此通常称为应用上下文；
+6. ApplicationContext 里面第一次要用到 bean，会使用工厂 BeanFactory 先来创建，创建好后保存在容器中；
+7. ApplicationContext 中管理 bean 的能力是由 BeanFactory 提供支持的，即由 DefaultListableBeanFactory 提供支持的；
+8. ==BeanFactory 是 Spring 框架的基础设施，面向 Spring 本身，ApplicationContext 面向使用 Spring 框架的开发者，几乎所有的应用场景都可以直接使用 ApplicationContext，而非底层的 BeanFactory==
+
+
 
 #### AOP：
 
@@ -47,7 +56,38 @@ Spring 暴露给开发者的使用方式是，要么写一个 xml 文件、要�
 
 
 
-#### 生命周期：
+#### 后置处理器
+
+Spring 提供了两种后置处理 bean 的扩展接口，分别为 BeanPostProcessor 和 BeanFactoryPostProcessor
+
+BeanPostProcessor 是针对 Bean 级别的处理，可以针对某个具体的 Bean 进行后置处理，该接口提供了两个方法，分别是在 Bean 的初始化方法之前和初始化方法之后执行。
+
+- postProcessorBeforeInitialization(Object bean,String beanName)
+- postProcessorAfterInitialization(Object bean,String beanName)
+
+后置处理器默认会对整个 Spring 容器中的所有 bean 进行处理，如果需要处理某个具体的 bean，可以通过方法参数进行判断，参数一时每个 bean 实例，参数二是 bean 的 name 或者 id 属性的值。
+
+> 处理是发生在 Spring 容器的实例化和依赖注入之后执行的
+
+
+
+BeanFactoryPostProcessor 是针对整个 Bean 工厂级别的处理，此接口只提供了一个方法
+
+- postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)
+
+方法参数为 ConfigurableListableBeanFactory，而该接口中定义了一些方法，其中有一个方法可以根据 beanName 获得 bean 的 BeanDefinition，就可以对定义的属性进行修改
+
+- BeanDefinition getBeanDefinition(String beanName)
+
+> 调用 BeanFactoryPostProcessor 的方法时，bean 还没有被实例化，此时的 bean 刚刚被解析成 BeanDefinition 对象，所以可以通过 ConfigurableListableBeanFactory 的方法来获取 BeanDefinition，从而对 Bean 的定义信息进行处理增强。
+
+
+
+#### Bean 的生命周期：
+
+Spring 框架管理 Bean 对象的创建时，Bean 对象默认都是单例的，但也支持通过配置的方式来改变作用范围。
+
+Bean 的增强过程：
 
 1. BeanFactoryPostProcessor：在 BeanFactory 初始化前后拦截；
 2. BeanPostProcessor：在所有组件创建对象及初始化前后拦截；
@@ -66,6 +106,102 @@ Bean 的功能增强全都是由 BeanPostProcessor + InitializingBean (合起来
 
 1. 组件的新功能一般都是由 Bean 的生命周期机制增强出来的；
 2. 这个新功能加入了哪些组件，这些组件在生命周期期间做了什么
+
+
+
+#### DI 依赖注入的实现方式
+
+1. @Autowired（推荐使用）
+
+    @Autowired 是 Spring 提供的注解，需要导包：`org.springframework.beans.factory.annotation.Autowired`
+
+    @Autowires 采取的策略为按**照类型注入**
+
+    ```java
+    public class TransferServiceImpl {
+        @Autowired
+        private AccountDao accountDao;
+    }
+    ```
+
+    如上，装配时，到 IOC 容器中找到类型为 AccountDao 的类，然后将其注入到 TransferServiceImpl 中，但如果 AccountDao 类型存在多个 Bean 的时候，会造成无法选择具体注入哪一个 Bean 的情况，此时，需要配合着 @Qualifier 使用
+
+2. @Autowired + @Qualifier
+
+    @Qualifier 会指定装配的对象
+
+    ```java
+    public class TransferServiceImpl {
+        @Autowired
+        @Qualifier(name="jdbcAccountDaoImpl")
+        private AccountDao accountDao;
+    }
+    ```
+
+3. @Resource
+
+    @Resource 是由 J2EE 提供的，需要导包：` javax.annotation.Resource`，其在 JDK 11 中已经被移除，如需要使用，需要单独引入 jar 包
+
+    ```xml
+    <dependency>
+        <groupId>javax.annotation</groupId>
+        <artifactId>javax.annotation-api</artifactId>
+        <version>1.3.2</version>
+    </dependency>
+    ```
+
+    @Resource 默认是按照 beanName 自动注入的：
+
+    - 如果同时指定了 name 和 type，则从 Spring 上下文中找到唯一匹配的 bean 进行装配，找不到则抛出异常；
+    - 如果指定了 name，则从上下文中查找名称(id)匹配的 bean 进行装配，找不到则抛出异常；
+    - 如果指定了 type，则从上下文中找到类似匹配的唯一 bean 进行装配，找不到或是找到了多个，就会抛出异常；
+    - 如果既没有指定 name，也没有指定 type，则会自动按照 beanName 进行装配。
+
+
+
+#### 常用注解
+
+1. @Configuration：表明当前类是一个配置类；
+2. @PropertySource：引入外部属性配置文件
+3. @Import：引入其它配置类
+4. @Value：对变量赋值，可以直接赋值，也可以使用 `${}` 读取资源配置文件中的信息
+5. @Bean：将当前方法返回的对象，直接加入到 IOC 容器中
+
+
+
+#### 配置类的说明
+
+1. @Configuration、@Component、@ComponentScan、@Import、@ImportResource 等注解都可以注册配置类；
+2. 但只有标注了 @Configuration 注解的配置类称之为**"full"**配置类，标注了其它注解的配置类称为**"lite"**配置类；
+3. 对于**"full"**配置类，其会被 Cglib 所代理，在获取这个配置类对象时，实际上获取的是代理对象；
+4. 而**"lite"**配置类则为普通的配置类对象，在获取这个配置类对象时，实际上获取的是原始的配置类对象
+
+如果在配置类中定义两个 @Bean 方法，在其中一个 @Bean 方法中调用另一个 @Bean 方法
+例如：car() 中调用 tank() 方法，当从容器中连续获取两次 Car 对象时，会因配置类的不同，而产生不同的结果：
+
+- 如果是**"lite"**配置类，Tank 会被创建两次
+- 如果是**"full"**配置类，Tank 只会被创建一次，因为配置类被 Cglib 代理了，方法被改写了
+
+```java
+//@Configuration
+//@Component
+public class ConfCglibConfig {
+    @Bean
+    public Car car(){
+        Car car = new Car();
+        car.setName("colin");
+        car.setTank(tank());
+        return car;
+    }
+    
+    @Bean
+    public Tank tank(){
+        return new Tank();
+    }
+}
+```
+
+
 
 
 
@@ -429,8 +565,6 @@ AnnotationAwareAspectJAutoProxyCreator 实现了 InstantiationAwareBeanPostProce
 1. 在每一个 bean 的实例化之前介入，调用 postProcessBeforeInstantiation() 方法
 
 ![](src/docs/spring/AOP的创建流程.jpg)
-
-
 
 ### AOP执行链执行流程
 
