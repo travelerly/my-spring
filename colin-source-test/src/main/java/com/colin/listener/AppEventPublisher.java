@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  * 事件发布器
  *
  */
-@Component
+//@Component
 public class AppEventPublisher implements ApplicationEventPublisherAware {
 
 	ApplicationEventPublisher eventPublisher;

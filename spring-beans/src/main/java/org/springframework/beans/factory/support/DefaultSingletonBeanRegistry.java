@@ -237,6 +237,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		synchronized (this.singletonObjects) {
 			// 从单例缓存中获取 bean 实例
 			Object singletonObject = this.singletonObjects.get(beanName);
+
 			if (singletonObject == null) {
 
 				// 如果当前 bean 正在被销毁，则不允许对其进行创建

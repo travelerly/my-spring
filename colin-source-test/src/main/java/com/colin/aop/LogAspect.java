@@ -27,8 +27,8 @@ import java.util.Arrays;
  * 「@Aspect」：表明为切面类
  * 切面类也要注册进容器中「@Component」
  */
-@Component
-@Aspect
+//@Component
+//@Aspect
 public class LogAspect {
 
 	public LogAspect() {

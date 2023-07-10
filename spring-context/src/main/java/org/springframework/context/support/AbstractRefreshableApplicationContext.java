@@ -143,9 +143,9 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 
 			/**
 			 * 加载 bean 定义信息
-			 * 开始解析并加载 xml 文件中的 bean
+			 * 开始解析并加载 xml 文件
 			 * 通过 BeanDefinitionReader 将 XML 解析成 Document
-			 * 再将 Document 注册到 BeanFactory 中，仅仅是 BeanDefinition，还没有被初始化
+			 * 再将 Document 注册到 BeanFactory 中，仅仅是注册 BeanDefinition，还没有被初始化
 			 */
 			loadBeanDefinitions(beanFactory);
 

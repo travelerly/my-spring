@@ -83,12 +83,14 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 		// 初始化 XmlBeanDefinitionReader
 		XmlBeanDefinitionReader beanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
 
-		// 配置 XmlBeanDefinitionReader 的上下文信息
+		// 配置 XmlBeanDefinitionReader 的上下文（环境配置）
 		beanDefinitionReader.setEnvironment(this.getEnvironment());
+		// 配置资源加载器
 		beanDefinitionReader.setResourceLoader(this);
+		// 配置实体解析器
 		beanDefinitionReader.setEntityResolver(new ResourceEntityResolver(this));
 
-		// 留给子类去自定义 XmlBeanDefinitionReader
+		// 校验配置文件的 xsd 和 dtd 头部
 		initBeanDefinitionReader(beanDefinitionReader);
 
 		// 委托 beanDefinitionReader 来加载 XML 中的 BeanDefinition
@@ -120,15 +122,19 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 	 * @see #getResourcePatternResolver
 	 */
 	protected void loadBeanDefinitions(XmlBeanDefinitionReader reader) throws BeansException, IOException {
+
+		// 获取 resource 资源
 		Resource[] configResources = getConfigResources();
 		if (configResources != null) {
-			// 加载 xml 中配置的 bean 的定义信息
 			reader.loadBeanDefinitions(configResources);
 		}
 
-		// 获取前面封装好的 XML 文件名对应的 String 数组
+		/**
+		 * 获取资源的路径，前面解析出来的那些配置文件，classpath*:application.xml
+		 */
 		String[] configLocations = getConfigLocations();
 		if (configLocations != null) {
+			// ☆☆☆☆☆ 正式解析 XML 的结构
 			reader.loadBeanDefinitions(configLocations);
 		}
 	}

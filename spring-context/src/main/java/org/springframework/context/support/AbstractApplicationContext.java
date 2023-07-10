@@ -678,6 +678,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void prepareRefresh() {
 		// Switch to active.
+		// 记录启动时间
 		this.startupDate = System.currentTimeMillis();
 		this.closed.set(false);
 		this.active.set(true);
@@ -744,9 +745,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
 		/**
 		 * 刷新工厂，将配置文件中的信息注册进工厂中，信息保存在 beanDefinitionMap 中
+		 * 如果有旧的 BeanFactory，则将其关闭，并创建新的 BeanFactory
 		 * 不同工厂有不同实现：
-		 * xml 配置方式：AbstractRefreshableApplicationContext#refreshBeanFactory()
-		 * 注解或配置类的配置方式：GenericApplicationContext#refreshBeanFactory()
+		 * xml 配置方式：AbstractRefreshableApplicationContext#refreshBeanFactory()，会在此处进行 xml 文件的解析，将信息注册进 BeanDefinitionMap 中
+		 * 注解或配置类的配置方式：GenericApplicationContext#refreshBeanFactory()，注解或配置类的配置方式，只是刷新了 BeanFactory
 		 */
 		refreshBeanFactory();
 

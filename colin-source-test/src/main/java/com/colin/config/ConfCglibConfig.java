@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
  * @author colin
  * @create 2022-07-28 19:09
  */
-@Configuration
+//@Configuration
 /*@Component*/
 public class ConfCglibConfig {
 
@@ -25,7 +25,6 @@ public class ConfCglibConfig {
      * 如果是"lite"配置类，Tank 会被创建两次
      * 如果是"full"配置类，Tank 只会被创建一次，因为配置类被 Cglib 代理了，方法被改写了
      */
-
     @Bean
     public Car car(){
         Car car = new Car();
