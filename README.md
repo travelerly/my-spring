@@ -8,7 +8,7 @@
 
 
 
-## Spring 整体架构
+## Spring 基础
 
 ###  Spring 如何工作
 
@@ -22,21 +22,57 @@ Spring 暴露给开发者的使用方式是，要么写一个 xml 文件、要�
 
 
 
-### BeanFactory 顶级接口下的方法栈
+### Spring 核心组件
+
+#### Bean 组件
+
+Bean 组件定义在 SPring 的 `org.springframework.beans` 包下，解决了以下几个问题：
+
+这个包下的所有类主要解决了三件事：
+
+1. Bean 的定义
+2. Bean 的创建
+3. Bean 的解析
+
+
+
+#### BeanFactory 组件
+
+SpringBean 的创建是典型的工厂模式，它的顶级接口是 BeanFactory，其接口下的方法栈如下：
 
 <img src="src/docs/spring/BeanFactory 顶级接口下的方法栈.jpg" style="zoom: 50%;" />
 
+BeanFactory 有三个子类：
+
+1. ListableBeanFactory
+2. HierarchicalBeanFactory
+3. AutowiredCapableBeanFactory
+
+分三个子类的目的是为了区分 Spring 内部对象处理和转化的数据限制，从继承树中可以看出最终的默认实现类是 DefaultListableBeanFactory，它实现了所有的接口
 
 
 
+#### BeanDefinition 组件
 
-### ApplicationContext的继承树
+BeanDefinition 其保存了 Bean 的定义信息，列入这个 bean 指向的是哪个类、是否是单例、是否懒加载、依赖了那些 bean 等等。
+
+
+
+#### Context 组件
+
+Context 在 Spring 的 `org.springframework.context` 包下，是构建与 Core 和 Beans 模块基础之上，提供了一种类似于 JNDI 注册器的框架式的对象访问方法。Context 模块继承了 Beans 的特性，为 Spring 核心提供了大量扩展，添加了对国际化（例如资源绑定）、事件传播、资源加载和对 Context 的透明创建的支持。
+
+
+
+##### ApplicationContext 的继承树
+
+ApplicationContext 是 Context 的顶级父类，其继承树如下：
 
 <img src="src/docs/spring/ApplicationContext的继承树.jpg"  />
 
 
 
-### ApplicationContext 与 BeanFactory
+##### ApplicationContext 与 BeanFactory
 
 1. BeanFactory 是 Spring 框架中 IOC 容器的顶层接口，它只是用来定义一些基础功能、基础规范，而 ApplicationContext 是 BeanFactory 的一个子接口，所以 ApplicationContext 具备了 BeanFactory 提供的全部功能，就是一个 BeanFactory；
 2. AnnotationConfigApplicationContext 组合了 DefaultListableBeanFactory，在 AnnotationConfigApplicationContext 执行构造方法时，先通过其父类 GenericApplicationContext 的构造方法创建了 DefaultListableBeanFactory，DefaultListableBeanFactory 及其父类创初始化了用于保存 Bean 定义信息的集合、保存实例的各种缓存池、Bean 定义信息的扫描器和读取器、底层的后置处理器等，然后 AnnotationConfigApplicationContext 再创建 BeanDefinition 的扫描器和读取器，并注册主配置类，最后调用 refresh() 方法刷新容器；
@@ -58,12 +94,14 @@ Spring 暴露给开发者的使用方式是，要么写一个 xml 文件、要�
 
 #### 后置处理器
 
-Spring 提供了两种后置处理 bean 的扩展接口，分别为 BeanPostProcessor 和 BeanFactoryPostProcessor
+后置处理器是一种扩展机制，贯穿 Spring Bean 的生命周期。
 
-BeanPostProcessor 是针对 Bean 级别的处理，可以针对某个具体的 Bean 进行后置处理，该接口提供了两个方法，分别是在 Bean 的初始化方法之前和初始化方法之后执行。
+Spring 提供了两种后置处理，分别为 BeanPostProcessor 和 BeanFactoryPostProcessor
 
-- postProcessorBeforeInitialization(Object bean,String beanName)
-- postProcessorAfterInitialization(Object bean,String beanName)
+BeanPostProcessor 是针对 Bean 级别的处理，可以针对某个具体的 Bean 进行后置处理，该接口提供了两个方法，在 Spring 容器实例化 bean 之后，分别是在 Bean 的初始化方法之前和初始化方法之后执行。
+
+- `postProcessorBeforeInitialization(Object bean,String beanName)`
+- `postProcessorAfterInitialization(Object bean,String beanName)`
 
 后置处理器默认会对整个 Spring 容器中的所有 bean 进行处理，如果需要处理某个具体的 bean，可以通过方法参数进行判断，参数一时每个 bean 实例，参数二是 bean 的 name 或者 id 属性的值。
 
@@ -71,7 +109,7 @@ BeanPostProcessor 是针对 Bean 级别的处理，可以针对某个具体的 B
 
 
 
-BeanFactoryPostProcessor 是针对整个 Bean 工厂级别的处理，此接口只提供了一个方法
+BeanFactoryPostProcessor 是针对整个 Bean 工厂级别的处理，可以在 bean 创建之前，修改 bean 的定义信息，此接口只提供了一个方法
 
 - postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)
 
@@ -83,7 +121,92 @@ BeanFactoryPostProcessor 是针对整个 Bean 工厂级别的处理，此接口�
 
 
 
-#### Bean 的生命周期：
+#### 常用注解
+
+1. @Configuration：表明当前类是一个配置类；
+2. @PropertySource：引入外部属性配置文件
+3. @Import：引入其它配置类
+4. @Value：对变量赋值，可以直接赋值，也可以使用 `${}` 读取资源配置文件中的信息
+5. @Bean：将当前方法返回的对象，直接加入到 IOC 容器中
+
+
+
+#### Spring 的配置类
+
+1. @Configuration、@Component、@ComponentScan、@Import、@ImportResource 等注解都可以注册配置类；
+2. 标注了 @Configuration 注解的配置类称之为**"full"**配置类，FULL 配置类为传统配置类；
+3. 标注了其它注解（非 @Configuration）的配置类称为**"lite"**配置类，Lite 配置类为普通 Bean 的配置类，例如注解 @Component、@Import 标注的类称为 LIte 配置类；
+4. 对于**"full"**配置类，其会被 Cglib 所代理，在获取这个配置类对象时，实际上获取的是代理对象；
+5. 而**"lite"**配置类则为普通的配置类对象，在获取这个配置类对象时，实际上获取的是原始的配置类对象
+
+如果在配置类中定义两个 @Bean 方法，在其中一个 @Bean 方法中调用另一个 @Bean 方法
+例如：car() 中调用 tank() 方法，当从容器中连续获取两次 Car 对象时，会因配置类的不同，而产生不同的结果：
+
+- 如果是**"lite"**配置类，Tank 会被创建两次
+- 如果是**"full"**配置类，Tank 只会被创建一次，因为配置类被 Cglib 代理了，方法被改写了
+
+```java
+//@Configuration
+//@Component
+public class ConfCglibConfig {
+    @Bean
+    public Car car(){
+        Car car = new Car();
+        car.setName("colin");
+        car.setTank(tank());
+        return car;
+    }
+    
+    @Bean
+    public Tank tank(){
+        return new Tank();
+    }
+}
+```
+
+
+
+#### Spring 的套路点：
+
+1. AbstractBeanDefinition 如何给容器中注入了什么组件；
+2. BeanFactory 初始化完成后，监控其中多了哪些后置处理器；
+3. 分析后置处理器什么时候调用，做了什么功能。
+
+以上所有的前提，是理解容器刷新 12 大步与 getBean() 流程，防止混乱；
+
+1. 工厂后置处理器执行；
+2. bean 后置处理器执行、bean 的生命周期（后置处理器 + InitializingBean）
+
+
+
+### Spring架构原理图
+
+![](src/docs/spring/Spring架构原理图.jpg )
+
+
+
+### Bean 的生命周期：
+
+<img src="src/docs/spring/Bean的生命周期-2023.jpg" style="zoom:50%;" />
+
+
+
+Bean 生命周期的整个执行过程描述如下：
+
+1. 根据配置情况调用 Bean 构造方法或工厂方法实例化 Bean
+2. 利用依赖注入完成 Bean 中所有属性值的配置注入
+3. 如果 Bean 实现了 BeanNameAware 接口，则 Spring 调用 Bean 的 setBeanName() 方法传入当前 Bean 的 id 值
+4. 如果 Bean 实现了 BeanFactoryAware 接口，则 Spring 调用 setBeanFactory() 方法传入当前工厂实例的引用
+5. 如果 Bean 实现了 ApplicationContextAware 接口，则 Spring 调用 setApplicationContext() 方法传入当前 ApplicationContext 实例的引用
+6. 如果 BeanPostProcessor 和 Bean 关联，则 Spring 将调用该接口的预初始化方法 postProcessBeforeInitialzation() 方法对 Bean 进行增强操作
+7. 如果 Bean 实现了 InitializingBean 接口，则 Spring 将调用 afterPropertiesSet() 方法
+8. 如果在配置文件中通过 init-method 属性指定了初始化方法，则 Spring 会调用该方法
+9. 如果 BeanPostProcessor 和 Bean 关联，则 Spring 将调用该接口的初始方法 postProcessAfterInitialization()，此时 Bean 已经可以被应用系统使用了
+10. 如果在配置文件中指定了该 Bean 的作用范围是 scope=“singleton”，则将该 Bean 放入 Spring IOC 容器中，将触发 Spring 对该 Bean 的生命周期管理，
+11. 如果在配置文件中指定了该 Bean 的作用范围是 scope=“proptotype”，则将该 Bean 交给调用者，调用者管理该 Bean 的生命周期，Spring 不再管理该 Bean
+12. 如果 Bean 实现了 DisposableBean 接口，则 Spring 会调用 destory() 方法将 Spring 中的 Bean 销毁，如果在配置文件中通过 destory-method 属性指定了 Bean 的销毁方法，则 Spring 将调用该方法
+
+
 
 Spring 框架管理 Bean 对象的创建时，Bean 对象默认都是单例的，但也支持通过配置的方式来改变作用范围。
 
@@ -158,69 +281,6 @@ Bean 的功能增强全都是由 BeanPostProcessor + InitializingBean (合起来
     - 如果既没有指定 name，也没有指定 type，则会自动按照 beanName 进行装配。
 
 
-
-#### 常用注解
-
-1. @Configuration：表明当前类是一个配置类；
-2. @PropertySource：引入外部属性配置文件
-3. @Import：引入其它配置类
-4. @Value：对变量赋值，可以直接赋值，也可以使用 `${}` 读取资源配置文件中的信息
-5. @Bean：将当前方法返回的对象，直接加入到 IOC 容器中
-
-
-
-#### 配置类的说明
-
-1. @Configuration、@Component、@ComponentScan、@Import、@ImportResource 等注解都可以注册配置类；
-2. 但只有标注了 @Configuration 注解的配置类称之为**"full"**配置类，标注了其它注解的配置类称为**"lite"**配置类；
-3. 对于**"full"**配置类，其会被 Cglib 所代理，在获取这个配置类对象时，实际上获取的是代理对象；
-4. 而**"lite"**配置类则为普通的配置类对象，在获取这个配置类对象时，实际上获取的是原始的配置类对象
-
-如果在配置类中定义两个 @Bean 方法，在其中一个 @Bean 方法中调用另一个 @Bean 方法
-例如：car() 中调用 tank() 方法，当从容器中连续获取两次 Car 对象时，会因配置类的不同，而产生不同的结果：
-
-- 如果是**"lite"**配置类，Tank 会被创建两次
-- 如果是**"full"**配置类，Tank 只会被创建一次，因为配置类被 Cglib 代理了，方法被改写了
-
-```java
-//@Configuration
-//@Component
-public class ConfCglibConfig {
-    @Bean
-    public Car car(){
-        Car car = new Car();
-        car.setName("colin");
-        car.setTank(tank());
-        return car;
-    }
-    
-    @Bean
-    public Tank tank(){
-        return new Tank();
-    }
-}
-```
-
-
-
-
-
-#### Spring 的套路点：
-
-1. AbstractBeanDefinition 如何给容器中注入了什么组件；
-2. BeanFactory 初始化完成后，监控其中多了哪些后置处理器；
-3. 分析后置处理器什么时候调用，做了什么功能。
-
-以上所有的前提，是理解容器刷新 12 大步与 getBean() 流程，防止混乱；
-
-1. 工厂后置处理器执行；
-2. bean 后置处理器执行、bean 的生命周期（后置处理器 + InitializingBean）
-
-
-
-### Spring架构原理图
-
-![](src/docs/spring/Spring架构原理图.jpg )
 
 ---
 

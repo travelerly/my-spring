@@ -261,7 +261,7 @@ public class AnnotatedBeanDefinitionReader {
 			@Nullable Class<? extends Annotation>[] qualifiers, @Nullable Supplier<T> supplier,
 			@Nullable BeanDefinitionCustomizer[] customizers) {
 		/**
-		 * 将主配置类封解析成 BeanDefinition，即将添加了注解 @Configuration 的类，解析成 BeanDefinition
+		 * 将主配置类解析成 BeanDefinition，即将添加了注解 @Configuration 的类，解析成 BeanDefinition
 		 * AnnotatedGenericBeanDefinition 可以理解为一种数据结构，用来描述 Bean 的，
 		 * 这里的作用就是把传入的标记了注解的类转为 AnnotatedGenericBeanDefinition 数据结构
 		 * 其内部有个 getMetadata() 方法，可以拿到类上的注解
@@ -278,8 +278,10 @@ public class AnnotatedBeanDefinitionReader {
 		// 解析 bean 的作用域，默认为单例
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
 		abd.setScope(scopeMetadata.getScopeName());
+
 		// 生成配置类名称
 		String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
+
 		/**
 		 * 解析常规通用注解，并填充到 AnnotatedGenericBeanDefinition 中
 		 * 处理常规的注解定义信息 @Lazy、@Primary、@Description、@Role、@DependsOn

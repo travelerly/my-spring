@@ -258,6 +258,7 @@ public abstract class AnnotationConfigUtils {
 	 * @param metadata 注解元数据
 	 */
 	static void processCommonDefinitionAnnotations(AnnotatedBeanDefinition abd, AnnotatedTypeMetadata metadata) {
+
 		// 解析 @Lazy 注解
 		AnnotationAttributes lazy = attributesFor(metadata, Lazy.class);
 		if (lazy != null) {

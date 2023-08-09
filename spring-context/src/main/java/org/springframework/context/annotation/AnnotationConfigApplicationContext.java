@@ -65,6 +65,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
 	 */
 	public AnnotationConfigApplicationContext() {
+
 		/**
 		 * 先隐式调用其父类 GenericApplicationContext 的构造函数
 		 * 其父类构造函数里初始化了 DefaultListableBeanFactory，并赋值给 BeanFactory
@@ -119,11 +120,12 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		this();
 
 		/**
-		 * 解析并注册所有主配置类的定义信息，构造参数传入的所有主配置类「MyConfig.class，主配置类可以是多个」
+		 * 解析并注册所有主配置类的定义信息，构造参数传入的是所有主配置类「MyConfig.class，主配置类可以是多个」
 		 * 把传入的类进行注册，分为两种情况：
-		 * 1.传入传统的配置类
-		 * 2.传入 bean，但通常不会这么做
-		 * Spring 将注解 @Configuration 标注的类称为 "FULL" 配置类；非注解 @Configuration 标注的类称为 "Lite" 配置类
+		 *  1.传入传统的配置类
+		 *  2.传入 bean，但通常不会这么做
+		 *
+		 * Spring 将标注了注解 @Configuration 的类称为 "FULL" 配置类；非注解 @Configuration 标注的类称为 "Lite" 配置类
 		 * "FULL" 配置类为传统配置类；"Lite" 配置类称为普通的 bean，例如注解 @Component、@Import 等标注的类
 		 */
 		register(componentClasses);
