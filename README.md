@@ -26,13 +26,13 @@ Spring 暴露给开发者的使用方式是，要么写一个 xml 文件、要�
 
 #### Bean 组件
 
-Bean 组件定义在 SPring 的 `org.springframework.beans` 包下，解决了以下几个问题：
+Bean 组件定义在 Spring 的 `org.springframework.beans` 包下，解决了以下几个问题：
 
 这个包下的所有类主要解决了三件事：
 
 1. Bean 的定义
-2. Bean 的创建
-3. Bean 的解析
+2. Bean 的解析
+3. Bean 的创建
 
 
 
@@ -42,29 +42,37 @@ SpringBean 的创建是典型的工厂模式，它的顶级接口是 BeanFactory
 
 <img src="src/docs/spring/BeanFactory 顶级接口下的方法栈.jpg" style="zoom: 50%;" />
 
-BeanFactory 有三个子类：
+
+
+BeanFactory 的继承树：
+
+<img src="src/docs/spring/BeanFactory 的继承树.jpg" style="zoom: 50%;" />
+
+
+
+BeanFactory 有三个子接口：
 
 1. ListableBeanFactory
 2. HierarchicalBeanFactory
 3. AutowiredCapableBeanFactory
 
-分三个子类的目的是为了区分 Spring 内部对象处理和转化的数据限制，从继承树中可以看出最终的默认实现类是 DefaultListableBeanFactory，它实现了所有的接口
+分三个子接口的目的是为了区分 Spring 内部对象处理和转化的数据限制，从继承树中可以看出最终的默认实现类是 DefaultListableBeanFactory，它实现了所有的接口。
 
 
 
 #### BeanDefinition 组件
 
-BeanDefinition 其保存了 Bean 的定义信息，列入这个 bean 指向的是哪个类、是否是单例、是否懒加载、依赖了那些 bean 等等。
+BeanDefinition 其保存了 Bean 的定义信息，例如这个 bean 指向的是哪个类、是否是单例、是否懒加载、依赖了那些 bean 等等。
 
 
 
 #### Context 组件
 
-Context 在 Spring 的 `org.springframework.context` 包下，是构建与 Core 和 Beans 模块基础之上，提供了一种类似于 JNDI 注册器的框架式的对象访问方法。Context 模块继承了 Beans 的特性，为 Spring 核心提供了大量扩展，添加了对国际化（例如资源绑定）、事件传播、资源加载和对 Context 的透明创建的支持。
+Context 在 Spring 的 `org.springframework.context` 包下，是构建在 Core 和 Beans 模块基础之上，提供了一种类似于 JNDI 注册器的框架式的对象访问方法。Context 模块继承了 Beans 的特性，为 Spring 核心提供了大量扩展，添加了对国际化（例如资源绑定）、事件传播、资源加载和对 Context 的透明创建的支持。
 
 
 
-##### ApplicationContext 的继承树
+#### ApplicationContext
 
 ApplicationContext 是 Context 的顶级父类，其继承树如下：
 
@@ -75,12 +83,26 @@ ApplicationContext 是 Context 的顶级父类，其继承树如下：
 ##### ApplicationContext 与 BeanFactory
 
 1. BeanFactory 是 Spring 框架中 IOC 容器的顶层接口，它只是用来定义一些基础功能、基础规范，而 ApplicationContext 是 BeanFactory 的一个子接口，所以 ApplicationContext 具备了 BeanFactory 提供的全部功能，就是一个 BeanFactory；
-2. AnnotationConfigApplicationContext 组合了 DefaultListableBeanFactory，在 AnnotationConfigApplicationContext 执行构造方法时，先通过其父类 GenericApplicationContext 的构造方法创建了 DefaultListableBeanFactory，DefaultListableBeanFactory 及其父类创初始化了用于保存 Bean 定义信息的集合、保存实例的各种缓存池、Bean 定义信息的扫描器和读取器、底层的后置处理器等，然后 AnnotationConfigApplicationContext 再创建 BeanDefinition 的扫描器和读取器，并注册主配置类，最后调用 refresh() 方法刷新容器；
+
+2. AnnotationConfigApplicationContext 组合了 DefaultListableBeanFactory，在 AnnotationConfigApplicationContext 执行构造方法时，先通过其父类 GenericApplicationContext 的构造方法创建了 DefaultListableBeanFactory，DefaultListableBeanFactory 及其父类初始化了以下组件：
+
+    - 用于保存 Bean 定义信息的集合、
+    - 用于保存实例的各种缓存池、
+    - Bean 定义信息的扫描器和读取器、
+    - 底层的后置处理器等，
+
+    然后 AnnotationConfigApplicationContext 再创建 BeanDefinition 的扫描器和读取器，并注册主配置类，最后调用 refresh() 方法刷新容器；
+
 3. DefaultListableBeanFactory 是整个 bean 加载的核心部分，是 Spring 注册及加载 bean 的默认实现；
+
 4. BeanFactory 定义工厂的创建和获取 Bean 的流程，其中包含有用于保存 Bean 定义信息的集合、保存实例的各种缓存池等，因此通常称为 IOC 的基础容器；
-5. ApplicationContext 是建立在 BeanFactory 基础之上，是 IOC 容器的高级接口，比 BeanFactory 要拥有更多的功能，例如定义了 Bean 的各种增强处理的流程，提供了更多面向应用的功能，更易于创建实际应用，因此通常称为应用上下文；
+
+5. ==ApplicationContext 是建立在 BeanFactory 基础之上，是 IOC 容器的高级接口，比 BeanFactory 要拥有更多的功能，例如定义了 Bean 的各种增强处理的流程，提供了更多面向应用的功能，更易于创建实际应用，因此通常称为应用上下文；==
+
 6. ApplicationContext 里面第一次要用到 bean，会使用工厂 BeanFactory 先来创建，创建好后保存在容器中；
+
 7. ApplicationContext 中管理 bean 的能力是由 BeanFactory 提供支持的，即由 DefaultListableBeanFactory 提供支持的；
+
 8. ==BeanFactory 是 Spring 框架的基础设施，面向 Spring 本身，ApplicationContext 面向使用 Spring 框架的开发者，几乎所有的应用场景都可以直接使用 ApplicationContext，而非底层的 BeanFactory==
 
 
@@ -98,18 +120,21 @@ ApplicationContext 是 Context 的顶级父类，其继承树如下：
 
 Spring 提供了两种后置处理，分别为 BeanPostProcessor 和 BeanFactoryPostProcessor
 
-BeanPostProcessor 是针对 Bean 级别的处理，可以针对某个具体的 Bean 进行后置处理，该接口提供了两个方法，在 Spring 容器实例化 bean 之后，分别是在 Bean 的初始化方法之前和初始化方法之后执行。
+BeanPostProcessor 是针对 Bean 级别的处理，可以针对某个具体的 Bean 进行后置处理，该接口提供了两个方法，在 Spring 容器实例化 bean 之后，分别是在 bean 的初始化方法之前和初始化方法之后执行。
 
 - `postProcessorBeforeInitialization(Object bean,String beanName)`
 - `postProcessorAfterInitialization(Object bean,String beanName)`
 
-后置处理器默认会对整个 Spring 容器中的所有 bean 进行处理，如果需要处理某个具体的 bean，可以通过方法参数进行判断，参数一时每个 bean 实例，参数二是 bean 的 name 或者 id 属性的值。
+后置处理器默认会对整个 Spring 容器中的所有 bean 进行处理，如果需要处理某个具体的 bean，可以通过方法参数进行判断，
+
+1. 参数一是每个 bean 实例，
+2. 参数二是 bean 的 name 或者 id 属性的值。
 
 > 处理是发生在 Spring 容器的实例化和依赖注入之后执行的
 
 
 
-BeanFactoryPostProcessor 是针对整个 Bean 工厂级别的处理，可以在 bean 创建之前，修改 bean 的定义信息，此接口只提供了一个方法
+BeanFactoryPostProcessor 是针对整个 Bean 工厂级别的处理，可以在 bean 实例化之前，修改 bean 的定义信息，此接口只提供了一个方法
 
 - postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)
 
@@ -135,7 +160,7 @@ BeanFactoryPostProcessor 是针对整个 Bean 工厂级别的处理，可以在 
 
 1. @Configuration、@Component、@ComponentScan、@Import、@ImportResource 等注解都可以注册配置类；
 2. 标注了 @Configuration 注解的配置类称之为**"full"**配置类，FULL 配置类为传统配置类；
-3. 标注了其它注解（非 @Configuration）的配置类称为**"lite"**配置类，Lite 配置类为普通 Bean 的配置类，例如注解 @Component、@Import 标注的类称为 LIte 配置类；
+3. 标注了其它注解（非 @Configuration）的配置类称为**"lite"**配置类，Lite 配置类为普通 Bean 的配置类，例如注解 @Component、@Import 标注的类称为 Lite 配置类；
 4. 对于**"full"**配置类，其会被 Cglib 所代理，在获取这个配置类对象时，实际上获取的是代理对象；
 5. 而**"lite"**配置类则为普通的配置类对象，在获取这个配置类对象时，实际上获取的是原始的配置类对象
 
@@ -202,7 +227,7 @@ Bean 生命周期的整个执行过程描述如下：
 7. 如果 Bean 实现了 InitializingBean 接口，则 Spring 将调用 afterPropertiesSet() 方法
 8. 如果在配置文件中通过 init-method 属性指定了初始化方法，则 Spring 会调用该方法
 9. 如果 BeanPostProcessor 和 Bean 关联，则 Spring 将调用该接口的初始方法 postProcessAfterInitialization()，此时 Bean 已经可以被应用系统使用了
-10. 如果在配置文件中指定了该 Bean 的作用范围是 scope=“singleton”，则将该 Bean 放入 Spring IOC 容器中，将触发 Spring 对该 Bean 的生命周期管理，
+10. 如果在配置文件中指定了该 Bean 的作用范围是 scope=“singleton”，则将该 Bean 放入 IOC 容器中，将触发 Spring 对该 Bean 的生命周期管理，
 11. 如果在配置文件中指定了该 Bean 的作用范围是 scope=“proptotype”，则将该 Bean 交给调用者，调用者管理该 Bean 的生命周期，Spring 不再管理该 Bean
 12. 如果 Bean 实现了 DisposableBean 接口，则 Spring 会调用 destory() 方法将 Spring 中的 Bean 销毁，如果在配置文件中通过 destory-method 属性指定了 Bean 的销毁方法，则 Spring 将调用该方法
 
@@ -220,10 +245,10 @@ Bean 的增强过程：
 Bean：保存 BeanDefinition 信息→根据 BeanDefinition 信息创建对象→属性赋值→初始化；
 Bean 的功能增强全都是由 BeanPostProcessor + InitializingBean (合起来)完成的
 
-使用建议：
+==使用建议：==
 
-1. 所有组件可能都会使用的功能，使用后置处理器 BeanPostProcessor 来实现；
-2. 单个组件增强的功能，最好使用生命周期 InitializingBean 来实现
+1. ==所有组件可能都会使用的功能，使用后置处理器 BeanPostProcessor 来实现；==
+2. ==单个组件增强的功能，最好使用生命周期 InitializingBean 来实现==
 
 组件新功能分析思路：
 
@@ -364,7 +389,7 @@ Spring 容器启动时，先加载一些底层的后置处理器，例如 Config
 3. 判断是否是配置类，如果是的话。加入到 configCandidates 数组，在判断的时候，还会标记配置类属于Full配置类，还是 Lite 配置类，这里会引发一连串的知识盲点：
     1. 当我们注册配置类的时候，可以不加 @Configuration 注解，直接使用 @Component、@ComponentScan、@Import、@ImportResource 等注解，Spring 把这种配置类称之为 **Lite** 配置类， 如果加了 @Configuration 注解，就称之为 **Full** 配置类。
     2. 如果我们注册了 **Lite** 配置类，我们 getBean 这个配置类，会发现它就是原本的那个配置类，如果我们注册了 **Full** 配置类，我们 getBean 这个配置类，会发现它已经不是原本那个配置类了，而是已经被 cgilb 代理的类了。
-    3. 写一个 A 类，其中有一个构造方法，打印出“你好”，再写一个配置类，里面有两个被 @bean 注解的方法，其中一个方法 new 了 A 类，并且返回 A 的对象，把此方法称之为 getA，第二个方法又调用了 getA 方法，如果配置类是 **Lite** 配置类，会发现打印了两次“你好”，也就是说 A 类被 new 了两次，如果配置类是 **Full** 配置类，会发现只打印了一次“你好”，也就是说 A 类只被 new 了一次，因为这个类被 cgilb 代理了，方法已经被改写。
+    3. 写一个 A 类，其中有一个构造方法，打印出“你好”，再写一个配置类，里面有两个被 @Bean 注解的方法，其中一个方法 new 了 A 类，并且返回 A 的对象，把此方法称之为 getA，第二个方法又调用了 getA 方法，如果配置类是 **Lite** 配置类，会发现打印了两次“你好”，也就是说 A 类被 new 了两次，如果配置类是 **Full** 配置类，会发现只打印了一次“你好”，也就是说 A 类只被 new 了一次，因为这个类被 cgilb 代理了，方法已经被改写。
 
 4. 如果没有配置类直接返回。
 5. 处理排序。
@@ -476,9 +501,9 @@ Spring 事件机制是观察者模式的一种实现，除了事件发布者和�
 2. earlySingletonObjects：二级缓存，存放半成品的 bean 实例(尚未被属性赋值和初始化)
     - 如果 bean 不被 AOP 切面代理，则其保存的是(未属性赋值的半成品的)bean 实例
     - 如果 bean 被 AOP 切面代理，则其保存的是代理的 bean 实例--beanProxy，其目标 bean 还是半成品的。
-3. singletonObjects：三级缓存，存放的是 ObjectFactory，是一个函数式接口，当执行 objectFactory.getObject() 方法时，最终会调用 getEarlyBeanReference(beanName, mbd, bean)，来获取 bean 的早期引用
+3. singletonObjects：三级缓存，存放的是 ObjectFactory，是一个函数式接口，当执行 objectFactory#getObject() 方法时，最终会调用 getEarlyBeanReference(beanName, mbd, bean)，来获取 bean 的早期引用
     - 如果 bean 被 AOP 代理，则其会返回 bean 的代理对象
-    - 如果 bean 不被 AOP 代理，则其会返回原 bean 实例对象
+    - 如果 bean 没有被 AOP 代理，则其会返回原 bean 实例对象
 
 
 
@@ -486,15 +511,15 @@ Spring 事件机制是观察者模式的一种实现，除了事件发布者和�
 
 只使用一级缓存和三级缓存就可以解决(非 AOP 代理类的)循环依赖：一级缓存存放完整 bean、三级缓存存放提前暴露出来的对象工厂(用于创建 bean 的 lambda 表达式)
 
-对于被 AOP 代理的 bean 的循环依赖需使用三级缓存解决：因为三级缓存中的 ObjectFactory 每执行一次就会创建一个对象，此时需要借助另外一个缓存来存放 objectFactory.getObject() 创建的对象，即使用二级缓存来存储其创建的对象，所以，对于被 AOP 代理的 bean 的循环依赖需使用三级缓存解决。
+对于被 AOP 代理的 bean 的循环依赖需使用三级缓存解决：因为三级缓存中的 ObjectFactory 每执行一次就会创建一个对象，此时需要借助另外一个缓存来存放 objectFactory#getObject() 创建的对象，即使用二级缓存来存储其创建的对象，所以，对于被 AOP 代理的 bean 的循环依赖需使用三级缓存解决。
 
 
 
 #### 二级缓存存在的问题
 
 1. 生成 A 的实例，然后放入缓存中，A 需要注入属性 B；
-2. .生成 B 的实例，B 需要注入属性 A，从缓存中获取 A 并注入到 B 中，并完成 B 的初始化；
-3. 将完成初始化后的 B 注入到 A 中，在完成 A 的初始化；
+2. 生成 B 的实例，B 需要注入属性 A，从缓存中获取 A 并注入到 B 中，并完成 B 的初始化；
+3. 将完成初始化后的 B 注入到 A 中，再完成 A 的初始化；
 4. 由于 A 是 AOP 的目标类，在其初始化后，后置处理器(AbstractAutoProxyCreator)介入，为 A 生成动态代理类。
 
 A 的最终产物为 A 的代理类，而 B 中注入的属性 A 为原始类，与代理类不是同一个对象，违背了 Spring 的单例原则
@@ -504,7 +529,7 @@ A 的最终产物为 A 的代理类，而 B 中注入的属性 A 为原始类，
 #### 为什么要使用二级缓存 earlySingletonObjects？
 
 1. 如果不涉及 AOP 代理，二级缓存就会显得多此一举，但如果使用了 AOP 代理，那么二级缓存就发挥作用了。bean 的 AOP 动态代理对象的创建时在 bean 的初始化之后实现的，但是循环依赖的 bean 就无法等到解决完循环依赖后再创建其代理对象了，因为这个时候需要属性注入，所以如果循环依赖的 bean 被 AOP 代理了，则需要提前创建出代理对象，然后放入到二级缓存中；
-2. 三级缓存中存放的是 ObjectFactory 对象工厂，当执行 objectFactory.getObject() 回调时，会调用 getEarlyBeanReference() 方法。获取 bean 的早期引用，每次调用都会产生一个新的代理对象，这有悖于 Spring 的单例设计理念
+2. 三级缓存中存放的是 ObjectFactory 对象工厂，当执行 objectFactory#getObject() 回调时，会调用 getEarlyBeanReference() 方法。获取 bean 的早期引用，每次调用都会产生一个新的代理对象，这有悖于 Spring 的单例设计理念
 3. 所以使用二级缓存来缓存 bean 的早期引用，后续步骤可以从二级缓存中获取，就解决了因每次都调用都产生新代理对象的这个问题了，从而保证这个 bean 始终都只有这一个代理对象。
 
 
@@ -762,12 +787,12 @@ AService 在初始化之后，后置处理器 AbstractAutoProxyCreator 的后置
 
 ### MVC启动过程
 
-引入的 spring-web 的类路径 “/spring-web/src/main/resources/META-INF/services/javax.servlet.ServletContainerInitializer” 下指定了 Servlet 规范的实现类 `org.springframework.web.SpringServletContainerInitializer`，Servlet 规范规定，ServletContainerInitializer 这个接口的实现类负责处理 @HandleTypes 注解，这个接口的所有实现类是由 Tomcat 使用 SPI 机制加载的。
+引入的 spring-web 的类路径 ==“/spring-web/src/main/resources/META-INF/services/javax.servlet.ServletContainerInitializer”== 下指定了 Servlet 规范的实现类 `org.springframework.web.SpringServletContainerInitializer`，Servlet 规范规定，ServletContainerInitializer 这个接口的实现类负责处理 @HandleTypes 注解，这个接口的所有实现类是由 Tomcat 使用 SPI 机制加载的。
 
 Tomcat 启动时利用 SPI 机制加载，扫描所有实现了 WebApplicationInitializer 接口的实现类，调用这些实现类的 onStartup() 方法完成了下面两件事：
 
 1. 创建了一个空的 IOC 容器，即根容器/父容器，利用根容器创建一个监听器，并保存进 Tomcat 中，容器此时没有刷新；当 Tomcat 加载完 web 应用后，会触发监听器钩子回调 contextInitialized() 方法，来初始化刷新根容器，完成所有的业务逻辑组件功能 AOP、事务、IOC、自动装配、HelloService 创建对象等工作
-2. 创建了一个空的 web-ioc 容器，即子容器，利用这个 web-ioc 容器创建 DispatcherServlet 对象，此时 DispatcherServlet 中保存了 web-ioc 容器；DispatcherServlet 继承自 GenericServlet，GenericServlet 有初始化方法 init()，当 Tomcat 加载完 web 应用后，会初始化 DispatcherServlet，即会触发 GenericServlet 子类的初始化模板方法，就会执行 FrameworkServlet 的 initWebApplicationContext() 方法来初始化刷新 web-ioc 容器，期间 web-ioc.setParent(ioc 子容器)，形成父子容器，子容器刷新，此时 Controller 才开始创建对象，并自动装配 Service（如过当前容器中没有，要去父容器中找）。
+2. 创建了一个空的 web-ioc 容器，即子容器，利用这个 web-ioc 容器创建 DispatcherServlet 对象，此时 DispatcherServlet 中保存了 web-ioc 容器；DispatcherServlet 继承自 GenericServlet，GenericServlet 有初始化方法 init()，当 Tomcat 加载完 web 应用后，会初始化 DispatcherServlet，即会触发 GenericServlet 子类的初始化模板方法，就会执行 FrameworkServlet 的 initWebApplicationContext() 方法来初始化刷新 web-ioc 容器，期间 web-ioc#setParent(ioc 父容器)，形成父子容器，子容器刷新，此时 Controller 才开始创建对象，并自动装配 Service（如过当前容器中没有，要去父容器中找）。
 
 即 MVC 容器的刷新基于两种方式
 

@@ -16,9 +16,6 @@
 
 package org.springframework.context.annotation;
 
-import java.lang.annotation.Annotation;
-import java.util.function.Supplier;
-
 import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionCustomizer;
@@ -32,6 +29,9 @@ import org.springframework.core.env.EnvironmentCapable;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.lang.annotation.Annotation;
+import java.util.function.Supplier;
 
 /**
  * Convenient adapter for programmatic registration of bean classes.
@@ -145,6 +145,7 @@ public class AnnotatedBeanDefinitionReader {
 	 */
 	public void register(Class<?>... componentClasses) {
 		for (Class<?> componentClass : componentClasses) {
+			// 注册配置类
 			registerBean(componentClass);
 		}
 	}
@@ -155,6 +156,7 @@ public class AnnotatedBeanDefinitionReader {
 	 * @param beanClass the class of the bean
 	 */
 	public void registerBean(Class<?> beanClass) {
+		// 注册配置类
 		doRegisterBean(beanClass, null, null, null, null);
 	}
 
@@ -245,6 +247,7 @@ public class AnnotatedBeanDefinitionReader {
 	}
 
 	/**
+	 * 注册配置类
 	 * Register a bean from the given bean class, deriving its metadata from
 	 * class-declared annotations.
 	 * @param beanClass the class of the bean
@@ -262,7 +265,7 @@ public class AnnotatedBeanDefinitionReader {
 			@Nullable BeanDefinitionCustomizer[] customizers) {
 		/**
 		 * 将主配置类解析成 BeanDefinition，即将添加了注解 @Configuration 的类，解析成 BeanDefinition
-		 * AnnotatedGenericBeanDefinition 可以理解为一种数据结构，用来描述 Bean 的，
+		 * AnnotatedGenericBeanDefinition 可以理解为一种数据结构，用来描述 Bean 的定义信息，
 		 * 这里的作用就是把传入的标记了注解的类转为 AnnotatedGenericBeanDefinition 数据结构
 		 * 其内部有个 getMetadata() 方法，可以拿到类上的注解
 		 */

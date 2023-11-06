@@ -16,9 +16,6 @@
 
 package org.springframework.context.annotation;
 
-import java.util.Arrays;
-import java.util.function.Supplier;
-
 import org.springframework.beans.factory.config.BeanDefinitionCustomizer;
 import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -27,6 +24,9 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.metrics.StartupStep;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.util.Arrays;
+import java.util.function.Supplier;
 
 /**
  * Standalone application context, accepting <em>component classes</em> as input &mdash;
@@ -75,12 +75,13 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		StartupStep createAnnotatedBeanDefReader = this.getApplicationStartup().start("spring.context.annotated-bean-reader.create");
 
 		/**
-		 * 初始化一个 Bean 的读取器
+		 * 初始化一个 BeanDefinition 的读取器
 		 * 创建一个（注解版的）BeanDefinition 读取器
 		 * 加载了底层功能组件的后置处理器的 BeanDefinition
 		 */
 		this.reader = new AnnotatedBeanDefinitionReader(this);
 		createAnnotatedBeanDefReader.end();
+
 		/**
 		 * 初始化一个扫描器
 		 * 创建一个类路径下的扫描器，可以用来扫描包或者类，继而转换为 BeanDefinition
@@ -121,11 +122,11 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 
 		/**
 		 * 解析并注册所有主配置类的定义信息，构造参数传入的是所有主配置类「MyConfig.class，主配置类可以是多个」
-		 * 把传入的类进行注册，分为两种情况：
+		 * 把传入的类（componentClasses）进行注册，分为两种情况：
 		 *  1.传入传统的配置类
 		 *  2.传入 bean，但通常不会这么做
 		 *
-		 * Spring 将标注了注解 @Configuration 的类称为 "FULL" 配置类；非注解 @Configuration 标注的类称为 "Lite" 配置类
+		 * Spring 将标注了注解 @Configuration 的类称为 "FULL" 配置类；标注其它注解的类称为 "Lite" 配置类
 		 * "FULL" 配置类为传统配置类；"Lite" 配置类称为普通的 bean，例如注解 @Component、@Import 等标注的类
 		 */
 		register(componentClasses);
@@ -208,6 +209,8 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		Assert.notEmpty(componentClasses, "At least one component class must be specified");
 		StartupStep registerComponentClass = this.getApplicationStartup().start("spring.context.component-classes.register")
 				.tag("classes", () -> Arrays.toString(componentClasses));
+
+		// 注册传入的类（通常为配置类）：componentClasses
 		this.reader.register(componentClasses);
 		registerComponentClass.end();
 	}

@@ -545,9 +545,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			prepareRefresh();
 
 			/**
-			 * 二、初始化 BeanFactory，即创建 DefaultListableBeanFactory
-			 * 1.如果存在旧的 BeanFactory，则会被销毁
-			 * 2.工厂的创建：BeanFactory 第一次创建，即创建 DefaultListableBeanFactory，获取当前准备好的空容器
+			 * 二、刷新 BeanFactory，即刷新 DefaultListableBeanFactory
+			 * 1.（xml 模式）如果存在旧的 BeanFactory，则会被销毁
+			 * 2.（xml 模式）工厂的创建：BeanFactory 第一次创建，即创建 DefaultListableBeanFactory，获取当前准备好的空容器
 			 * 3.XML 模式，会在此处进行 xml 文件的解析，将信息注册进 BeanDefinitionMap 中
 			 * 4.注解或配置类的配置方式，只是刷新了 BeanFactory
 			 * 5.最终获得了 DefaultListableBeanFactory
@@ -633,7 +633,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				/**
 				 * 十一、实例化所有非懒加载的单实例 bean，实例化的过程中，各种 BeanPostProcessor 开始介入
 				 * 详细参照 Bean 的初始化流程，再执行所有后初始化操作
-				 * (SmartInitializingSingleton.afterSingletonsInstantiated)
+				 * (SmartInitializingSingleton#afterSingletonsInstantiated())
 				 */
 				finishBeanFactoryInitialization(beanFactory);
 
@@ -744,8 +744,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
 		/**
-		 * 刷新工厂，将配置文件中的信息注册进工厂中，信息保存在 beanDefinitionMap 中
-		 * 如果有旧的 BeanFactory，则将其关闭，并创建新的 BeanFactory
+		 * 刷新工厂，（xml 模式）将配置文件中的信息注册进工厂中，信息保存在 beanDefinitionMap 中
+		 * （xml 模式）如果有旧的 BeanFactory，则将其关闭，并创建新的 BeanFactory
 		 * 不同工厂有不同实现：
 		 * xml 配置方式：AbstractRefreshableApplicationContext#refreshBeanFactory()，会在此处进行 xml 文件的解析，将信息注册进 BeanDefinitionMap 中
 		 * 注解或配置类的配置方式：GenericApplicationContext#refreshBeanFactory()，注解或配置类的配置方式，只是刷新了 BeanFactory
